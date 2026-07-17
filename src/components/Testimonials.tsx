@@ -141,8 +141,12 @@ export default function Testimonials() {
             className="text-center pointer-events-auto"
           >
             <h2
-              className="font-display font-black text-[#1C1C1E] leading-tight"
-              style={{ fontSize: "clamp(2rem, 5vw, 3.6rem)" }}
+              className="font-display font-black text-[#1C1C1E] leading-tight inline-block"
+              style={{ 
+                fontSize: "clamp(1.8rem, 4vw, 3rem)",
+                transform: "scaleX(1.5)",
+                transformOrigin: "center"
+              }}
             >
               Trusted by{" "}
               <span style={{
@@ -150,7 +154,7 @@ export default function Testimonials() {
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}>
-                {reviews.length}+ members
+                10k+ members
               </span>
             </h2>
           </motion.div>
