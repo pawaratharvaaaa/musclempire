@@ -141,12 +141,8 @@ export default function Testimonials() {
             className="text-center pointer-events-auto"
           >
             <h2
-              className="font-display font-black text-[#1C1C1E] leading-tight inline-block"
-              style={{ 
-                fontSize: "clamp(1.8rem, 4vw, 3rem)",
-                transform: "scaleX(1.5)",
-                transformOrigin: "center"
-              }}
+              className="font-anton text-[#1C1C1E] leading-tight uppercase"
+              style={{ fontSize: "clamp(2rem, 5vw, 3.6rem)" }}
             >
               Trusted by{" "}
               <span style={{
