@@ -102,7 +102,7 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
             }}
             className="w-full flex items-center justify-center bg-primary hover:bg-primary/90 text-black font-black uppercase tracking-widest py-3 rounded-xl text-sm transition-colors mt-1"
           >
-            {offer.cta || "Join Now"}
+            {offer.cta || "Unlock True Yourself"}
           </a>
         )}
       </div>

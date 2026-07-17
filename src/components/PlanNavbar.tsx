@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
-import logo from "@/assets/images/logo.jpeg";
+import logo from "@/assets/images/logo.svg";
 
 export default function PlanNavbar() {
   const [location, navigate] = useLocation();

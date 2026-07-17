@@ -1,31 +1,21 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, MapPin, Mail, CheckCircle2, Clock } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
+import { Phone, MapPin, Mail, CheckCircle2, Clock, User, Building2, FileText } from "lucide-react";
 import { APPS_SCRIPT_URL } from "@/lib/sheets";
 
 const OWNER_PHONE = "919773053632";
 
-const goals = [
-  { value: "full_body",   label: "Full body workout" },
-  { value: "weight_gain", label: "Weight gain" },
-  { value: "weight_loss", label: "Weight loss" },
-  { value: "muscle_gain", label: "Muscle gain" },
-  { value: "cardio",      label: "Cardio" },
-];
-
-const contactItems = [
-  { Icon: FaWhatsapp, label: "WhatsApp",           value: "+91 97730 53632",                        href: `https://wa.me/${OWNER_PHONE}`,                                        cta: "Chat now",     bg: "#25D366" },
-  { Icon: Phone,      label: "Call us",             value: "+91 97730 53632",                        href: "tel:+919773053632",                                                    cta: "Call now",     bg: "#E8A820" },
-  { Icon: Phone,      label: "Office",              value: "+91 97022 68603",                        href: "tel:+919702268603",                                                    cta: "Call now",     bg: "#E8A820" },
-  { Icon: MapPin,     label: "Unisex gym",          value: "J/16, Jay Hanuman Mandir, Barvenagar Colony, Bhatwadi, Ghatkopar (West), Mumbai – 400084",   href: "https://maps.google.com/?q=Muscle+Empire+Gymnasium+Ghatkopar+West+Mumbai", cta: "Directions",   bg: "#EF4444" },
-  { Icon: MapPin,     label: "Female gym",          value: "1st Floor, Ranveer Apartment, Sanjay Kokate Lane, Bhatwadi, Ghatkopar (West), Mumbai – 400084", href: "https://maps.google.com/?q=Ranveer+Apartment+Sanjay+Kokate+Lane+Bhatwadi+Ghatkopar+West+Mumbai", cta: "Directions", bg: "#EF4444" },
-  { Icon: Mail,       label: "Email",               value: "musclempire616@gmail.com",               href: "mailto:musclempire616@gmail.com",                                      cta: "Send mail",    bg: "#6366F1" },
-];
-
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({ name: "", age: "", requirement: "", phone: "", notes: "" });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    companyName: "",
+    subject: "",
+    message: ""
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [timeoutId, setTimeoutId] = useState<number | null>(null);
 
@@ -38,10 +28,18 @@ export default function Contact() {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.name.trim() || form.name.trim().length < 2) e.name = "Name must be at least 2 characters.";
-    if (!form.age || isNaN(+form.age) || +form.age < 10 || +form.age > 90) e.age = "Enter a valid age between 10 and 90.";
-    if (!form.requirement) e.requirement = "Please select your goal.";
-    if (!form.phone.trim() || !/^\+?[0-9]{10,13}$/.test(form.phone.replace(/\s/g, ""))) e.phone = "Enter a valid phone number (10–13 digits).";
+    if (!form.firstName.trim() || form.firstName.trim().length < 2) {
+      e.firstName = "First name must be at least 2 characters.";
+    }
+    if (!form.phone.trim() || !/^\+?[0-9]{10,13}$/.test(form.phone.replace(/\s/g, ""))) {
+      e.phone = "Enter a valid phone number (10–13 digits).";
+    }
+    if (form.email.trim() && !/\S+@\S+\.\S+/.test(form.email.trim())) {
+      e.email = "Enter a valid email address.";
+    }
+    if (!form.subject.trim()) {
+      e.subject = "Please enter a subject.";
+    }
     return e;
   };
 
@@ -50,20 +48,27 @@ export default function Contact() {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
-    const label = goals.find(g => g.value === form.requirement)?.label || form.requirement;
+    
+    const fullName = `${form.firstName} ${form.lastName}`.trim();
     const today = new Date().toLocaleDateString("en-IN");
     
-    // Submit to Apps Script URL
-    fetch(`${APPS_SCRIPT_URL}?${new URLSearchParams({ action: "enquiry", date: today, name: form.name, phone: form.phone, age: form.age, goal: label, notes: form.notes })}`, { redirect: "follow" }).catch(() => null);
+    const notesStr = `Company: ${form.companyName}\nEmail: ${form.email}\nMessage: ${form.message}`;
+    fetch(`${APPS_SCRIPT_URL}?${new URLSearchParams({ 
+      action: "enquiry", 
+      date: today, 
+      name: fullName, 
+      phone: form.phone, 
+      age: "N/A", 
+      goal: form.subject, 
+      notes: notesStr 
+    })}`, { redirect: "follow" }).catch(() => null);
     
-    const msg = encodeURIComponent(`Hi! I'd like to join Muscle Empire.\n\n*Name:* ${form.name}\n*Age:* ${form.age}\n*Goal:* ${label}\n*Phone:* ${form.phone}${form.notes ? `\n*Notes:* ${form.notes}` : ""}`);
+    const msg = encodeURIComponent(`Hi! I'd like to get in touch with Muscle Empire.\n\n*Name:* ${fullName}\n*Phone:* ${form.phone}\n*Email:* ${form.email || "N/A"}\n*Company:* ${form.companyName || "N/A"}\n*Subject:* ${form.subject}\n*Message:* ${form.message}`);
     
-    // Open WhatsApp
     window.open(`https://wa.me/${OWNER_PHONE}?text=${msg}`, "_blank");
     
     setSubmitted(true);
     
-    // Auto reset after 5 seconds
     const id = window.setTimeout(() => {
       handleReset();
     }, 5000);
@@ -76,115 +81,114 @@ export default function Contact() {
       setTimeoutId(null);
     }
     setSubmitted(false);
-    setForm({ name: "", age: "", requirement: "", phone: "", notes: "" });
+    setForm({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      companyName: "",
+      subject: "",
+      message: ""
+    });
     setErrors({});
-  };
-
-  const getInputClass = (fieldName: keyof typeof form, value: string) => {
-    const base = "input-premium w-full transition-all duration-200 focus:outline-none";
+  };  const getInputClass = (fieldName: keyof typeof form, value: string) => {
+    const base = "w-full h-12 pl-10 pr-4 bg-[#1C1C1E] border border-white/[0.12] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-[#E8A820] focus:ring-1 focus:ring-[#E8A820]/50 transition-all text-sm";
     if (errors[fieldName]) {
-      return `${base} border-red-500 ring-2 ring-red-500/10 focus:border-red-500 focus:ring-red-500/20`;
+      return `${base} border-red-500 focus:border-red-500 focus:ring-red-500`;
     }
     if (value && !errors[fieldName]) {
-      return `${base} border-green-500/30 bg-green-500/[0.005] focus:border-green-500 focus:ring-green-500/10`;
+      return `${base} border-green-500/30 focus:border-green-500 focus:ring-green-500/10`;
     }
     return base;
   };
 
-  const errMsg = "text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1.5";
-
   return (
-    <section id="contact" className="py-28 bg-[#F7F6F3] relative overflow-hidden">
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-black/[0.08] to-transparent" />
-      
-      {/* Decorative glowing background orbs */}
-      <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#E8A820]/[0.025] rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] bg-[#25D366]/[0.015] rounded-full blur-3xl pointer-events-none" />
+    <section id="contact" className="py-24 relative overflow-hidden bg-[#1C1C1E] flex items-center justify-center min-h-screen">
+      {/* Blurred gradient background shapes */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#E8A820]/[0.04] blur-[130px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-pink-500/[0.03] blur-[130px]" />
+        <div className="absolute top-[30%] right-[20%] w-[40vw] h-[40vw] rounded-full bg-purple-500/[0.02] blur-[130px]" />
+      </div>
 
-      <div className="max-w-7xl mx-auto px-5 md:px-8 relative z-10">
+      <div className="max-w-6xl mx-auto px-5 w-full relative z-10">
+        <div className="bg-[#232325] text-white rounded-[32px] border border-white/[0.06] shadow-[0_24px_80px_rgba(0,0,0,0.5)] p-8 md:p-12 lg:p-14 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+          
+          {/* Left Column: Contact info & Map */}
+          <div className="flex flex-col gap-6 w-full">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+              Contact information
+            </h2>
+            <p className="text-neutral-400 text-sm md:text-base leading-relaxed">
+              We help you find direction, build strength, and keep your body moving forward—strategically and confidently.
+            </p>
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center max-w-xl mx-auto mb-16"
-        >
-          <div className="eyebrow justify-center mb-4">Reach out</div>
-          <h2 className="font-display font-black text-[#1C1C1E] text-[clamp(2rem,4.5vw,2.9rem)]">
-            Step into the <span className="text-gold-gradient">arena</span>
-          </h2>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 items-stretch">
-
-          {/* ── Info ──────────────────────────────────── */}
-          <motion.div
-            initial={{ opacity: 0, x: -28 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col justify-between"
-          >
-            <div>
-              <h3 className="font-display font-black text-[#1C1C1E] text-xl mb-2">Contact us</h3>
-              <p className="text-[#666] text-[0.92rem] leading-relaxed mb-7">
-                Ready to transform? Have questions about our programs? Drop us a line or walk in.
-              </p>
-
-              {/* Hours card */}
-              <motion.div 
-                whileHover={{ x: 4 }}
-                className="mb-6 flex items-start gap-3.5 p-5 bg-[#F0EEE9] border-l-4 border-l-[#E8A820] border-y border-r border-black/[0.06] rounded-r-2xl transition-all duration-200"
-              >
-                <Clock size={18} className="text-[#E8A820] shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-wider text-[#E8A820] mb-1">Operating hours</p>
-                  <p className="text-[#333] text-sm font-medium">Unisex Gym: Mon – Sat, 6:00 AM – 11:00 PM</p>
-                  <p className="text-[#333] text-sm font-medium">Female Gym: Mon – Sat, 6:00 AM – 12:00 PM &amp; 4:00 PM – 10:00 PM</p>
+            <div className="mt-4 flex flex-col gap-5">
+              {/* Phone */}
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#E8A820] shrink-0 border border-white/[0.06]">
+                  <Phone size={18} />
                 </div>
-              </motion.div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-0.5">Phone</p>
+                  <a href="tel:+919773053632" className="text-white font-semibold text-sm hover:text-[#E8A820] transition-colors">
+                    +91 97730 53632
+                  </a>
+                </div>
+              </div>
 
-              {/* Contact links */}
-              <div className="flex flex-col gap-2.5">
-                {contactItems.map((item, i) => (
-                  <motion.a
-                    key={i}
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ y: -3, scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    className="flex items-center gap-4 p-4 bg-[#F0EEE9] border border-black/[0.06] rounded-2xl hover:border-[#E8A820]/40 hover:shadow-[0_8px_24px_rgba(0,0,0,0.05)] group transition-all duration-200"
-                  >
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform"
-                      style={{ background: item.bg }}
-                    >
-                      <item.Icon size={18} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#999] mb-0.5">{item.label}</p>
-                      <p className="text-[#1C1C1E] font-semibold text-[0.87rem] leading-snug">{item.value}</p>
-                    </div>
-                    <span className="text-[#E8A820] text-[11px] font-bold uppercase tracking-wide opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block shrink-0">
-                      {item.cta} &rarr;
-                    </span>
-                  </motion.a>
-                ))}
+              {/* Email */}
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#E8A820] shrink-0 border border-white/[0.06]">
+                  <Mail size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-0.5">Email</p>
+                  <a href="mailto:musclempire616@gmail.com" className="text-white font-semibold text-sm hover:text-[#E8A820] transition-colors">
+                    musclempire616@gmail.com
+                  </a>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#E8A820] shrink-0 border border-white/[0.06]">
+                  <MapPin size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-0.5">Location</p>
+                  <span className="text-white font-semibold text-sm">
+                    Ghatkopar West, Mumbai - 400084
+                  </span>
+                </div>
+              </div>
+
+              {/* Timings */}
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#E8A820] shrink-0 border border-white/[0.06]">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-0.5">Timings</p>
+                  <span className="text-white font-semibold text-sm">
+                    Monday – Saturday, 6:00 AM – 11:00 PM
+                  </span>
+                </div>
               </div>
             </div>
-          </motion.div>
 
-          {/* ── Form ──────────────────────────────────── */}
-          <motion.div
-            initial={{ opacity: 0, x: 28 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.12, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="bg-[#F0EEE9] border border-black/[0.06] rounded-[24px] p-8 md:p-10 shadow-[0_4px_28px_rgba(0,0,0,0.04)] relative overflow-hidden flex flex-col justify-center min-h-[580px]"
-          >
+            {/* Map Embed */}
+            <iframe
+              src="https://maps.google.com/maps?q=Muscle%20Empire%20Gymnasium%20Ghatkopar%20West%20Mumbai&t=&z=14&ie=UTF8&iwloc=&output=embed"
+              className="w-full h-[220px] rounded-2xl border border-white/[0.08] shadow-sm mt-6 invert-[0.9] hue-rotate-[180deg]"
+              allowFullScreen
+              loading="lazy"
+              title="Muscle Empire Gymnasium Map"
+            />
+          </div>
+
+          {/* Right Column: Form */}
+          <div className="bg-[#232325] w-full">
             <AnimatePresence mode="wait">
               {submitted ? (
                 <motion.div
@@ -195,17 +199,17 @@ export default function Contact() {
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                   className="flex flex-col items-center justify-center text-center py-8"
                 >
-                  <div className="w-20 h-20 rounded-full bg-[#25D366]/10 border border-[#25D366]/20 flex items-center justify-center mb-6 shadow-[0_8px_24px_rgba(37,211,102,0.15)]">
+                  <div className="w-20 h-20 rounded-full bg-green-500/[0.08] border border-green-500/20 flex items-center justify-center mb-6 shadow-[0_8px_24px_rgba(37,211,102,0.1)]">
                     <CheckCircle2 size={40} className="text-[#25D366] animate-bounce" />
                   </div>
                   
-                  <h4 className="font-display font-black text-[#1C1C1E] text-2xl mb-3">WhatsApp Connection Opened!</h4>
-                  <p className="text-[#666] text-sm leading-relaxed max-w-sm mb-8">
-                    Thanks <strong className="text-[#1C1C1E]">{form.name}</strong>! Your message is ready to send in WhatsApp. If it didn't open automatically, please check your browser's pop-up blocker.
+                  <h4 className="font-sans font-black text-white text-2xl mb-3">WhatsApp Connection Opened!</h4>
+                  <p className="text-neutral-400 text-sm leading-relaxed max-w-sm mb-8">
+                    Thanks <strong className="text-white">{form.firstName}</strong>! Your message is ready to send in WhatsApp. If it didn't open automatically, please check your browser's pop-up blocker.
                   </p>
                   
                   {/* Countdown progress bar */}
-                  <div className="w-full max-w-[280px] bg-black/[0.05] h-1.5 rounded-full overflow-hidden mb-8 relative">
+                  <div className="w-full max-w-[280px] bg-white/[0.05] h-1.5 rounded-full overflow-hidden mb-8 relative">
                     <motion.div 
                       key={submitted ? "active-progress" : "inactive-progress"}
                       initial={{ width: "100%" }}
@@ -217,122 +221,157 @@ export default function Contact() {
 
                   <button 
                     onClick={handleReset}
-                    className="px-6 py-3 bg-[#E8A820] hover:bg-[#d49518] text-[#1a1208] text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 hover:shadow-[0_4px_12px_rgba(232,168,32,0.3)] hover:-translate-y-0.5 cursor-pointer"
+                    className="px-6 py-3 bg-[#E8A820] hover:bg-[#d49518] text-[#1C1C1E] text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 hover:shadow-lg cursor-pointer"
                   >
                     Send another message
                   </button>
                 </motion.div>
               ) : (
-                <motion.div
-                  key="form"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="w-full"
-                >
-                  <h3 className="font-display font-black text-[#1C1C1E] text-xl mb-1">Send a message</h3>
-                  <p className="text-[#888] text-[0.87rem] mb-8 leading-relaxed">
-                    We'll open WhatsApp with your details pre-filled — straight to our team.
-                  </p>
+                <div className="flex flex-col gap-6">
+                  <div>
+                    <h2 className="text-3xl font-extrabold text-white tracking-tight">
+                      Send Us a Message
+                    </h2>
+                    <p className="text-neutral-400 text-sm mt-2">
+                      Fill up the form and our team will get back to you within 24 hours.
+                    </p>
+                  </div>
 
-                  <form onSubmit={handleSubmit} noValidate className="space-y-5">
-
-                    {/* Name */}
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#888] mb-1.5">Full name</label>
-                      <input 
-                        type="text" 
-                        placeholder="John Doe" 
-                        value={form.name} 
-                        onChange={e => setForm({...form, name: e.target.value})} 
-                        className={getInputClass("name", form.name)} 
-                      />
-                      {errors.name && <p className={errMsg}>{errors.name}</p>}
-                    </div>
-
-                    {/* Age */}
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#888] mb-1.5">Age</label>
-                      <input 
-                        type="number" 
-                        placeholder="25" 
-                        min={10} 
-                        max={90} 
-                        value={form.age} 
-                        onChange={e => setForm({...form, age: e.target.value})} 
-                        className={getInputClass("age", form.age)} 
-                      />
-                      {errors.age && <p className={errMsg}>{errors.age}</p>}
-                    </div>
-
-                    {/* Goal */}
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#888] mb-2">My goal</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {goals.map(g => (
-                          <label
-                            key={g.value}
-                            className={`flex items-center gap-2.5 px-3.5 py-3 border rounded-xl cursor-pointer text-[0.85rem] font-medium transition-all duration-200 capitalize ${
-                              form.requirement === g.value
-                                ? "border-[#E8A820] bg-[#E8A820]/[0.08] text-[#7A5B00]"
-                                : "border-black/[0.08] bg-white text-[#555] hover:border-[#E8A820]/40"
-                            }`}
-                          >
-                            <input 
-                              type="radio" 
-                              name="goal" 
-                              value={g.value} 
-                              checked={form.requirement === g.value} 
-                              onChange={e => setForm({...form, requirement: e.target.value})} 
-                              className="accent-[#E8A820] w-3.5 h-3.5 shrink-0" 
-                            />
-                            {g.label}
-                          </label>
-                        ))}
+                  <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+                    {/* First name & Last name */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="relative">
+                        <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">First name</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+                            <User size={16} />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Enter first name"
+                            value={form.firstName}
+                            onChange={e => setForm({...form, firstName: e.target.value})}
+                            className={getInputClass("firstName", form.firstName)}
+                          />
+                        </div>
+                        {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
                       </div>
-                      {errors.requirement && <p className={errMsg}>{errors.requirement}</p>}
+
+                      <div className="relative">
+                        <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Last name</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+                            <User size={16} />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Enter last name"
+                            value={form.lastName}
+                            onChange={e => setForm({...form, lastName: e.target.value})}
+                            className={getInputClass("lastName", form.lastName)}
+                          />
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Phone */}
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#888] mb-1.5">Phone number</label>
-                      <input 
-                        type="tel" 
-                        placeholder="+91 98765 43210" 
-                        value={form.phone} 
-                        onChange={e => setForm({...form, phone: e.target.value})} 
-                        className={getInputClass("phone", form.phone)} 
-                      />
-                      {errors.phone && <p className={errMsg}>{errors.phone}</p>}
+                    {/* Email & Phone */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="relative">
+                        <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Email</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+                            <Mail size={16} />
+                          </div>
+                          <input
+                            type="email"
+                            placeholder="Enter email"
+                            value={form.email}
+                            onChange={e => setForm({...form, email: e.target.value})}
+                            className={getInputClass("email", form.email)}
+                          />
+                        </div>
+                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                      </div>
+
+                      <div className="relative">
+                        <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Phone</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+                            <Phone size={16} />
+                          </div>
+                          <input
+                            type="tel"
+                            placeholder="Enter phone"
+                            value={form.phone}
+                            onChange={e => setForm({...form, phone: e.target.value})}
+                            className={getInputClass("phone", form.phone)}
+                          />
+                        </div>
+                        {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                      </div>
                     </div>
 
-                    {/* Notes */}
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#888] mb-1.5">
-                        Notes <span className="normal-case font-normal text-[#ccc]">(optional)</span>
-                      </label>
+                    {/* Company Name & Subject */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="relative">
+                        <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Company Name</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <Building2 size={16} />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Enter company name"
+                            value={form.companyName}
+                            onChange={e => setForm({...form, companyName: e.target.value})}
+                            className={getInputClass("companyName", form.companyName)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="relative">
+                        <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Subject</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+                            <FileText size={16} />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Enter Subject"
+                            value={form.subject}
+                            onChange={e => setForm({...form, subject: e.target.value})}
+                            className={getInputClass("subject", form.subject)}
+                          />
+                        </div>
+                        {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
+                      </div>
+                    </div>
+
+                    {/* Message */}
+                    <div className="relative">
+                      <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Message</label>
                       <textarea
-                        placeholder="Preferred timings, questions, or anything else..."
-                        rows={3}
-                        value={form.notes}
-                        onChange={e => setForm({...form, notes: e.target.value})}
-                        className="input-premium w-full h-auto py-3 resize-none focus:outline-none transition-all duration-200"
+                        placeholder="Type here..."
+                        rows={4}
+                        value={form.message}
+                        onChange={e => setForm({...form, message: e.target.value})}
+                        className="w-full p-4 bg-[#1C1C1E] border border-white/[0.12] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-[#E8A820] focus:ring-1 focus:ring-[#E8A820]/50 transition-all text-sm resize-none"
                       />
                     </div>
 
-                    {/* Submit */}
+                    {/* Submit Button */}
                     <button
                       type="submit"
-                      className="w-full flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#1db954] text-white font-bold text-[14px] h-[52px] rounded-[14px] transition-all duration-200 hover:shadow-[0_8px_24px_rgba(37,211,102,0.30)] hover:-translate-y-0.5 cursor-pointer"
+                      className="self-start px-8 h-12 bg-[#E8A820] hover:bg-[#d49518] text-[#1C1C1E] font-black uppercase tracking-wider text-xs rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg cursor-pointer"
                     >
-                      <FaWhatsapp size={19} />
-                      Send via WhatsApp
+                      Send Message
                     </button>
                   </form>
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
-          </motion.div>
+          </div>
+          
         </div>
       </div>
     </section>

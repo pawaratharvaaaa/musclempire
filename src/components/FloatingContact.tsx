@@ -130,7 +130,7 @@ export default function FloatingContact() {
 
   return (
     <>
-      <div className="fixed right-5 bottom-[68px] z-[999] flex flex-col gap-3 items-end">
+      <div className="fixed right-5 bottom-20 z-[999] flex flex-col gap-3 items-end">
         {/* WhatsApp */}
         <motion.button
           onClick={() => setPopupOpen(true)}
