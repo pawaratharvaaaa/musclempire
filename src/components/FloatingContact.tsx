@@ -146,10 +146,32 @@ export default function FloatingContact() {
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.93 }}
-            className="w-13 h-13 bg-[#25D366] flex items-center justify-center text-white shadow-[0_4px_20px_rgba(37,211,102,0.45)] rounded-2xl"
-            style={{ width: 52, height: 52 }}
+            className="relative overflow-hidden flex items-center justify-center text-white rounded-2xl"
+            style={{
+              width: 40,
+              height: 40,
+              background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.12) 100%)",
+              backdropFilter: "blur(20px) saturate(180%)",
+              WebkitBackdropFilter: "blur(20px) saturate(180%)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              boxShadow:
+                "0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.08)",
+            }}
           >
-            <FaWhatsapp size={26} />
+            {/* Top specular highlight */}
+            <div
+              className="absolute top-0 left-[15%] right-[15%] h-[38%] rounded-full pointer-events-none"
+              style={{
+                background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.0) 70%)",
+                filter: "blur(1px)",
+              }}
+            />
+            {/* Bottom depth shadow */}
+            <div
+              className="absolute bottom-0 inset-x-0 h-1/2 rounded-b-2xl pointer-events-none"
+              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.12) 0%, transparent 100%)" }}
+            />
+            <FaWhatsapp size={18} className="relative z-10" />
           </motion.div>
         </motion.button>
 
@@ -168,10 +190,32 @@ export default function FloatingContact() {
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.93 }}
-            className="bg-[#E8A820] flex items-center justify-center text-[#1C1C1E] shadow-[0_4px_20px_rgba(255,193,7,0.40)] rounded-2xl"
-            style={{ width: 52, height: 52 }}
+            className="relative overflow-hidden flex items-center justify-center text-white rounded-2xl"
+            style={{
+              width: 40,
+              height: 40,
+              background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.12) 100%)",
+              backdropFilter: "blur(20px) saturate(180%)",
+              WebkitBackdropFilter: "blur(20px) saturate(180%)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              boxShadow:
+                "0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.08)",
+            }}
           >
-            <Phone size={22} strokeWidth={2.5} />
+            {/* Top specular highlight */}
+            <div
+              className="absolute top-0 left-[15%] right-[15%] h-[38%] rounded-full pointer-events-none"
+              style={{
+                background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.0) 70%)",
+                filter: "blur(1px)",
+              }}
+            />
+            {/* Bottom depth shadow */}
+            <div
+              className="absolute bottom-0 inset-x-0 h-1/2 rounded-b-2xl pointer-events-none"
+              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.12) 0%, transparent 100%)" }}
+            />
+            <Phone size={17} strokeWidth={2.5} className="relative z-10" />
           </motion.div>
         </motion.a>
       </div>

@@ -616,3 +616,19 @@
     background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.08), transparent);
   }
 }
+
+/* ── Timeline scroll panel custom scrollbar ─────────────────── */
+.timeline-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.timeline-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 999px;
+}
+.timeline-scroll::-webkit-scrollbar-thumb {
+  background: rgba(232, 168, 32, 0.35);
+  border-radius: 999px;
+}
+.timeline-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(232, 168, 32, 0.6);
+}

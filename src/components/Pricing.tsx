@@ -1,8 +1,72 @@
 import { motion } from "framer-motion";
 import { Dumbbell, Users, ArrowRight, Check } from "lucide-react";
 import { useLocation } from "wouter";
+import { useState } from "react";
 import unisexBg from "@/assets/images/unisex-bg.png";
 import femaleBg from "@/assets/images/female-bg.png";
+import { PricingModal } from "@/components/ui/pricing-table";
+import type { PricingPlan, PricingFeature } from "@/components/ui/pricing-table";
+
+/* ── Unisex gym data ──────────────────────────────────────── */
+const unisexPlans: PricingPlan[] = [
+  {
+    name: "Gym",
+    level: "basic",
+    price: { monthly: 1500, yearly: 8500 },
+    description: "Full gym access",
+  },
+  {
+    name: "Gym + CrossFit",
+    level: "premium",
+    price: { monthly: 2500, yearly: 12500 },
+    popular: true,
+    description: "Gym & CrossFit combined",
+  },
+];
+
+const unisexFeatures: PricingFeature[] = [
+  { name: "All gym equipment",               included: "basic"   },
+  { name: "Strength & cardio training",       included: "basic"   },
+  { name: "Trainer assistance",               included: "basic"   },
+  { name: "Flexible workout timings",         included: "basic"   },
+  { name: "Workout guidance",                 included: "basic"   },
+  { name: "CrossFit training area",           included: "premium" },
+  { name: "CrossFit sessions",                included: "premium" },
+  { name: "Form correction coaching",         included: "premium" },
+];
+
+/* ── Female gym data ──────────────────────────────────────── */
+const femalePlans: PricingPlan[] = [
+  {
+    name: "Monthly",
+    level: "basic",
+    price: { monthly: 1500, yearly: 1500 },
+    description: "Pay month-to-month",
+  },
+  {
+    name: "Half Yearly",
+    level: "standard",
+    price: { monthly: 834, yearly: 5000 },
+    popular: true,
+    description: "₹5,000 billed every 6 months",
+  },
+  {
+    name: "Yearly",
+    level: "premium",
+    price: { monthly: 625, yearly: 7500 },
+    description: "₹7,500 billed annually",
+  },
+];
+
+const femaleFeatures: PricingFeature[] = [
+  { name: "All gym equipment",                included: "basic"    },
+  { name: "Women-only environment",           included: "basic"    },
+  { name: "Trainer assistance",               included: "basic"    },
+  { name: "Cardio & strength training",       included: "basic"    },
+  { name: "Workout guidance",                 included: "basic"    },
+  { name: "Priority trainer support",         included: "standard" },
+  { name: "Progress check-ins",               included: "premium"  },
+];
 
 const gyms = [
   {
@@ -19,6 +83,8 @@ const gyms = [
     bgImg: unisexBg,
     accentColor: "#E8A820",
     glowColor: "rgba(232,168,32,0.15)",
+    plans: unisexPlans,
+    tableFeatures: unisexFeatures,
   },
   {
     title: "Muscle Empire Crossfit Studio",
@@ -34,11 +100,14 @@ const gyms = [
     bgImg: femaleBg,
     accentColor: "#ec4899",
     glowColor: "rgba(236,72,153,0.15)",
+    plans: femalePlans,
+    tableFeatures: femaleFeatures,
   },
 ];
 
 export default function Pricing() {
   const [, navigate] = useLocation();
+  const [modalGym, setModalGym] = useState<typeof gyms[0] | null>(null);
 
   return (
     <section id="pricing" className="py-28 bg-[#1C1C1E] relative overflow-hidden">
@@ -170,7 +239,7 @@ export default function Pricing() {
 
               {/* CTA */}
               <button
-                onClick={() => { sessionStorage.setItem("scroll_before_plans", String(window.scrollY)); navigate(gym.href); }}
+                onClick={() => setModalGym(gym)}
                 className={`w-full flex items-center justify-center gap-2 font-bold text-[13px] h-[52px] rounded-xl transition-all duration-300 z-10 ${
                   gym.featured
                     ? "btn-gold group-hover:shadow-[0_10px_25px_rgba(232,168,32,0.25)]"
@@ -187,6 +256,24 @@ export default function Pricing() {
           ))}
         </div>
       </div>
+
+      {/* Pricing modal */}
+      {modalGym && (
+        <PricingModal
+          open={!!modalGym}
+          onClose={() => setModalGym(null)}
+          title={modalGym.title}
+          subtitle={modalGym.subtitle}
+          accentColor={modalGym.accentColor}
+          features={modalGym.tableFeatures}
+          plans={modalGym.plans}
+          onGetStarted={() => {
+            setModalGym(null);
+            sessionStorage.setItem("scroll_before_plans", String(window.scrollY));
+            navigate(modalGym.href);
+          }}
+        />
+      )}
     </section>
   );
 }

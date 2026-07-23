@@ -1,120 +1,156 @@
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValue } from "framer-motion";
 import heroBg from "@/assets/images/hero-bg.png";
 
 export default function Hero() {
   const { scrollY } = useScroll();
-  const bgY        = useTransform(scrollY, [0, 700], [0, 120]);
-  const contentY   = useTransform(scrollY, [0, 500], [0, -60]);
-  const textOpacity= useTransform(scrollY, [0, 400], [1, 0]);
 
-  const goto = (href: string) => {
-    const el = document.querySelector(href);
+  const fadeOut = useTransform(scrollY, [0, 360], [1, 0]);
+  const slideUp = useTransform(scrollY, [0, 360], [0, -28]);
+
+  /* mouse follow for CTA glow */
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+
+  const goto = (id: string) => {
+    const el = document.querySelector(id);
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 76, behavior: "smooth" });
   };
 
   return (
-    <section
-      id="home"
-      className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-[#1C1C1E] w-full"
-    >
-      {/* ── Parallax background ──────────────────────── */}
-      <motion.div className="absolute inset-0 z-0" style={{ y: bgY }}>
-        {/* Multi-layer gradient for cinematic feel */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#1C1C1E]/60 via-[#1C1C1E]/20 to-[#1C1C1E]" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-[#1C1C1E]/65 via-transparent to-[#1C1C1E]/25" />
+    <section id="home" className="relative min-h-[100dvh] overflow-hidden bg-[#0B0B0B]">
+
+      {/* Background */}
+      <div className="absolute inset-0 z-0">
+        <div
+          className="absolute inset-0 z-10"
+          style={{ background: "linear-gradient(to right,rgba(11,11,11,0.85) 0%,rgba(11,11,11,0.35) 50%,rgba(11,11,11,0.10) 100%)" }}
+        />
+        <div
+          className="absolute inset-0 z-10"
+          style={{ background: "linear-gradient(to top,rgba(11,11,11,1) 0%,transparent 55%)" }}
+        />
         <img
           src={heroBg}
-          alt="Muscle Empire — Elite training facility"
-          className="w-full h-[115%] object-cover object-center"
+          alt="Muscle Empire"
           fetchPriority="high"
+          className="absolute inset-0 w-full h-full object-cover object-center"
         />
-      </motion.div>
+      </div>
 
-      {/* ── Grain texture ────────────────────────────── */}
-      <div className="absolute inset-0 z-[5] pointer-events-none opacity-[0.06] mix-blend-overlay"
-        style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}
+      <div
+        className="absolute bottom-0 left-0 w-[340px] h-[170px] pointer-events-none z-[5]"
+        style={{ background: "radial-gradient(ellipse,rgba(232,168,32,0.07) 0%,transparent 70%)" }}
       />
 
-      {/* ── Ambient glow orbs ────────────────────────── */}
-      <div className="absolute bottom-0 left-0 w-[600px] h-[350px] rounded-full bg-[#E8A820]/[0.06] blur-[140px] z-[6] pointer-events-none" />
-      <div className="absolute top-1/3 right-0 w-[400px] h-[300px] rounded-full bg-[#C97D10]/[0.04] blur-[120px] z-[6] pointer-events-none" />
-
-      {/* ── Content ──────────────────────────────────── */}
+      {/* Content */}
       <motion.div
-        className="relative z-20 w-full max-w-7xl mx-auto px-5 md:px-8 pt-20 flex flex-col items-center text-center overflow-hidden"
-        style={{ y: contentY, opacity: textOpacity }}
+        className="relative z-20 w-full min-h-[100dvh] flex flex-col"
+        style={{ opacity: fadeOut, y: slideUp }}
       >
-        {/* Eyebrow pill */}
-        <motion.div
-          initial={{ opacity: 0, y: 16, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.1, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-7 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] text-[#E8A820] border border-[#E8A820]/20 bg-[#E8A820]/[0.06] backdrop-blur-sm"
+        <div
+          className="flex-1 grid grid-cols-1 lg:grid-cols-[38%_62%]
+                      max-w-[1440px] mx-auto w-full
+                      px-5 sm:px-8 md:px-10 lg:px-14
+                      pt-[100px] sm:pt-[112px] pb-10
+                      gap-y-10 lg:gap-y-0"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#E8A820] animate-pulse" />
-          Ghatkopar's elite training arena
-        </motion.div>
+          {/* LEFT — bottom aligned */}
+          <div className="order-2 lg:order-1 flex flex-col justify-end gap-5 lg:pr-8 lg:pb-14">
 
-        {/* Main headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.22, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="font-display font-black text-white text-[clamp(2.4rem,8vw,6rem)] leading-[1.05] tracking-[-0.03em] mb-6 max-w-5xl w-full"
-        >
-          Transform{" "}
-          <span className="text-gold-gradient">your body.</span>
-          <br className="hidden sm:block" />
-          {" "}Elevate your life.
-        </motion.h1>
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="inline-flex items-center gap-2 self-start px-4 py-1.5 rounded-full border border-white/[0.12] backdrop-blur-md"
+              style={{ background: "rgba(255,255,255,0.06)" }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E8A820] animate-pulse" />
+              <span className="text-[#E8A820] text-[11px] font-bold uppercase tracking-[0.18em]">
+                Ghatkopar's elite arena
+              </span>
+            </motion.div>
 
-        {/* Sub-headline */}
-        <motion.p
-          initial={{ opacity: 0, y: 28 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.38, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="text-white/60 text-[clamp(1rem,2.2vw,1.2rem)] max-w-xl leading-relaxed mb-10 font-normal"
-        >
-          This isn't a friendly neighbourhood gym — it's an arena. Raw power meets precision coaching.
-          Step in, put in the work, and earn your results.
-        </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              className="text-white/72 leading-[1.7] max-w-[290px]"
+              style={{ fontSize: "clamp(0.86rem,1.6vw,0.97rem)" }}
+            >
+              A space built for{" "}
+              <span className="text-white font-semibold">serious training</span>,{" "}
+              <span className="text-white font-semibold">real transformation</span>, and a community that pushes each other to rise higher every single day.
+            </motion.p>
 
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.52, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto"
-        >
-          <button
-            onClick={() => goto("#contact")}
-            className="btn-gold w-full sm:w-auto text-[14.5px] px-9 py-[14px]"
-          >
-            Start training
-          </button>
-          <button
-            onClick={() => goto("#pricing")}
-            className="btn-ghost-dark w-full sm:w-auto text-[14.5px] px-9 py-[14px]"
-          >
-            View programs
-          </button>
-        </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.5, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ y: -3, scale: 1.02 }}
+              className="self-start rounded-[32px] px-5 py-3 flex items-center gap-3 cursor-default"
+              style={{
+                background: "rgba(255,255,255,0.07)",
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
+                border: "1px solid rgba(255,255,255,0.13)",
+                boxShadow: "0 6px 24px rgba(0,0,0,0.28)",
+              }}
+            >
+              <div>
+                <p className="text-white font-black text-[0.9rem] leading-tight">5k+ Members</p>
+                <div className="flex gap-0.5 mt-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <svg key={i} width="11" height="11" viewBox="0 0 24 24" fill="#E8A820">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+          </div>
+
+          {/* RIGHT — headline with varied sizes */}
+          <div className="order-1 lg:order-2 flex flex-col justify-end gap-8 lg:pb-10 overflow-hidden">
+
+            <motion.div
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              className="font-display font-black uppercase text-left leading-[1.05] w-full"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              {/* TRANSFORM */}
+              <div className="text-white overflow-hidden" style={{ fontSize: "clamp(2.2rem,6vw,4.5rem)", lineHeight: 1.05 }}>
+                Transform
+              </div>
+
+              {/* YOUR BODY. — gold */}
+              <div style={{
+                fontSize: "clamp(2rem,5.5vw,3.9rem)", lineHeight: 1.05,
+                background: "linear-gradient(135deg,#E8A820,#FF9500)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              }}>
+                your body.
+              </div>
+
+              {/* ELEVATE */}
+              <div className="text-white mt-2" style={{ fontSize: "clamp(2.1rem,5.8vw,4.2rem)", lineHeight: 1.05 }}>
+                Elevate
+              </div>
+
+              {/* YOUR LIFE. */}
+              <div style={{ fontSize: "clamp(1.8rem,5vw,3.6rem)", lineHeight: 1.05, color: "rgba(255,255,255,0.68)" }}>
+                your life.
+              </div>
+
+            </motion.div>
+
+
+          </div>
+        </div>
       </motion.div>
 
-      {/* ── Scroll cue ────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4, duration: 0.6 }}
-        className="absolute bottom-9 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
-      >
-        <span className="text-white/25 text-[9px] font-semibold uppercase tracking-[0.22em]">Scroll</span>
-        <motion.div
-          animate={{ y: [0, 7, 0] }}
-          transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-          className="w-px h-8 bg-gradient-to-b from-white/35 to-transparent"
-        />
-      </motion.div>
     </section>
   );
 }

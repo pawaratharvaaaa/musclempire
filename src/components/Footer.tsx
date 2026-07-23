@@ -15,7 +15,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#1C1C1E] pt-20 pb-10 border-t border-white/[0.05]">
+    <footer className="bg-white pt-20 pb-10 border-t border-black/[0.06]">
       <div className="max-w-7xl mx-auto px-5 md:px-8">
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
@@ -29,13 +29,13 @@ export default function Footer() {
               <img
                 src={logo}
                 alt="Muscle Empire"
-                className="h-12 w-12 rounded-full object-cover border-[1.5px] border-[#E8A820]/40 group-hover:border-[#E8A820] transition-colors"
+                className="h-12 w-12 rounded-full object-cover border-[1.5px] border-[#E8A820]/60 group-hover:border-[#E8A820] transition-colors"
               />
-              <span className="font-display font-black text-[1.05rem] text-[#E8A820] tracking-tight">
+              <span className="font-display font-black text-[1.05rem] text-[#C8900A] tracking-tight">
                 Muscle Empire
               </span>
             </button>
-            <p className="text-white/38 text-[0.85rem] leading-relaxed mb-6">
+            <p className="text-black text-[0.85rem] leading-relaxed mb-6">
               Ghatkopar's premier hardcore training facility. We provide the iron, you provide the dedication.
             </p>
             <div className="flex gap-2.5">
@@ -48,7 +48,7 @@ export default function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl bg-[#F7F6F3]/[0.05] flex items-center justify-center text-white/45 hover:text-white hover:bg-[#F7F6F3]/[0.10] transition-all duration-200"
+                  className="w-9 h-9 rounded-xl bg-black/[0.05] flex items-center justify-center text-black hover:text-black hover:bg-black/[0.10] transition-all duration-200"
                 >
                   <Icon size={16} />
                 </a>
@@ -58,11 +58,11 @@ export default function Footer() {
 
           {/* Quick links */}
           <div>
-            <h4 className="text-white/70 font-bold text-[12px] uppercase tracking-widest mb-5">Quick links</h4>
+            <h4 className="text-black font-bold text-[12px] uppercase tracking-widest mb-5">Quick links</h4>
             <ul className="space-y-3">
               {quickLinks.map(l => (
                 <li key={l.href}>
-                  <a href={l.href} className="text-white/38 hover:text-[#E8A820] text-[0.87rem] transition-colors">
+                  <a href={l.href} className="text-black hover:text-[#C8900A] text-[0.87rem] transition-colors">
                     {l.label}
                   </a>
                 </li>
@@ -72,38 +72,38 @@ export default function Footer() {
 
           {/* Training */}
           <div>
-            <h4 className="text-white/70 font-bold text-[12px] uppercase tracking-widest mb-5">Training</h4>
+            <h4 className="text-black font-bold text-[12px] uppercase tracking-widest mb-5">Training</h4>
             <ul className="space-y-3">
               {training.map(t => (
-                <li key={t} className="text-white/38 text-[0.87rem]">{t}</li>
+                <li key={t} className="text-black text-[0.87rem]">{t}</li>
               ))}
             </ul>
           </div>
 
           {/* Visit us */}
           <div>
-            <h4 className="text-white/70 font-bold text-[12px] uppercase tracking-widest mb-5">Visit us</h4>
-            <address className="not-italic text-[0.85rem] text-white/38 space-y-4 leading-relaxed">
+            <h4 className="text-black font-bold text-[12px] uppercase tracking-widest mb-5">Visit us</h4>
+            <address className="not-italic text-[0.85rem] text-black space-y-4 leading-relaxed">
               <p>
-                <strong className="text-white/65 block mb-0.5 font-semibold">Unisex gym</strong>
+                <strong className="text-black block mb-0.5 font-semibold">Unisex gym</strong>
                 J/16, Jay Hanuman Mandir,<br />
                 Barvenagar Colony, Bhatwadi,<br />
                 Ghatkopar West, Mumbai – 400084
               </p>
               <p>
-                <strong className="text-white/65 block mb-0.5 font-semibold">Female gym</strong>
+                <strong className="text-black block mb-0.5 font-semibold">Female gym</strong>
                 1st Floor, Ranveer Apartment,<br />
                 Sanjay Kokate Lane, Bhatwadi,<br />
                 Ghatkopar West, Mumbai – 400084
               </p>
               <p>
-                <strong className="text-white/65 block mb-0.5 font-semibold">Call / WhatsApp</strong>
-                <a href="tel:+919773053632" className="hover:text-[#E8A820] transition-colors block">+91 97730 53632</a>
-                <a href="tel:+919702268603" className="hover:text-[#E8A820] transition-colors block">+91 97022 68603 (Office)</a>
+                <strong className="text-black block mb-0.5 font-semibold">Call / WhatsApp</strong>
+                <a href="tel:+919773053632" className="hover:text-[#C8900A] transition-colors block">+91 97730 53632</a>
+                <a href="tel:+919702268603" className="hover:text-[#C8900A] transition-colors block">+91 97022 68603 (Office)</a>
               </p>
               <p>
-                <strong className="text-white/65 block mb-0.5 font-semibold">Email</strong>
-                <a href="mailto:musclempire616@gmail.com" className="hover:text-[#E8A820] transition-colors">
+                <strong className="text-black block mb-0.5 font-semibold">Email</strong>
+                <a href="mailto:musclempire616@gmail.com" className="hover:text-[#C8900A] transition-colors">
                   musclempire616@gmail.com
                 </a>
               </p>
@@ -112,13 +112,13 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[11px] text-white/25 uppercase tracking-widest">
+        <div className="pt-8 border-t border-black/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-[11px] text-black uppercase tracking-widest">
             &copy; {year} Muscle Empire Gymnasium. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <a href="#" className="text-[11px] text-white/25 hover:text-white/50 transition-colors uppercase tracking-widest">Privacy policy</a>
-            <a href="#" className="text-[11px] text-white/25 hover:text-white/50 transition-colors uppercase tracking-widest">Terms</a>
+            <a href="#" className="text-[11px] text-black hover:text-black transition-colors uppercase tracking-widest">Privacy policy</a>
+            <a href="#" className="text-[11px] text-black hover:text-black transition-colors uppercase tracking-widest">Terms</a>
           </div>
         </div>
       </div>

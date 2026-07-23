@@ -25,15 +25,15 @@ function Card({ step }: { step: typeof STEPS[0] }) {
       onMouseLeave={() => setHovered(false)}
       className="relative rounded-[20px] flex flex-col p-7 overflow-hidden cursor-default"
       style={{
-        background: `radial-gradient(circle at 35% 30%, ${hovered ? step.glow : "transparent"} 0%, transparent 60%), #1e1e20`,
-        border: `1.5px solid ${hovered ? step.iconColor + "60" : "rgba(255,255,255,0.08)"}`,
-        boxShadow: hovered ? `0 16px 48px rgba(0,0,0,.35), 0 0 40px ${step.glow}` : "0 4px 16px rgba(0,0,0,.22)",
+        background: `radial-gradient(circle at 35% 30%, ${hovered ? step.glow : "transparent"} 0%, transparent 60%), #ffffff`,
+        border: `1.5px solid ${hovered ? step.iconColor + "60" : "rgba(0,0,0,0.08)"}`,
+        boxShadow: hovered ? `0 16px 48px rgba(0,0,0,.10), 0 0 40px ${step.glow}` : "0 2px 12px rgba(0,0,0,.06)",
         transition: "border-color .3s, box-shadow .3s, background .3s",
         minHeight: 200,
       }}
     >
       <div className="absolute top-0 left-[18%] right-[18%] h-px pointer-events-none"
-        style={{ background: `linear-gradient(90deg,transparent,${step.iconColor},transparent)`, opacity: hovered ? 0.65 : 0.15, transition:"opacity .3s" }} />
+        style={{ background: `linear-gradient(90deg,transparent,${step.iconColor},transparent)`, opacity: hovered ? 0.65 : 0.2, transition:"opacity .3s" }} />
       <div className="absolute bottom-4 right-4 pointer-events-none" style={{ color: step.iconColor, opacity: hovered ? 0.12 : 0.05, transition:"opacity .3s" }}>
         <step.Icon size={90} strokeWidth={0.7} />
       </div>
@@ -41,10 +41,11 @@ function Card({ step }: { step: typeof STEPS[0] }) {
         style={{ background: step.bg, color: step.iconColor, boxShadow: hovered ? `0 0 20px ${step.iconColor}44` : "none", transition:"box-shadow .3s" }}>
         <step.Icon size={24} strokeWidth={2} />
       </div>
-      <h3 className="font-display font-black text-[1.1rem] leading-snug z-10 relative"
-        style={{ color: hovered ? step.iconColor : "#F2EFE9", transition:"color .3s" }}>
+      <h3 className="font-display font-black text-[1.1rem] leading-snug mb-2 z-10 relative"
+        style={{ color: hovered ? step.iconColor : "#1C1C1E", transition:"color .3s" }}>
         {step.title}
       </h3>
+      <p className="text-black/45 text-[0.82rem] leading-relaxed z-10">{step.desc}</p>
     </motion.div>
   );
 }
@@ -77,9 +78,9 @@ function MobileCarousel() {
             <div
               className="rounded-[20px] flex flex-col p-6 overflow-hidden relative w-full"
               style={{
-                background: `radial-gradient(circle at 35% 30%, ${s.glow} 0%, transparent 60%), #1e1e20`,
+                background: `radial-gradient(circle at 35% 30%, ${s.glow} 0%, transparent 60%), #ffffff`,
                 border: `1.5px solid ${s.iconColor}55`,
-                boxShadow: `0 12px 40px rgba(0,0,0,.4), 0 0 36px ${s.glow}`,
+                boxShadow: `0 8px 32px rgba(0,0,0,.10), 0 0 36px ${s.glow}`,
                 minHeight: 200,
               }}
             >
@@ -95,7 +96,7 @@ function MobileCarousel() {
               <h3 className="font-display font-black text-[1.05rem] leading-snug mb-1 z-10" style={{ color: s.iconColor }}>
                 {s.title}
               </h3>
-              <p className="text-[#F2EFE9]/45 text-[0.82rem] leading-relaxed z-10">{s.desc}</p>
+              <p className="text-black/45 text-[0.82rem] leading-relaxed z-10">{s.desc}</p>
             </div>
           </motion.div>
         </AnimatePresence>
@@ -116,10 +117,10 @@ function MobileCarousel() {
 /* ── Section ─────────────────────────────────────────────────── */
 export default function WhyChooseUs() {
   return (
-    <section id="why-us" className="py-24 bg-[#1C1C1E] relative overflow-hidden">
+    <section id="why-us" className="py-24 bg-white relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(232,168,32,.04) 0%, transparent 70%)" }} />
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+        style={{ background: "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(232,168,32,.05) 0%, transparent 70%)" }} />
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-black/[0.06] to-transparent" />
 
       <div className="max-w-7xl mx-auto px-5 md:px-8">
         {/* Header */}
@@ -130,7 +131,7 @@ export default function WhyChooseUs() {
           className="text-center max-w-xl mx-auto mb-14"
         >
           <div className="eyebrow justify-center mb-4">The Empire standard</div>
-          <h2 className="font-display font-black text-[#F2EFE9] text-[clamp(2rem,4.5vw,2.9rem)]">
+          <h2 className="font-display font-black text-[#1C1C1E] text-[clamp(2rem,4.5vw,2.9rem)]">
             Why train <span className="text-gold-gradient">with us?</span>
           </h2>
         </motion.div>

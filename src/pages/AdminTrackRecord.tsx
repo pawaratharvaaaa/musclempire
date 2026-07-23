@@ -5,6 +5,7 @@ import { ArrowLeft, LogOut, Calendar, Target, TrendingDown, TrendingUp, User, Ac
 import { motion } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
+import Lenis from "lenis";
 
 function StatusBadge({ status }: { status: string }) {
   const s = (status || "New").trim();
@@ -38,6 +39,19 @@ export default function AdminTrackRecord({ params }: { params: { phone: string }
   const [, navigate] = useLocation();
   const [records, setRecords] = useState<(AssessmentData & { _arrayIndex: number })[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+    return () => lenis.destroy();
+  }, []);
 
   const phone = decodeURIComponent(params.phone);
 

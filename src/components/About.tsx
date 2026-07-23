@@ -1,113 +1,99 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Mountain } from "lucide-react";
 import aboutImg from "@/assets/images/about-img.png";
-import ScrollStack, { ScrollStackItem } from "@/components/ui/ScrollStack";
 
 /* ────────────────────────────────────────────────────────────────
    DATA
    ──────────────────────────────────────────────────────────────── */
 
-interface MedalItem {
-  label: string;
-  title: string;
-  subtitle: string;
-  glow: "gold" | "silver" | "bronze";
-  emoji: string;
-  yearLabel?: string;
+interface Medal {
+  name: string;
+  level: string;
+  result: string;
+  tier: "gold" | "silver" | "bronze";
 }
 
-interface TimelineEntry {
+interface Entry {
   year: string;
-  badge: { text: string; color: "gold" | "accent" | "bronze" | "neutral" };
+  tag: string;
+  tagColor: string;
   narrative: string;
-  medals: MedalItem[];
-  yearTags?: string[];
-  gridCols?: string;
+  medals: Medal[];
 }
 
-const entries: TimelineEntry[] = [
+const entries: Entry[] = [
   {
     year: "2011",
-    badge: { text: "Junior Category", color: "gold" },
-    narrative:
-      "The debut season. First time stepping on a state platform — and first time leaving with a triple crown. The bar had been set.",
+    tag: "Junior",
+    tagColor: "var(--gold)",
+    narrative: "Debut season — triple crown on the first state platform.",
     medals: [
-      { label: "Mumbai Shree", title: "Overall", subtitle: "Champion", glow: "gold", emoji: "🥇" },
-      { label: "Maharashtra Kishor", title: "Gold", subtitle: "State Medal", glow: "gold", emoji: "🥇" },
-      { label: "Bharat Kishor", title: "Gold", subtitle: "National Medal", glow: "gold", emoji: "🥇" },
+      { name: "Mumbai Shree",      level: "City",   result: "Overall Champion", tier: "gold" },
+      { name: "Maharashtra Kishor",level: "State",  result: "Gold",             tier: "gold" },
+      { name: "Bharat Kishor",     level: "Nation", result: "Gold",             tier: "gold" },
     ],
   },
   {
-    year: "2012 — 2016",
-    badge: { text: "Junior · Kumar", color: "gold" },
-    narrative:
-      "Four years of unbroken dominance in the Kumar division. Three cities, one result — Overall Champion at Mumbai, Gold at State, Gold at Nationals. Repeat.",
+    year: "2012–16",
+    tag: "Kumar · ×4",
+    tagColor: "var(--gold)",
+    narrative: "Four unbroken years. Same sweep, every season.",
     medals: [
-      { label: "Mumbai Kumar", title: "Overall", subtitle: "Champion ×4", glow: "gold", emoji: "🥇" },
-      { label: "Maharashtra Kumar", title: "Gold", subtitle: "State ×4", glow: "gold", emoji: "🥇" },
-      { label: "Bharat Kumar", title: "Gold", subtitle: "National ×4", glow: "gold", emoji: "🥇" },
+      { name: "Mumbai Kumar",      level: "City",   result: "Overall ×4",  tier: "gold" },
+      { name: "Maharashtra Kumar", level: "State",  result: "Gold ×4",     tier: "gold" },
+      { name: "Bharat Kumar",      level: "Nation", result: "Gold ×4",     tier: "gold" },
     ],
-    yearTags: ["'12", "'13", "'14", "'16"],
   },
   {
     year: "2017",
-    badge: { text: "Senior Division · Debut", color: "accent" },
-    narrative:
-      "The jump to Seniors. New weight class, new opponents, same outcome — a clean sweep at city, state and national level in the first senior outing.",
+    tag: "Senior debut",
+    tagColor: "#ff5a1f",
+    narrative: "Moved up to Seniors. Clean sweep on the first attempt.",
     medals: [
-      { label: "Mumbai Shree", title: "Overall", subtitle: "Champion", glow: "gold", emoji: "🥇" },
-      { label: "Maharashtra Shree", title: "Gold", subtitle: "State Medal", glow: "gold", emoji: "🥇" },
-      { label: "Bharat Shree", title: "Gold", subtitle: "National Medal", glow: "gold", emoji: "🥇" },
+      { name: "Mumbai Shree",      level: "City",   result: "Overall Champion", tier: "gold" },
+      { name: "Maharashtra Shree", level: "State",  result: "Gold",             tier: "gold" },
+      { name: "Bharat Shree",      level: "Nation", result: "Gold",             tier: "gold" },
     ],
   },
   {
-    year: "Mumbai University",
-    badge: { text: "Inter-University Circuit", color: "neutral" },
-    narrative:
-      "Representing the home university across four seasons — two golds, two silvers, and a ticket to the All-India Inter-University stage.",
-    gridCols: "grid-cols-2 sm:grid-cols-4",
+    year: "Univ.",
+    tag: "Mumbai University",
+    tagColor: "#aaa",
+    narrative: "Four inter-university seasons representing Mumbai.",
     medals: [
-      { yearLabel: "2012 — 13", title: "Silver", subtitle: "", glow: "silver", emoji: "🥈", label: "" },
-      { yearLabel: "2013 — 14", title: "Gold", subtitle: "", glow: "gold", emoji: "🥇", label: "" },
-      { yearLabel: "2015 — 16", title: "Gold", subtitle: "", glow: "gold", emoji: "🥇", label: "" },
-      { yearLabel: "2016 — 17", title: "Silver", subtitle: "", glow: "silver", emoji: "🥈", label: "" },
+      { name: "2012–13", level: "", result: "Silver", tier: "silver" },
+      { name: "2013–14", level: "", result: "Gold",   tier: "gold"   },
+      { name: "2015–16", level: "", result: "Gold",   tier: "gold"   },
+      { name: "2016–17", level: "", result: "Silver", tier: "silver" },
     ],
   },
   {
-    year: "All India University (AIU)",
-    badge: { text: "National Inter-University · AIU", color: "bronze" },
-    narrative:
-      "Wearing the Mumbai University colors on the national stage — first as a representative, then returning with a podium finish.",
-    gridCols: "sm:grid-cols-2",
+    year: "AIU",
+    tag: "All India University",
+    tagColor: "#c08056",
+    narrative: "Represented Mumbai at nationals, returned with a podium.",
     medals: [
-      { yearLabel: "2013 — 14", title: "Represented", subtitle: "Mumbai University · National Camp", glow: "gold", emoji: "", label: "icon" },
-      { yearLabel: "2015 — 16", title: "Bronze", subtitle: "All India Inter-University", glow: "bronze", emoji: "🥉", label: "" },
+      { name: "2013–14", level: "National Camp", result: "Represented", tier: "gold"   },
+      { name: "2015–16", level: "AIU",           result: "Bronze",      tier: "bronze" },
     ],
+  },
+  {
+    year: "Today",
+    tag: "Coaching era",
+    tagColor: "#555",
+    narrative: "Competition closed. Every athlete trained here inherits the standard those 21 medals set.",
+    medals: [],
   },
 ];
 
-const federations = [
-  { tier: "01", scope: "City", name: "Mumbai", description: "Kishor · Kumar · Shree divisions — Overall Champion across all three age categories." },
-  { tier: "02", scope: "State", name: "Maharashtra", description: "Gold medalist at every state championship entered, junior through senior." },
-  { tier: "03", scope: "Nation", name: "Bharat", description: "National gold in Kishor, Kumar and Shree — plus AIU bronze representing Mumbai University." },
-];
-
-/* ────────────────────────────────────────────────────────────────
-   HELPERS
-   ──────────────────────────────────────────────────────────────── */
-
-const badgeColors: Record<string, string> = {
-  gold: "text-[var(--gold)]/80 border-[var(--gold)]/20 bg-[var(--gold)]/5",
-  accent: "text-[#ff5a1f] border-[#ff5a1f]/30 bg-[#ff5a1f]/5",
-  bronze: "text-[#c08056] border-[#c08056]/30 bg-[#c08056]/5",
-  neutral: "text-neutral-300 border-white/15 bg-white/5",
+const tierDot: Record<string, string> = {
+  gold:   "bg-[var(--gold)]",
+  silver: "bg-neutral-400",
+  bronze: "bg-[#c08056]",
 };
 
-const subtitleColor = (g: string) => (g === "gold" ? "text-[var(--gold)]" : "text-neutral-400");
-
 /* ────────────────────────────────────────────────────────────────
-   FADE-UP WRAPPER
+   FADE-UP
    ──────────────────────────────────────────────────────────────── */
 
 function FadeUp({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -129,263 +115,255 @@ function FadeUp({ children, className = "" }: { children: React.ReactNode; class
 }
 
 /* ────────────────────────────────────────────────────────────────
-   MEDAL CHIP
+   MINIMAL ENTRY CARD
    ──────────────────────────────────────────────────────────────── */
 
-function MedalChip({ m, compact }: { m: MedalItem; compact?: boolean }) {
-  const isIcon = m.label === "icon";
-  const glowCls = `glow-${m.glow}`;
-
-  if (compact) {
-    return (
-      <div className="hover-card medal-chip rounded-xl p-4">
-        {m.yearLabel && <div className="text-[11px] font-mono text-neutral-500 mb-2">{m.yearLabel}</div>}
-        <div className="flex items-center gap-2">
-          <span className={`h-6 w-6 rounded-full ${glowCls} grid place-items-center text-[10px] font-bold text-black`}>{m.emoji}</span>
-          <span className="font-anton text-xl text-white">{m.title}</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (isIcon) {
-    return (
-      <div className="hover-card medal-chip rounded-xl p-5">
-        {m.yearLabel && <div className="text-[11px] font-mono text-neutral-500 mb-2">{m.yearLabel}</div>}
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full grid place-items-center border border-white/15 bg-white/5">
-            <Mountain size={18} className="text-[var(--gold)]" />
-          </div>
-          <div>
-            <div className="font-anton text-2xl text-white leading-none">{m.title}</div>
-            {m.subtitle && <div className="text-sm text-neutral-400">{m.subtitle}</div>}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (m.yearLabel) {
-    return (
-      <div className="hover-card medal-chip rounded-xl p-5">
-        <div className="text-[11px] font-mono text-neutral-500 mb-2">{m.yearLabel}</div>
-        <div className="flex items-center gap-3">
-          <span className={`h-10 w-10 rounded-full ${glowCls} grid place-items-center text-sm`}>{m.emoji}</span>
-          <div>
-            <div className="font-anton text-2xl text-white leading-none">{m.title}</div>
-            {m.subtitle && <div className="text-sm text-neutral-400">{m.subtitle}</div>}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+function EntryCard({ e, isLast }: { e: Entry; isLast: boolean }) {
   return (
-    <div className="hover-card medal-chip rounded-xl p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <span className={`h-7 w-7 rounded-full ${glowCls} grid place-items-center text-[10px] font-bold text-black`}>{m.emoji}</span>
-        <span className="text-[11px] uppercase tracking-widest text-neutral-500">{m.label}</span>
-      </div>
-      <div className="font-anton text-2xl text-white">{m.title}</div>
-      <div className={`text-sm ${subtitleColor(m.glow)}`}>{m.subtitle}</div>
-    </div>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────
-   TIMELINE CARD (for ScrollStack)
-   ──────────────────────────────────────────────────────────────── */
-
-function TimelineCard({ e }: { e: TimelineEntry }) {
-  const isCompact = !!e.gridCols && e.gridCols.includes("grid-cols-2");
-
-  return (
-    <div className="p-6 sm:p-8 md:p-10" style={{ background: "var(--sec-dark-mid)" }}>
-      {/* Year + badge */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-        <h3 className="font-anton text-3xl sm:text-4xl md:text-5xl text-[var(--gold)] leading-none tracking-wide">
+    <div
+      className="group relative px-5 py-5 rounded-xl transition-all duration-300"
+      style={{
+        background: "rgba(255,255,255,0.02)",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}
+      onMouseEnter={e2 => {
+        (e2.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.04)";
+        (e2.currentTarget as HTMLDivElement).style.borderColor = "rgba(232,168,32,0.18)";
+      }}
+      onMouseLeave={e2 => {
+        (e2.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.02)";
+        (e2.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)";
+      }}
+    >
+      {/* Top row: year + tag */}
+      <div className="flex items-baseline justify-between gap-3 mb-2">
+        <span
+          className="font-anton text-3xl leading-none"
+          style={{ color: isLast ? "rgba(255,255,255,0.2)" : "var(--gold)" }}
+        >
           {e.year}
-        </h3>
-        <span className={`inline-block text-[11px] uppercase tracking-[0.25em] px-2.5 py-1 rounded-full border ${badgeColors[e.badge.color]}`}>
-          {e.badge.text}
+        </span>
+        <span
+          className="text-[10px] uppercase tracking-[0.22em] shrink-0"
+          style={{ color: e.tagColor, opacity: 0.85 }}
+        >
+          {e.tag}
         </span>
       </div>
 
       {/* Narrative */}
-      <p className="text-neutral-300 text-sm md:text-base mb-6 max-w-2xl leading-relaxed">
-        {e.narrative}
-      </p>
+      <p className="text-neutral-400 text-[13px] leading-relaxed mb-3">{e.narrative}</p>
 
-      {/* Medal grid */}
-      <div className={`grid gap-3 ${e.gridCols ?? "sm:grid-cols-3"}`}>
-        {e.medals.map((m, j) => (
-          <MedalChip key={j} m={m} compact={isCompact && !m.label} />
-        ))}
-      </div>
-
-      {/* Year tags */}
-      {e.yearTags && (
-        <div className="flex flex-wrap gap-2 mt-4">
-          {e.yearTags.map((t) => (
-            <span key={t} className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-neutral-300">
-              {t}
+      {/* Medal pills */}
+      {e.medals.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {e.medals.map((m, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px]"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                color: "rgba(255,255,255,0.65)",
+              }}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${tierDot[m.tier]}`} />
+              {m.name && <span className="text-white/40">{m.name}</span>}
+              {m.level && <span className="text-white/25">·</span>}
+              {m.level && <span>{m.level}</span>}
+              <span className="text-white/25">·</span>
+              <span
+                className="font-semibold"
+                style={{ color: m.tier === "gold" ? "var(--gold)" : m.tier === "silver" ? "#ccc" : "#c08056" }}
+              >
+                {m.result}
+              </span>
             </span>
           ))}
         </div>
+      )}
+
+      {/* CTA for "Today" card */}
+      {isLast && (
+        <a
+          href="#pricing"
+          className="inline-flex items-center gap-1.5 text-[12px] text-[var(--gold)] hover:text-white transition mt-2 group/link"
+        >
+          Train under this standard
+          <span className="transition group-hover/link:translate-x-0.5">→</span>
+        </a>
       )}
     </div>
   );
 }
 
 /* ────────────────────────────────────────────────────────────────
-   MAIN COMPONENT
+   MAIN
    ──────────────────────────────────────────────────────────────── */
 
 export default function About() {
+  const scrollPanelRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = () => {
+    const el = scrollPanelRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const atTop = scrollTop === 0 && e.deltaY < 0;
+      const atBottom = scrollTop + clientHeight >= scrollHeight && e.deltaY > 0;
+      if (!atTop && !atBottom) {
+        e.preventDefault();
+        el.scrollTop += e.deltaY;
+      }
+    };
+    el.dataset.wheelHandler = "active";
+    (el as any)._wheelHandler = onWheel;
+    window.addEventListener("wheel", onWheel, { passive: false });
+  };
+
+  const handleMouseLeave = () => {
+    const el = scrollPanelRef.current;
+    if (!el || !(el as any)._wheelHandler) return;
+    window.removeEventListener("wheel", (el as any)._wheelHandler);
+    delete (el as any)._wheelHandler;
+  };
   return (
-    <section id="about" className="relative overflow-hidden" style={{ background: "var(--sec-dark-mid)" }}>
-      {/* Ambient backgrounds */}
+    <section id="about" className="relative" style={{ background: "var(--sec-dark-mid)" }}>
+      {/* Ambients */}
       <div className="absolute inset-0 -z-0 grain pointer-events-none" />
       <div
-        className="absolute -z-0 top-[-10%] left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full blur-[140px] opacity-[0.12] pointer-events-none"
-        style={{ background: "radial-gradient(circle, #ff5a1f 0%, transparent 70%)" }}
+        className="absolute -z-0 top-[-10%] left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full blur-[140px] opacity-[0.10] pointer-events-none"
+        style={{ background: "radial-gradient(circle,#ff5a1f 0%,transparent 70%)" }}
       />
       <div
-        className="absolute -z-0 bottom-[-20%] right-[-10%] w-[60vw] h-[50vh] rounded-full blur-[140px] opacity-[0.08] pointer-events-none"
-        style={{ background: "radial-gradient(circle, var(--gold) 0%, transparent 70%)" }}
+        className="absolute -z-0 bottom-[-20%] right-[-10%] w-[60vw] h-[50vh] rounded-full blur-[140px] opacity-[0.07] pointer-events-none"
+        style={{ background: "radial-gradient(circle,var(--gold) 0%,transparent 70%)" }}
       />
 
-      {/* ── Intro row: photo + heading ────────────────── */}
       <div className="relative z-10 max-w-7xl mx-auto px-5 md:px-8 pt-24 pb-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
-          {/* Photo */}
+
+        {/* ── Section header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-12"
+        >
+          <div className="eyebrow mb-3">Hall of fame</div>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+            <h2 className="font-display font-black text-foreground text-[clamp(2rem,4.5vw,2.8rem)]">
+              Champion's <span className="text-gold-gradient">timeline</span>
+            </h2>
+            <p className="text-neutral-500 text-sm max-w-xs leading-relaxed">
+              A decade of medals — city, state and national.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* ── Two-column: image | scroll window ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-10 lg:gap-14 items-start">
+
+          {/* Left — sticky photo */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-            className="relative"
+            className="relative self-start lg:sticky lg:top-24"
           >
-            <div className="relative rounded-[22px] overflow-hidden group shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-              <div className="absolute inset-0 bg-[var(--gold)]/10 mix-blend-overlay z-10 group-hover:opacity-0 transition-opacity duration-600" />
+            <div className="relative rounded-[22px] overflow-hidden group shadow-[0_24px_80px_rgba(0,0,0,0.4)]">
+              <div className="absolute inset-0 bg-[var(--gold)]/8 mix-blend-overlay z-10 group-hover:opacity-0 transition-opacity duration-500" />
               <img
                 src={aboutImg}
                 alt="Sagar Kharat — champion athlete and founder"
-                className="w-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-700 scale-[1.02] group-hover:scale-100"
+                className="w-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-700"
               />
-              <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black/55 to-transparent z-20" />
+              <div className="absolute bottom-0 inset-x-0 h-2/5 bg-gradient-to-t from-black/70 to-transparent z-20" />
             </div>
 
-            {/* Floating badge */}
+            {/* Badge */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.85 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.5, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute -bottom-5 right-6 z-30 bg-[var(--gold)] text-[#1C1C1E] rounded-2xl px-6 py-4 shadow-[0_12px_36px_rgba(232,168,32,0.45)]"
+              transition={{ delay: 0.45, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute -bottom-4 right-5 z-30 rounded-xl px-5 py-3 shadow-[0_8px_32px_rgba(232,168,32,0.4)]"
+              style={{ background: "var(--gold)" }}
             >
-              <p className="text-3xl font-black leading-none font-display">21+</p>
-              <p className="text-[10px] font-bold uppercase tracking-wider mt-0.5 text-[#1C1C1E]/65 leading-snug">
+              <p className="text-2xl font-black leading-none text-[#1C1C1E] font-display">21+</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-[#1C1C1E]/60 mt-0.5 leading-snug">
                 National &amp;<br />state medals
               </p>
             </motion.div>
           </motion.div>
 
-          {/* Heading text */}
+          {/* Right — scroll window */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-            className="pt-2 lg:pt-8"
+            className="flex flex-col"
           >
-            <div className="eyebrow mb-4">Hall of fame</div>
-            <h2 className="font-display font-black text-foreground text-[clamp(2rem,4.5vw,2.8rem)] mb-6">
-              Champion's <span className="text-gold-gradient">timeline</span>
-            </h2>
-            <p className="text-neutral-400 text-sm md:text-base max-w-lg leading-relaxed">
-              From junior debuts to senior domination — every medal earned across city, state and national stages over a decade of competition.
+            {/* Panel header */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-anton text-xl tracking-wide text-white/80">The Record</span>
+              <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-600">
+                2011 → Today
+              </span>
+            </div>
+
+            {/* The window */}
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              style={{
+                border: "1px solid rgba(255,255,255,0.07)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 24px 64px rgba(0,0,0,0.5)",
+              }}
+            >
+              {/* Top fade */}
+              <div
+                className="absolute top-0 inset-x-0 h-10 z-10 pointer-events-none"
+                style={{ background: "linear-gradient(to bottom,rgba(12,12,14,0.95),transparent)" }}
+              />
+              {/* Bottom fade */}
+              <div
+                className="absolute bottom-0 inset-x-0 h-14 z-10 pointer-events-none"
+                style={{ background: "linear-gradient(to top,rgba(12,12,14,0.98),transparent)" }}
+              />
+
+              {/* Scrollable list */}
+              <div
+                ref={scrollPanelRef}
+                className="timeline-scroll overflow-y-auto"
+                style={{
+                  height: "580px",
+                  background: "rgba(10,10,12,0.9)",
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "rgba(232,168,32,0.3) transparent",
+                }}
+              >
+                <div className="px-3 py-4 flex flex-col gap-2.5">
+                  {entries.map((e, i) => (
+                    <EntryCard key={i} e={e} isLast={i === entries.length - 1} />
+                  ))}
+                  <div className="h-8" />
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-neutral-700 mt-2 text-right tracking-widest uppercase">
+              scroll inside ↕
             </p>
           </motion.div>
+
         </div>
       </div>
 
-      {/* ── ScrollStack Timeline ──────────────────────── */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 md:px-10">
-        <div className="flex items-center justify-between mb-8 md:mb-10">
-          <h2 className="font-anton text-2xl sm:text-3xl md:text-5xl tracking-wide text-foreground">
-            The Record
-          </h2>
-          <div className="text-xs uppercase tracking-[0.25em] text-neutral-500 hidden md:block">
-            Scroll to stack →
-          </div>
-        </div>
 
-        <ScrollStack
-          useWindowScroll
-          itemDistance={80}
-          itemScale={0.04}
-          itemStackDistance={35}
-          stackPosition="25%"
-          scaleEndPosition="15%"
-          baseScale={0.88}
-          scaleDuration={0.5}
-          blurAmount={2}
-        >
-          {entries.map((e, i) => (
-            <ScrollStackItem key={i} itemClassName="medal-chip tl-card-shadow !rounded-2xl">
-              <TimelineCard e={e} />
-            </ScrollStackItem>
-          ))}
-
-          {/* Closing card */}
-          <ScrollStackItem itemClassName="medal-chip tl-card-shadow !rounded-2xl">
-            <div className="p-6 sm:p-8 md:p-10" style={{ background: "var(--sec-dark-mid)" }}>
-              <h3 className="font-anton text-3xl sm:text-4xl md:text-5xl text-neutral-600 leading-none tracking-wide mb-4">
-                Today
-              </h3>
-              <p className="text-neutral-400 text-sm md:text-base leading-relaxed max-w-2xl">
-                The competing years closed. The coaching years began. Every athlete now trained
-                inside these walls inherits the standard that those 21 medals set.
-              </p>
-              <a
-                href="#pricing"
-                className="inline-flex mt-6 items-center gap-2 text-sm font-medium text-[var(--gold)] hover:text-white transition group"
-              >
-                Train under this standard
-                <span className="transition group-hover:translate-x-1">→</span>
-              </a>
-            </div>
-          </ScrollStackItem>
-        </ScrollStack>
-      </div>
-
-      {/* ── Federation Legend ─────────────────────────── */}
-      <FadeUp className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-10 pb-16 md:pb-20">
-        <div className="tl-divider mb-12" />
-
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-6 md:mb-8">
-          <h2 className="font-anton text-2xl sm:text-3xl md:text-4xl text-foreground">
-            Federations contested
-          </h2>
-          <p className="text-neutral-500 text-sm max-w-md">
-            Three tiers of bodybuilding &amp; strength sport, climbed in sequence.
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-          {federations.map((f) => (
-            <div key={f.tier} className="medal-chip rounded-2xl p-6 tl-card-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[11px] uppercase tracking-[0.25em] text-neutral-500">Tier {f.tier}</span>
-                <span className="text-[var(--gold)] font-anton text-2xl">{f.scope}</span>
-              </div>
-              <div className="font-anton text-3xl text-white mb-1">{f.name}</div>
-              <div className="text-sm text-neutral-400">{f.description}</div>
-            </div>
-          ))}
-        </div>
-      </FadeUp>
     </section>
   );
 }
