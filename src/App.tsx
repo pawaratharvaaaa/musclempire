@@ -8,8 +8,6 @@ import DemoBar from "@/components/DemoBar";
 
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Home = lazy(() => import("@/pages/Home"));
-const UnisexGymPlans = lazy(() => import("@/pages/UnisexGymPlans"));
-const FemaleGymPlans = lazy(() => import("@/pages/FemaleGymPlans"));
 const Products = lazy(() => import("@/pages/Products"));
 const ProductDetail = lazy(() => import("@/pages/ProductDetail"));
 const NutritionAssessment = lazy(() => import("@/pages/NutritionAssessment"));
@@ -52,8 +50,6 @@ function Router() {
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-black text-white">Loading...</div>}>
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/unisex-gym-plans" component={UnisexGymPlans} />
-        <Route path="/female-gym-plans" component={FemaleGymPlans} />
         <Route path="/products" component={Products} />
         <Route path="/products/:id" component={ProductDetail} />
         <Route path="/nutrition" component={NutritionAssessment} />

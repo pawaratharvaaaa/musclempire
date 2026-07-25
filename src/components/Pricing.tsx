@@ -6,33 +6,55 @@ import unisexBg from "@/assets/images/unisex-bg.png";
 import femaleBg from "@/assets/images/female-bg.png";
 import { PricingModal } from "@/components/ui/pricing-table";
 import type { PricingPlan, PricingFeature } from "@/components/ui/pricing-table";
+import { openRazorpay } from "@/lib/razorpay";
 
 /* ── Unisex gym data ──────────────────────────────────────── */
 const unisexPlans: PricingPlan[] = [
   {
-    name: "Gym",
+    name: "Monthly",
     level: "basic",
-    price: { monthly: 1500, yearly: 8500 },
-    description: "Full gym access",
+    price: { monthly: 2500, yearly: 2500 },
+    originalPrice: { monthly: 3500, yearly: 3500 },
+    description: "Pay month-to-month",
+    priceSuffix: "/mo"
   },
   {
-    name: "Gym + CrossFit",
-    level: "premium",
-    price: { monthly: 2500, yearly: 12500 },
+    name: "Half Yearly",
+    level: "standard",
+    price: { monthly: 12500, yearly: 12500 },
+    originalPrice: { monthly: 18000, yearly: 18000 },
     popular: true,
-    description: "Gym & CrossFit combined",
+    description: "₹12,500 billed every 6 months",
+    priceSuffix: "/6mo"
+  },
+  {
+    name: "Yearly",
+    level: "premium",
+    price: { monthly: 22000, yearly: 22000 },
+    originalPrice: { monthly: 30000, yearly: 30000 },
+    description: "₹22,000 billed annually",
+    priceSuffix: "/yr"
+  },
+  {
+    name: "Dietician Plan",
+    level: "dietician",
+    price: { monthly: 800, yearly: 800 },
+    originalPrice: { monthly: 1500, yearly: 1500 },
+    description: "Personalized nutrition coaching",
+    priceSuffix: "/session"
   },
 ];
 
 const unisexFeatures: PricingFeature[] = [
-  { name: "All gym equipment",               included: "basic"   },
+  { name: "All gym equipment",                included: "basic"   },
   { name: "Strength & cardio training",       included: "basic"   },
   { name: "Trainer assistance",               included: "basic"   },
   { name: "Flexible workout timings",         included: "basic"   },
   { name: "Workout guidance",                 included: "basic"   },
-  { name: "CrossFit training area",           included: "premium" },
-  { name: "CrossFit sessions",                included: "premium" },
+  { name: "CrossFit training area",           included: "basic"   },
+  { name: "CrossFit sessions",                included: "standard"},
   { name: "Form correction coaching",         included: "premium" },
+  { name: "Diet & nutrition coaching",        included: "dietician" },
 ];
 
 /* ── Female gym data ──────────────────────────────────────── */
@@ -41,20 +63,34 @@ const femalePlans: PricingPlan[] = [
     name: "Monthly",
     level: "basic",
     price: { monthly: 1500, yearly: 1500 },
+    originalPrice: { monthly: 2000, yearly: 2000 },
     description: "Pay month-to-month",
+    priceSuffix: "/mo"
   },
   {
     name: "Half Yearly",
     level: "standard",
     price: { monthly: 834, yearly: 5000 },
+    originalPrice: { monthly: 1200, yearly: 7200 },
     popular: true,
     description: "₹5,000 billed every 6 months",
+    priceSuffix: "/mo"
   },
   {
     name: "Yearly",
     level: "premium",
     price: { monthly: 625, yearly: 7500 },
+    originalPrice: { monthly: 1000, yearly: 12000 },
     description: "₹7,500 billed annually",
+    priceSuffix: "/mo"
+  },
+  {
+    name: "Dietician Plan",
+    level: "dietician",
+    price: { monthly: 800, yearly: 800 },
+    originalPrice: { monthly: 1500, yearly: 1500 },
+    description: "Personalized nutrition coaching",
+    priceSuffix: "/session"
   },
 ];
 
@@ -66,6 +102,7 @@ const femaleFeatures: PricingFeature[] = [
   { name: "Workout guidance",                 included: "basic"    },
   { name: "Priority trainer support",         included: "standard" },
   { name: "Progress check-ins",               included: "premium"  },
+  { name: "Diet & nutrition coaching",        included: "dietician" },
 ];
 
 const gyms = [
@@ -267,10 +304,13 @@ export default function Pricing() {
           accentColor={modalGym.accentColor}
           features={modalGym.tableFeatures}
           plans={modalGym.plans}
-          onGetStarted={() => {
+          onGetStarted={(plan) => {
+            const amount = plan.price.monthly; // Note: We now store the total package price here
+            const planName = `${modalGym.title} - ${plan.name}`;
+            
+            // Amount is in rupees, Razorpay expects paise
+            openRazorpay(planName, amount * 100);
             setModalGym(null);
-            sessionStorage.setItem("scroll_before_plans", String(window.scrollY));
-            navigate(modalGym.href);
           }}
         />
       )}

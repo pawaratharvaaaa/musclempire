@@ -19,7 +19,7 @@ const pricingLinks = [
 /* StaggeredMenu items */
 const staggeredItems = [
   ...navLinks.map(l => ({ label: l.name, ariaLabel: `Go to ${l.name}`, link: l.href })),
-  { label: "Pricing", ariaLabel: "View pricing plans", link: "/unisex-gym-plans" },
+  { label: "Pricing", ariaLabel: "View pricing plans", link: "#pricing" },
 ];
 
 const staggeredSocials = [

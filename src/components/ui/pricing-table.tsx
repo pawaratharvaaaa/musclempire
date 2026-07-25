@@ -23,15 +23,20 @@ export interface PricingPlan {
     monthly: number
     yearly: number
   }
+  originalPrice?: {
+    monthly: number
+    yearly: number
+  }
   popular?: boolean
   description?: string
+  priceSuffix?: string
 }
 
 export interface PricingTableProps {
   features: PricingFeature[]
   plans: PricingPlan[]
   accentColor?: string
-  onGetStarted?: (plan: PlanLevel) => void
+  onGetStarted?: (plan: PricingPlan) => void
   defaultPlan?: PlanLevel
 }
 
@@ -54,49 +59,14 @@ export function PricingTable({
   onGetStarted,
   defaultPlan,
 }: PricingTableProps) {
-  const [isYearly, setIsYearly] = React.useState(false)
   const [selectedPlan, setSelectedPlan] = React.useState<PlanLevel>(
     defaultPlan ?? plans.find(p => p.popular)?.level ?? plans[0]?.level
   )
 
   return (
     <div className="w-full">
-      {/* Toggle */}
-      <div className="flex justify-end mb-6">
-        <div
-          className="inline-flex items-center rounded-xl p-1 gap-1"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          {["Monthly", "Yearly"].map((label) => {
-            const active = label === "Yearly" ? isYearly : !isYearly
-            return (
-              <button
-                key={label}
-                type="button"
-                onClick={() => setIsYearly(label === "Yearly")}
-                className="px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-widest transition-all duration-200"
-                style={{
-                  background: active ? accentColor : "transparent",
-                  color: active ? "#1C1C1E" : "rgba(255,255,255,0.4)",
-                }}
-              >
-                {label}
-                {label === "Yearly" && (
-                  <span
-                    className="ml-1.5 text-[9px] font-bold"
-                    style={{ color: active ? "#1C1C1E" : accentColor }}
-                  >
-                    −15%
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
       {/* Plan cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         {plans.map((plan) => {
           const active = selectedPlan === plan.level
           return (
@@ -115,27 +85,34 @@ export function PricingTable({
             >
               {plan.popular && (
                 <span
-                  className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                  className="absolute top-4 right-4 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
                   style={{ background: accentColor, color: "#1C1C1E" }}
                 >
                   Popular
                 </span>
               )}
               <span
-                className="text-xs font-bold uppercase tracking-widest mb-2"
+                className="text-xs font-bold uppercase tracking-widest mb-2 pr-16"
                 style={{ color: active ? accentColor : "rgba(255,255,255,0.4)" }}
               >
                 {plan.name}
               </span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-[11px] text-white/40 mr-0.5">₹</span>
-                <NumberFlow
-                  value={isYearly ? plan.price.yearly : plan.price.monthly}
-                  className="text-2xl font-black text-white"
-                />
-                <span className="text-[11px] text-white/35 ml-1">
-                  /{isYearly ? "yr" : "mo"}
-                </span>
+              <div className="flex flex-col items-start justify-center gap-0.5 mt-2">
+                {plan.originalPrice && (
+                  <span className="text-xs font-medium text-white/30 line-through decoration-white/30 -mb-1 ml-4">
+                    ₹{plan.originalPrice.monthly.toLocaleString()}
+                  </span>
+                )}
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[11px] text-white/40 mr-0.5">₹</span>
+                  <NumberFlow
+                    value={plan.price.monthly}
+                    className="text-2xl font-black text-white"
+                  />
+                  <span className="text-[11px] text-white/35 ml-1">
+                    {plan.priceSuffix || "/mo"}
+                  </span>
+                </div>
               </div>
               {plan.description && (
                 <p className="text-[11px] text-white/35 mt-1.5 leading-relaxed">{plan.description}</p>
@@ -199,19 +176,23 @@ export function PricingTable({
       </div>
 
       {/* CTA */}
-      <button
-        type="button"
-        onClick={() => onGetStarted?.(selectedPlan)}
-        className="w-full flex items-center justify-center gap-2 font-black text-[13px] h-12 rounded-xl transition-all duration-200 hover:-translate-y-0.5"
-        style={{
-          background: accentColor,
-          color: "#1C1C1E",
-          boxShadow: `0 8px 24px ${accentColor}40`,
-        }}
-      >
-        Get started — {plans.find(p => p.level === selectedPlan)?.name}
-        <ArrowRight size={15} />
-      </button>
+      <div className="p-6 md:px-8 bg-[#1a1a1a]/50 border-t border-white/5 rounded-b-[24px]">
+        <button
+          className="w-full flex items-center justify-center gap-2 font-bold text-sm h-12 rounded-xl transition-all duration-300 group hover:-translate-y-0.5"
+          style={{
+            background: accentColor,
+            color: "#1C1C1E",
+            boxShadow: `0 8px 25px ${accentColor}40`,
+          }}
+          onClick={() => {
+            const plan = plans.find(p => p.level === selectedPlan)
+            if (onGetStarted && plan) onGetStarted(plan, isYearly)
+          }}
+        >
+          Get started — {plans.find((p) => p.level === selectedPlan)?.name}
+          <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+        </button>
+      </div>
     </div>
   )
 }

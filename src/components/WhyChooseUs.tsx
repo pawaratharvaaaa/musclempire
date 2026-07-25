@@ -1,154 +1,159 @@
-import { useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Trophy, Clock, Target, Users2, Activity } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { motion } from "framer-motion";
 
-const STEPS = [
-  { Icon: Trophy,       title: "Expert trainers",    desc: "Certified coaches with years of competitive experience who push you past every limit.",          iconColor: "#F9A825", glow: "rgba(249,168,37,.22)", bg: "rgba(249,168,37,.09)" },
-  { Icon: Target,       title: "Personalised plans", desc: "No cookie-cutter routines. Every programme is designed around your unique body and goals.",       iconColor: "#4ADE80", glow: "rgba(74,222,128,.20)",  bg: "rgba(74,222,128,.09)" },
-  { Icon: Activity,     title: "Modern equipment",   desc: "Top-tier machines and an extensive free-weight range — everything you need.",                     iconColor: "#60A5FA", glow: "rgba(96,165,250,.20)",  bg: "rgba(96,165,250,.09)" },
-  { Icon: Users2,       title: "Strong community",   desc: "Train alongside driven people who share your relentless pursuit of progress.",                    iconColor: "#C084FC", glow: "rgba(192,132,252,.20)", bg: "rgba(192,132,252,.09)"},
-  { Icon: Clock,        title: "Flexible timings",   desc: "Open 6 AM to 10 PM — your schedule is never an excuse to skip a session.",                       iconColor: "#F87171", glow: "rgba(248,113,113,.20)", bg: "rgba(248,113,113,.09)"},
-  { Icon: CheckCircle2, title: "Pro assessment",     desc: "Full body composition and movement analysis before day one.",                                     iconColor: "#34D399", glow: "rgba(52,211,153,.20)",  bg: "rgba(52,211,153,.09)" },
+gsap.registerPlugin(ScrollTrigger);
+
+const FEATURES = [
+  {
+    image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80',
+    title: 'Expert Trainers',
+    description: 'Certified professionals dedicated to your success.',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80',
+    title: 'Personalised Plans',
+    description: 'Designed specifically for your unique body and goals.',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+    title: 'Modern Equipment',
+    description: 'State-of-the-art machines for optimal performance.',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&q=80',
+    title: 'Strong Community',
+    description: 'Train alongside a motivating fitness family.',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1534258936925-c58bed479fcb?w=600&q=80',
+    title: 'Flexible Timings',
+    description: 'Adapting seamlessly to your demanding lifestyle.',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80',
+    title: 'Group Classes',
+    description: 'High-energy sessions to push your limits together.',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=80',
+    title: 'Recovery Zone',
+    description: 'Dedicated spaces to heal, stretch, and recover.',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80',
+    title: 'Nutrition Bar',
+    description: 'Fuel up with premium supplements and fresh smoothies.',
+  },
 ];
-const N = STEPS.length;
 
-/* ── Card ───────────────────────────────────────────────────── */
-function Card({ step }: { step: typeof STEPS[0] }) {
-  const [hovered, setHovered] = useState(false);
+// Split into 3 columns (8 items: 3, 2, 3)
+const COL_1 = [FEATURES[0], FEATURES[1], FEATURES[2]];
+const COL_2 = [FEATURES[3], FEATURES[4]];
+const COL_3 = [FEATURES[5], FEATURES[6], FEATURES[7]];
+
+function FeatureCard({ feature, index }: { feature: any, index: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 28 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="relative rounded-[20px] flex flex-col p-7 overflow-hidden cursor-default"
-      style={{
-        background: `radial-gradient(circle at 35% 30%, ${hovered ? step.glow : "transparent"} 0%, transparent 60%), #ffffff`,
-        border: `1.5px solid ${hovered ? step.iconColor + "60" : "rgba(0,0,0,0.08)"}`,
-        boxShadow: hovered ? `0 16px 48px rgba(0,0,0,.10), 0 0 40px ${step.glow}` : "0 2px 12px rgba(0,0,0,.06)",
-        transition: "border-color .3s, box-shadow .3s, background .3s",
-        minHeight: 200,
-      }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className="group flex flex-col mb-10"
     >
-      <div className="absolute top-0 left-[18%] right-[18%] h-px pointer-events-none"
-        style={{ background: `linear-gradient(90deg,transparent,${step.iconColor},transparent)`, opacity: hovered ? 0.65 : 0.2, transition:"opacity .3s" }} />
-      <div className="absolute bottom-4 right-4 pointer-events-none" style={{ color: step.iconColor, opacity: hovered ? 0.12 : 0.05, transition:"opacity .3s" }}>
-        <step.Icon size={90} strokeWidth={0.7} />
+      <div className="rounded-3xl overflow-hidden mb-5 relative aspect-[4/5] bg-black/5">
+        <img 
+          src={feature.image} 
+          alt={feature.title} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500" />
       </div>
-      <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 shrink-0 z-10"
-        style={{ background: step.bg, color: step.iconColor, boxShadow: hovered ? `0 0 20px ${step.iconColor}44` : "none", transition:"box-shadow .3s" }}>
-        <step.Icon size={24} strokeWidth={2} />
-      </div>
-      <h3 className="font-display font-black text-[1.1rem] leading-snug mb-2 z-10 relative"
-        style={{ color: hovered ? step.iconColor : "#1C1C1E", transition:"color .3s" }}>
-        {step.title}
-      </h3>
-      <p className="text-black/45 text-[0.82rem] leading-relaxed z-10">{step.desc}</p>
+      <h3 className="font-display font-black text-2xl text-black mb-2">{feature.title}</h3>
+      <p className="text-black/60 text-sm leading-relaxed">{feature.description}</p>
     </motion.div>
   );
 }
 
-/* ── Mobile auto-scroll carousel (no touch interference) ────── */
-function MobileCarousel() {
-  const [active, setActive] = useState(0);
-  const autoRef = useRef<ReturnType<typeof setInterval>>();
+export default function WhyChooseUs() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const col1Ref = useRef<HTMLDivElement>(null);
+  const col2Ref = useRef<HTMLDivElement>(null);
+  const col3Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    autoRef.current = setInterval(() => setActive(a => (a + 1) % N), 2800);
-    return () => clearInterval(autoRef.current);
+    // Only run parallax on desktop
+    const mm = gsap.matchMedia();
+    
+    mm.add("(min-width: 768px)", () => {
+      const ctx = gsap.context(() => {
+        ScrollTrigger.create({
+          trigger: containerRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1.2, // Smooth scrubbing
+          animation: gsap.timeline()
+            .to(col1Ref.current, { y: "10%", ease: "none" }, 0)
+            .to(col2Ref.current, { y: "25%", ease: "none" }, 0)
+            .to(col3Ref.current, { y: "15%", ease: "none" }, 0)
+        });
+      });
+      return () => ctx.revert();
+    });
+
+    return () => mm.revert();
   }, []);
 
-  const s = STEPS[active];
-
   return (
-    <div className="flex flex-col items-center gap-5">
-      {/* card */}
-      <div className="relative w-full" style={{ height: 220 }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={active}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute inset-0 flex items-center justify-center"
-          >
-            <div
-              className="rounded-[20px] flex flex-col p-6 overflow-hidden relative w-full"
-              style={{
-                background: `radial-gradient(circle at 35% 30%, ${s.glow} 0%, transparent 60%), #ffffff`,
-                border: `1.5px solid ${s.iconColor}55`,
-                boxShadow: `0 8px 32px rgba(0,0,0,.10), 0 0 36px ${s.glow}`,
-                minHeight: 200,
-              }}
-            >
-              <div className="absolute top-0 left-[18%] right-[18%] h-px pointer-events-none"
-                style={{ background: `linear-gradient(90deg,transparent,${s.iconColor},transparent)` }} />
-              <div className="absolute bottom-3 right-3 pointer-events-none" style={{ color: s.iconColor, opacity: 0.1 }}>
-                <s.Icon size={80} strokeWidth={0.7} />
-              </div>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 shrink-0 z-10"
-                style={{ background: s.bg, color: s.iconColor }}>
-                <s.Icon size={22} strokeWidth={2} />
-              </div>
-              <h3 className="font-display font-black text-[1.05rem] leading-snug mb-1 z-10" style={{ color: s.iconColor }}>
-                {s.title}
-              </h3>
-              <p className="text-black/45 text-[0.82rem] leading-relaxed z-10">{s.desc}</p>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
+    <section ref={containerRef} className="bg-white pt-16 pb-40 overflow-hidden relative" id="why-us">
+      {/* Decorative gradient blur in background */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-30 pointer-events-none blur-[100px]"
+           style={{ background: "radial-gradient(circle, #E8A820 0%, transparent 60%)" }} />
 
-      {/* dots — no interaction needed */}
-      <div className="flex gap-2">
-        {STEPS.map((step, i) => (
-          <div key={i} className="rounded-full transition-all duration-300"
-            style={{ width: i === active ? 22 : 7, height: 7,
-              background: i === active ? step.iconColor : "rgba(255,255,255,.2)" }} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ── Section ─────────────────────────────────────────────────── */
-export default function WhyChooseUs() {
-  return (
-    <section id="why-us" className="py-24 bg-white relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(232,168,32,.05) 0%, transparent 70%)" }} />
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-black/[0.06] to-transparent" />
-
-      <div className="max-w-7xl mx-auto px-5 md:px-8">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 relative z-10">
+        
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center max-w-xl mx-auto mb-14"
-        >
-          <div className="eyebrow justify-center mb-4">The Empire standard</div>
-          <h2 className="font-display font-black text-[#1C1C1E] text-[clamp(2rem,4.5vw,2.9rem)]">
-            Why train <span className="text-gold-gradient">with us?</span>
+        <div className="text-center mb-12 max-w-3xl mx-auto">
+          <p className="text-[#C8900A] text-sm font-black uppercase tracking-[0.25em] mb-4">
+            The Empire Standard
+          </p>
+          <h2 className="font-display font-black text-black text-5xl md:text-7xl leading-tight mb-6">
+            Why train <br className="hidden md:block" />
+            <span className="text-[#C8900A]">with us?</span>
           </h2>
-        </motion.div>
-
-        {/* Desktop: 3×2 grid */}
-        <div className="hidden md:grid grid-cols-3 gap-5">
-          {STEPS.map((step, i) => (
-            <motion.div key={i} transition={{ delay: i * 0.07 }}>
-              <Card step={step} />
-            </motion.div>
-          ))}
+          <p className="text-black/50 text-lg">
+            Experience world-class facilities designed to elevate your fitness journey.
+          </p>
         </div>
 
-        {/* Mobile: auto-scroll carousel */}
-        <div className="md:hidden">
-          <MobileCarousel />
+        {/* Parallax Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-14 items-start mb-16">
+          
+          {/* Column 1 */}
+          <div ref={col1Ref} className="flex flex-col md:mt-0">
+            {COL_1.map((f, i) => (
+              <FeatureCard key={i} feature={f} index={i} />
+            ))}
+          </div>
+
+          {/* Column 2 */}
+          <div ref={col2Ref} className="flex flex-col md:mt-12">
+            {COL_2.map((f, i) => (
+              <FeatureCard key={i} feature={f} index={i + 3} />
+            ))}
+          </div>
+
+          {/* Column 3 */}
+          <div ref={col3Ref} className="flex flex-col md:mt-6">
+            {COL_3.map((f, i) => (
+              <FeatureCard key={i} feature={f} index={i + 5} />
+            ))}
+          </div>
+
         </div>
+
       </div>
     </section>
   );
