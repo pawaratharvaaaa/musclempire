@@ -113,12 +113,12 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="pt-8 border-t border-black/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[11px] text-black uppercase tracking-widest">
+          <p className="text-[11px] text-black uppercase tracking-widest text-center md:text-left">
             &copy; {year} Muscle Empire Gymnasium. All rights reserved.
           </p>
-          <div className="flex gap-6">
-            <a href="#" className="text-[11px] text-black hover:text-black transition-colors uppercase tracking-widest">Privacy policy</a>
-            <a href="#" className="text-[11px] text-black hover:text-black transition-colors uppercase tracking-widest">Terms</a>
+          <div className="flex gap-4 md:gap-6 flex-wrap justify-center">
+            <a href="#" className="text-[11px] text-black hover:text-[#C8900A] transition-colors uppercase tracking-widest">Privacy policy</a>
+            <a href="/terms" className="text-[11px] text-black hover:text-[#C8900A] transition-colors uppercase tracking-widest">Terms & Conditions</a>
           </div>
         </div>
       </div>

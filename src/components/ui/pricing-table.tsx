@@ -65,8 +65,8 @@ export function PricingTable({
 
   return (
     <div className="w-full">
-      {/* Plan cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      {/* Plan Pills */}
+      <div className="flex items-center justify-center gap-2 mb-8 bg-black/40 p-1.5 rounded-full border border-white/10 w-fit mx-auto">
         {plans.map((plan) => {
           const active = selectedPlan === plan.level
           return (
@@ -74,48 +74,15 @@ export function PricingTable({
               key={plan.level}
               type="button"
               onClick={() => setSelectedPlan(plan.level)}
-              className="relative flex flex-col items-start p-4 rounded-xl text-left transition-all duration-200"
+              className="relative px-5 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300"
               style={{
-                background: active ? `${accentColor}12` : "rgba(255,255,255,0.03)",
-                border: active
-                  ? `1.5px solid ${accentColor}60`
-                  : "1.5px solid rgba(255,255,255,0.07)",
-                boxShadow: active ? `0 0 20px ${accentColor}18` : "none",
+                background: active ? accentColor : "transparent",
+                color: active ? "#1C1C1E" : "rgba(255,255,255,0.6)",
               }}
             >
+              {plan.name}
               {plan.popular && (
-                <span
-                  className="absolute top-4 right-4 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                  style={{ background: accentColor, color: "#1C1C1E" }}
-                >
-                  Popular
-                </span>
-              )}
-              <span
-                className="text-xs font-bold uppercase tracking-widest mb-2 pr-16"
-                style={{ color: active ? accentColor : "rgba(255,255,255,0.4)" }}
-              >
-                {plan.name}
-              </span>
-              <div className="flex flex-col items-start justify-center gap-0.5 mt-2">
-                {plan.originalPrice && (
-                  <span className="text-xs font-medium text-white/30 line-through decoration-white/30 -mb-1 ml-4">
-                    ₹{plan.originalPrice.monthly.toLocaleString()}
-                  </span>
-                )}
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[11px] text-white/40 mr-0.5">₹</span>
-                  <NumberFlow
-                    value={plan.price.monthly}
-                    className="text-2xl font-black text-white"
-                  />
-                  <span className="text-[11px] text-white/35 ml-1">
-                    {plan.priceSuffix || "/mo"}
-                  </span>
-                </div>
-              </div>
-              {plan.description && (
-                <p className="text-[11px] text-white/35 mt-1.5 leading-relaxed">{plan.description}</p>
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full" style={{ background: accentColor, boxShadow: `0 0 10px ${accentColor}` }} />
               )}
             </button>
           )
@@ -177,6 +144,30 @@ export function PricingTable({
 
       {/* CTA */}
       <div className="p-6 md:px-8 bg-[#1a1a1a]/50 border-t border-white/5 rounded-b-[24px]">
+        {/* Dynamic Price Display */}
+        {(() => {
+          const activePlan = plans.find((p) => p.level === selectedPlan);
+          if (!activePlan) return null;
+          return (
+            <div className="flex flex-col items-center justify-center mb-6">
+              {activePlan.originalPrice && (
+                <span className="text-sm font-medium text-white/30 line-through decoration-white/30 mb-1">
+                  ₹{activePlan.originalPrice.monthly.toLocaleString()}
+                </span>
+              )}
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg text-white/40 mr-0.5">₹</span>
+                <NumberFlow
+                  value={activePlan.price.monthly}
+                  className="text-4xl font-black text-white"
+                />
+                <span className="text-sm text-white/40 ml-1">
+                  {activePlan.priceSuffix || "/mo"}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
         <button
           className="w-full flex items-center justify-center gap-2 font-bold text-sm h-12 rounded-xl transition-all duration-300 group hover:-translate-y-0.5"
           style={{

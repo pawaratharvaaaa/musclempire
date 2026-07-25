@@ -16,6 +16,7 @@ const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminCustomer = lazy(() => import("@/pages/AdminCustomer"));
 const AdminTrackRecord = lazy(() => import("@/pages/AdminTrackRecord"));
+const TermsPage = lazy(() => import("@/pages/Terms"));
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ function Router() {
         <Route path="/products/:id" component={ProductDetail} />
         <Route path="/nutrition" component={NutritionAssessment} />
         <Route path="/offers" component={Offers} />
+        <Route path="/terms" component={TermsPage} />
         {/* Private admin routes */}
         <Route path="/pronectar-admin-2026" component={AdminLogin} />
         <Route path="/pronectar-admin-2026/dashboard" component={AdminDashboard} />

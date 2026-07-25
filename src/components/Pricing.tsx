@@ -35,14 +35,6 @@ const unisexPlans: PricingPlan[] = [
     description: "₹22,000 billed annually",
     priceSuffix: "/yr"
   },
-  {
-    name: "Dietician Plan",
-    level: "dietician",
-    price: { monthly: 800, yearly: 800 },
-    originalPrice: { monthly: 1500, yearly: 1500 },
-    description: "Personalized nutrition coaching",
-    priceSuffix: "/session"
-  },
 ];
 
 const unisexFeatures: PricingFeature[] = [
@@ -83,14 +75,6 @@ const femalePlans: PricingPlan[] = [
     originalPrice: { monthly: 1000, yearly: 12000 },
     description: "₹7,500 billed annually",
     priceSuffix: "/mo"
-  },
-  {
-    name: "Dietician Plan",
-    level: "dietician",
-    price: { monthly: 800, yearly: 800 },
-    originalPrice: { monthly: 1500, yearly: 1500 },
-    description: "Personalized nutrition coaching",
-    priceSuffix: "/session"
   },
 ];
 
@@ -195,7 +179,7 @@ export default function Pricing() {
         </motion.div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-[1200px] mx-auto items-stretch">
           {gyms.map((gym, i) => (
             <motion.div
               key={i}
@@ -291,6 +275,79 @@ export default function Pricing() {
               </button>
             </motion.div>
           ))}
+
+          {/* Dietitian Plan Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ delay: 0.24, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="group relative flex flex-col rounded-[22px] p-8 border transition-all duration-300 overflow-hidden hover:-translate-y-2 bg-[#0a1a10]/90 border-green-500/20 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-green-500/40 hover:shadow-[0_20px_50px_rgba(34,197,94,0.15)] font-sans h-full"
+          >
+            {/* Tint Overlay for contrast */}
+            <div className="absolute inset-0 -z-10 rounded-[22px] transition-opacity duration-300 pointer-events-none bg-gradient-to-b from-[#0a1a10]/85 via-[#0a1a10]/95 to-[#0a1a10]" />
+
+            {/* Accent glow on hover */}
+            <div 
+              className="absolute inset-0 rounded-[22px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10"
+              style={{ background: `radial-gradient(circle at 50% 20%, rgba(34,197,94,0.15) 0%, transparent 60%)` }} 
+            />
+
+            {/* badge */}
+            <span className="absolute top-6 right-6 text-[10px] font-black tracking-widest uppercase text-green-500 bg-green-500/15 border border-green-500/30 px-3 py-1 rounded-full z-10">
+              For Everyone
+            </span>
+
+            {/* icon */}
+            <div className="w-[52px] h-[52px] rounded-2xl bg-green-500/15 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 z-10 text-green-500">
+              <svg viewBox="0 0 24 24" className="w-[24px] h-[24px] stroke-current fill-none stroke-[2] stroke-linecap-round stroke-linejoin-round">
+                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10"/>
+                <path d="M12 2c0 5.5 4.5 10 10 10"/>
+                <path d="M12 12L7 17"/>
+              </svg>
+            </div>
+
+            <h3 className="text-[1.2rem] font-black text-white tracking-tight mb-1 pr-20 z-10">Personalised Dietitian Plan</h3>
+            <p className="text-[11px] font-bold tracking-widest uppercase text-green-500 mb-5 z-10">Nutrition · Wellness</p>
+
+            <div className="w-8 h-[1.5px] mb-5 rounded-full z-10 transition-all duration-300 group-hover:w-16 bg-green-500/40" />
+
+            {/* description */}
+            <p className="text-[0.875rem] leading-relaxed text-white/45 mb-6 flex-1 z-10">
+              A customised meal and nutrition plan designed by a certified dietitian, tailored to your health goals and dietary preferences.
+            </p>
+
+            {/* features */}
+            <ul className="space-y-2 mb-7 z-10">
+              {[
+                "Certified dietitian consultation",
+                "Custom weekly meal plan",
+                "Calorie & macro tracking guide",
+                "Progress check-in every 2 weeks"
+              ].map((f, idx) => (
+                <li key={idx} className="flex items-center gap-2.5 text-[0.85rem] text-white/60 transition-colors duration-300 group-hover:text-white/80">
+                  <Check size={13} className="text-green-500" strokeWidth={3} />
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-auto z-10">
+              {/* price pill */}
+              <div className="mb-5 px-5 py-3.5 rounded-xl border text-white font-black text-[1.05rem] z-10 transition-all duration-300 bg-green-500/[0.04] border-green-500/15 group-hover:bg-green-500/[0.08] group-hover:border-green-500/30">
+                ₹800 <span className="text-[0.85rem] font-medium text-white/45">/ month</span>
+              </div>
+
+              {/* CTA */}
+              <button 
+                type="button" 
+                onClick={() => openRazorpay("Personalised Dietitian Plan", 800 * 100)}
+                className="w-full flex items-center justify-center gap-2 font-bold text-[13px] h-[52px] rounded-xl transition-all duration-300 z-10 text-[#0f2a1a] bg-green-500 hover:bg-green-400 shadow-[0_4px_20px_rgba(34,197,94,0.25)] group-hover:shadow-[0_10px_25px_rgba(34,197,94,0.35)] hover:-translate-y-0.5 group"
+              >
+                Get this plan <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+              </button>
+            </div>
+          </motion.div>
         </div>
       </div>
 

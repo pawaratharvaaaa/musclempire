@@ -1,4 +1,4 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
@@ -8,8 +8,11 @@ import Pricing from "@/components/Pricing";
 import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import Preloader from "@/components/Preloader";
 
 export default function Home() {
+  const [loading, setLoading] = useState(true);
+
   // Restore scroll before first paint — no flash at position 0
   useLayoutEffect(() => {
     const saved = sessionStorage.getItem("scroll_before_plans");
@@ -20,18 +23,24 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] w-full bg-background text-foreground selection:bg-primary selection:text-black">
-      <Navbar />
-      <main>
-        <Hero />
-        <About />
-        <Services />
-        <WhyChooseUs />
-        <Pricing />
-        <Testimonials />
-        <Contact />
-      </main>
-      <Footer />
-    </div>
+    <>
+      {loading && <Preloader onComplete={() => setLoading(false)} />}
+      
+      {!loading && (
+        <div className="min-h-[100dvh] w-full bg-background text-foreground selection:bg-primary selection:text-black">
+          <Navbar />
+          <main>
+            <Hero />
+            <About />
+            <Services />
+            <WhyChooseUs />
+            <Pricing />
+            <Testimonials />
+            <Contact />
+          </main>
+          <Footer />
+        </div>
+      )}
+    </>
   );
 }
