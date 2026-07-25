@@ -65,7 +65,7 @@ export default function Hero() {
               style={{ background: "rgba(255,255,255,0.06)" }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#E8A820] animate-pulse" />
-              <span className="text-[#E8A820] text-[11px] font-bold uppercase tracking-[0.18em]">
+              <span className="text-[#E8A820] text-[13px] lg:text-[14px] font-bold uppercase tracking-[0.18em]">
                 Ghatkopar's elite arena
               </span>
             </motion.div>
@@ -74,8 +74,8 @@ export default function Hero() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-              className="text-white/72 leading-[1.7] max-w-[290px]"
-              style={{ fontSize: "clamp(0.86rem,1.6vw,0.97rem)" }}
+              className="text-white/72 leading-[1.7] max-w-[360px]"
+              style={{ fontSize: "clamp(1rem,2vw,1.25rem)" }}
             >
               A space built for{" "}
               <span className="text-white font-semibold">serious training</span>,{" "}
@@ -97,10 +97,10 @@ export default function Hero() {
               }}
             >
               <div>
-                <p className="text-white font-black text-[0.9rem] leading-tight">5k+ Members</p>
-                <div className="flex gap-0.5 mt-0.5">
+                <p className="text-white font-black text-[1.15rem] leading-tight mb-1">5k+ Members</p>
+                <div className="flex gap-1 mt-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <svg key={i} width="11" height="11" viewBox="0 0 24 24" fill="#E8A820">
+                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="#E8A820">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
                   ))}
@@ -111,23 +111,23 @@ export default function Hero() {
           </div>
 
           {/* RIGHT — headline with varied sizes */}
-          <div className="order-1 lg:order-2 flex flex-col justify-end gap-8 lg:pb-10 overflow-hidden">
+          <div className="order-1 lg:order-2 flex flex-col justify-end gap-8 lg:pb-28 lg:pl-24 overflow-visible">
 
             <motion.div
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display font-black uppercase text-left leading-[1.05] w-full"
+              className="font-display font-black uppercase text-left leading-[1.05] w-full whitespace-nowrap"
               style={{ letterSpacing: "-0.02em" }}
             >
               {/* TRANSFORM */}
-              <div className="text-white overflow-hidden" style={{ fontSize: "clamp(2.2rem,6vw,4.5rem)", lineHeight: 1.05 }}>
+              <div className="text-white overflow-hidden" style={{ fontSize: "clamp(2.2rem,7vw,6.5rem)", lineHeight: 1.05 }}>
                 Transform
               </div>
 
               {/* YOUR BODY. — gold */}
               <div style={{
-                fontSize: "clamp(2rem,5.5vw,3.9rem)", lineHeight: 1.05,
+                fontSize: "clamp(2rem,6.5vw,5.8rem)", lineHeight: 1.05,
                 background: "linear-gradient(135deg,#E8A820,#FF9500)",
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>
@@ -135,12 +135,12 @@ export default function Hero() {
               </div>
 
               {/* ELEVATE */}
-              <div className="text-white mt-2" style={{ fontSize: "clamp(2.1rem,5.8vw,4.2rem)", lineHeight: 1.05 }}>
+              <div className="text-white mt-2 lg:mt-6" style={{ fontSize: "clamp(2.1rem,6.8vw,6rem)", lineHeight: 1.05 }}>
                 Elevate
               </div>
 
               {/* YOUR LIFE. */}
-              <div style={{ fontSize: "clamp(1.8rem,5vw,3.6rem)", lineHeight: 1.05, color: "rgba(255,255,255,0.68)" }}>
+              <div style={{ fontSize: "clamp(1.8rem,6vw,5.2rem)", lineHeight: 1.05, color: "rgba(255,255,255,0.68)" }}>
                 your life.
               </div>
 
