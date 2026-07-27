@@ -1,5 +1,6 @@
 import { useState, useLayoutEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { StarsBackground } from "@/components/ui/stars";
 import { CheckCircle2, User, Scale, Heart, Utensils, Target, FileText, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import PlanNavbar from "@/components/PlanNavbar";
@@ -10,10 +11,9 @@ import type { AssessmentData } from "@/lib/sheets";
 const WA_NUMBER = "919773053632";
 
 type Form = {
-  name: string; phone: string; email: string; age: string; gender: string;
+  name: string; phone: string; age: string; gender: string;
   weight: string; height: string;
   wakeTime: string; bedTime: string; sleepDuration: string; workoutTime: string;
-  targetWeight: string; weightChange: string;
   foodPref: string;
   collegeTime: string; workTime: string;
   medicalConditions: string; allergies: string; supplements: string;
@@ -22,10 +22,9 @@ type Form = {
 };
 
 const empty: Form = {
-  name: "", phone: "", email: "", age: "", gender: "",
+  name: "", phone: "", age: "", gender: "",
   weight: "", height: "",
   wakeTime: "", bedTime: "", sleepDuration: "", workoutTime: "",
-  targetWeight: "", weightChange: "",
   foodPref: "",
   collegeTime: "", workTime: "",
   medicalConditions: "", allergies: "", supplements: "",
@@ -43,6 +42,32 @@ function bmiCategory(b: number) {
   if (b < 25)   return { label: "Normal weight", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/25" };
   if (b < 30)   return { label: "Overweight", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/25" };
   return { label: "Obese", color: "text-red-400", bg: "bg-red-400/10 border-red-400/25" };
+}
+
+function bodyFat(bmiVal: number, ageStr: string, gender: string) {
+  const age = parseFloat(ageStr);
+  if (!bmiVal || !age || !gender) return null;
+  const genderVal = gender.toLowerCase() === "male" ? 1 : 0;
+  // Deurenberg formula for adults
+  const bf = (1.20 * bmiVal) + (0.23 * age) - (10.8 * genderVal) - 5.4;
+  return bf > 0 ? bf : null;
+}
+
+function bodyFatCategory(bf: number, gender: string) {
+  const isMale = gender.toLowerCase() === "male";
+  if (isMale) {
+    if (bf < 6) return { label: "Essential Fat", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/25" };
+    if (bf < 14) return { label: "Athletic/Fit", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/25" };
+    if (bf < 18) return { label: "Fitness", color: "text-emerald-300", bg: "bg-emerald-300/10 border-emerald-300/25" };
+    if (bf < 25) return { label: "Average", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/25" };
+    return { label: "Obese", color: "text-red-400", bg: "bg-red-400/10 border-red-400/25" };
+  } else {
+    if (bf < 14) return { label: "Essential Fat", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/25" };
+    if (bf < 21) return { label: "Athletic/Fit", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/25" };
+    if (bf < 25) return { label: "Fitness", color: "text-emerald-300", bg: "bg-emerald-300/10 border-emerald-300/25" };
+    if (bf < 32) return { label: "Average", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/25" };
+    return { label: "Obese", color: "text-red-400", bg: "bg-red-400/10 border-red-400/25" };
+  }
 }
 
 /* ── Shared UI primitives ──────────────────────────────────────── */
@@ -100,6 +125,8 @@ export default function NutritionAssessment() {
 
   const bmiVal = bmi(form.weight, form.height);
   const bmiCat = bmiVal ? bmiCategory(bmiVal) : null;
+  const bfVal = bmiVal ? bodyFat(bmiVal, form.age, form.gender) : null;
+  const bfCat = bfVal ? bodyFatCategory(bfVal, form.gender) : null;
 
   const set = (k: keyof Form, v: string | boolean | string[]) =>
     setForm(f => ({ ...f, [k]: v }));
@@ -121,6 +148,12 @@ export default function NutritionAssessment() {
       if (!form.weight) e.weight = "Required";
       if (!form.height) e.height = "Required";
     }
+    if (s === 2) {
+      if (!form.wakeTime) e.wakeTime = "Required";
+      if (!form.bedTime) e.bedTime = "Required";
+      if (!form.sleepDuration) e.sleepDuration = "Required";
+      if (!form.workoutTime) e.workoutTime = "Required";
+    }
     if (s === 3) {
       if (!form.foodPref) e.foodPref = "Select one";
     }
@@ -138,8 +171,6 @@ export default function NutritionAssessment() {
   };
 
   const goNext = () => {
-    const e = validateStep(step);
-    if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
     setDir(1);
     setStep(s => s + 1);
@@ -154,34 +185,52 @@ export default function NutritionAssessment() {
   };
 
   const handleSubmit = async () => {
-    const e = validateStep(7);
-    if (Object.keys(e).length) { setErrors(e); return; }
+    const e = {
+      ...validateStep(0),
+      ...validateStep(1),
+      ...validateStep(2),
+      ...validateStep(3),
+      ...validateStep(5),
+      ...validateStep(6),
+      ...validateStep(7),
+    };
+    if (Object.keys(e).length) {
+      setErrors(e);
+      if (Object.keys(validateStep(0)).length) setStep(0);
+      else if (Object.keys(validateStep(1)).length) setStep(1);
+      else if (Object.keys(validateStep(2)).length) setStep(2);
+      else if (Object.keys(validateStep(3)).length) setStep(3);
+      else if (Object.keys(validateStep(5)).length) setStep(5);
+      else if (Object.keys(validateStep(6)).length) setStep(6);
+      else if (Object.keys(validateStep(7)).length) setStep(7);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     const today = new Date().toLocaleDateString("en-IN");
     const goalsList = [...form.goals, form.otherGoal ? `Other: ${form.otherGoal}` : ""].filter(Boolean).join(", ");
     const payload: AssessmentData = {
-      date: today, name: form.name, phone: form.phone, email: form.email,
+      date: today, name: form.name, phone: form.phone, email: "",
       age: form.age, gender: form.gender, weight: form.weight, height: form.height,
       bmi: bmiVal ? bmiVal.toFixed(1) : "", bmiCategory: bmiCat?.label || "",
       wakeTime: form.wakeTime, bedTime: form.bedTime, sleepDuration: form.sleepDuration,
-      workoutTime: form.workoutTime, targetWeight: form.targetWeight,
-      weightChange: form.weightChange, foodPref: form.foodPref,
+      workoutTime: form.workoutTime, targetWeight: "",
+      weightChange: "", foodPref: form.foodPref,
       collegeTime: form.collegeTime, workTime: form.workTime,
       medicalConditions: form.medicalConditions, allergies: form.allergies,
       supplements: form.supplements, goals: goalsList, remarks: form.remarks,
       foodHistory: form.foodHistory, status: "New",
+      notes: bfVal ? `Estimated Body Fat: ${bfVal.toFixed(1)}% (${bfCat?.label})` : "",
     };
     await submitAssessment(payload);
     const waMsg = [
       `🏋️ *Muscle Empire – Nutrition Assessment*`, ``,
       `*👤 Personal Details*`,
       `Name: ${form.name}`, `Phone: ${form.phone}`,
-      form.email ? `Email: ${form.email}` : null,
       `Age: ${form.age}`, form.gender ? `Gender: ${form.gender}` : null, ``,
       `*📏 Body Measurements*`,
       `Weight: ${form.weight} kg`, `Height: ${form.height} cm`,
       bmiVal ? `BMI: ${bmiVal.toFixed(1)} (${bmiCat?.label})` : null,
-      form.targetWeight ? `Target Weight: ${form.targetWeight} kg` : null,
-      form.weightChange ? `Weight to Change: ${form.weightChange} kg` : null, ``,
+      bfVal ? `Body Fat: ${bfVal.toFixed(1)}% (${bfCat?.label})` : null, ``,
       `*🌙 Lifestyle*`,
       form.wakeTime ? `Wake-up: ${form.wakeTime}` : null,
       form.bedTime ? `Bed: ${form.bedTime}` : null,
@@ -206,9 +255,15 @@ export default function NutritionAssessment() {
   /* ── Success screen ─────────────────────────────────────────── */
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[#1C1C1E]">
+      <div className="min-h-screen bg-[#1C1C1E] text-[#F2EFE9] flex flex-col relative overflow-hidden">
+        <div 
+          className="fixed inset-0 pointer-events-none z-0 opacity-50 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: "url('https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=80&w=2000')",
+          }}
+        />
         <PlanNavbar />
-        <main className="flex items-center justify-center min-h-screen px-4">
+        <main className="flex items-center justify-center flex-1 px-4 relative z-10">
           <motion.div initial={{ opacity:0, scale:0.88 }} animate={{ opacity:1, scale:1 }}
             transition={{ duration:0.65, ease:[0.16,1,0.3,1] }}
             className="text-center max-w-md mx-auto"
@@ -232,7 +287,9 @@ export default function NutritionAssessment() {
             </motion.p>
           </motion.div>
         </main>
-        <Footer />
+        <div className="relative z-10 bg-[#1C1C1E]">
+          <Footer />
+        </div>
       </div>
     );
   }
@@ -248,21 +305,17 @@ export default function NutritionAssessment() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Full name <span className="text-red-400">*</span></Label>
-              <input type="text" placeholder="Your full name" value={form.name} onChange={e=>set("name",e.target.value)} className={inp(errors.name)} />
+              <input type="text" value={form.name} onChange={e=>set("name",e.target.value)} className={inp(errors.name)} />
               <Err msg={errors.name} />
             </div>
             <div>
               <Label>Mobile number <span className="text-red-400">*</span></Label>
-              <input type="tel" placeholder="+91 98765 43210" value={form.phone} onChange={e=>set("phone",e.target.value)} className={inp(errors.phone)} />
+              <input type="tel" value={form.phone} onChange={e=>set("phone",e.target.value)} className={inp(errors.phone)} />
               <Err msg={errors.phone} />
             </div>
             <div>
-              <Label>Email address</Label>
-              <input type="email" placeholder="you@email.com" value={form.email} onChange={e=>set("email",e.target.value)} className={inp()} />
-            </div>
-            <div>
               <Label>Age <span className="text-red-400">*</span></Label>
-              <input type="number" placeholder="25" min={10} max={90} value={form.age} onChange={e=>set("age",e.target.value)} className={inp(errors.age)} />
+              <input type="number" min={10} max={90} value={form.age} onChange={e=>set("age",e.target.value)} className={inp(errors.age)} />
               <Err msg={errors.age} />
             </div>
           </div>
@@ -282,35 +335,41 @@ export default function NutritionAssessment() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Weight (kg) <span className="text-red-400">*</span></Label>
-              <input type="number" placeholder="70" min={20} max={300} value={form.weight} onChange={e=>set("weight",e.target.value)} className={inp(errors.weight)} />
+              <input type="number" min={20} max={300} value={form.weight} onChange={e=>set("weight",e.target.value)} className={inp(errors.weight)} />
               <Err msg={errors.weight} />
             </div>
             <div>
               <Label>Height (cm) <span className="text-red-400">*</span></Label>
-              <input type="number" placeholder="175" min={100} max={250} value={form.height} onChange={e=>set("height",e.target.value)} className={inp(errors.height)} />
+              <input type="number" min={100} max={250} value={form.height} onChange={e=>set("height",e.target.value)} className={inp(errors.height)} />
               <Err msg={errors.height} />
-            </div>
-            <div>
-              <Label>Target weight (kg)</Label>
-              <input type="number" placeholder="65" value={form.targetWeight} onChange={e=>set("targetWeight",e.target.value)} className={inp()} />
-            </div>
-            <div>
-              <Label>Weight to gain / lose (kg)</Label>
-              <input type="number" placeholder="5" value={form.weightChange} onChange={e=>set("weightChange",e.target.value)} className={inp()} />
             </div>
           </div>
           {bmiVal && bmiCat && (
             <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}}
-              className={`border rounded-2xl p-5 flex items-center justify-between ${bmiCat.bg}`}
+              className={bfVal && bfCat ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : "w-full"}
             >
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest opacity-60 mb-0.5">Your BMI</p>
-                <p className={`text-4xl font-black ${bmiCat.color}`}>{bmiVal.toFixed(1)}</p>
+              <div className={`border rounded-2xl p-5 flex items-center justify-between ${bmiCat.bg}`}>
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-widest opacity-60 mb-0.5 text-[#F2EFE9]">Your BMI</p>
+                  <p className={`text-4xl font-black ${bmiCat.color}`}>{bmiVal.toFixed(1)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] font-bold uppercase tracking-widest opacity-60 mb-0.5 text-[#F2EFE9]">Category</p>
+                  <p className={`text-xl font-black ${bmiCat.color}`}>{bmiCat.label}</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-[11px] font-bold uppercase tracking-widest opacity-60 mb-0.5">Category</p>
-                <p className={`text-xl font-black ${bmiCat.color}`}>{bmiCat.label}</p>
-              </div>
+              {bfVal && bfCat && (
+                <div className={`border rounded-2xl p-5 flex items-center justify-between ${bfCat.bg}`}>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-widest opacity-60 mb-0.5 text-[#F2EFE9]">Body Fat (Est.)</p>
+                    <p className={`text-4xl font-black ${bfCat.color}`}>{bfVal.toFixed(1)}%</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[11px] font-bold uppercase tracking-widest opacity-60 mb-0.5 text-[#F2EFE9]">Category</p>
+                    <p className={`text-xl font-black ${bfCat.color}`}>{bfCat.label}</p>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </div>
@@ -319,20 +378,24 @@ export default function NutritionAssessment() {
       case 2: return (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <Label>Wake-up time</Label>
-            <input type="time" value={form.wakeTime} onChange={e=>set("wakeTime",e.target.value)} className={inp()} />
+            <Label>Wake-up time <span className="text-red-400">*</span></Label>
+            <input type="time" value={form.wakeTime} onChange={e=>set("wakeTime",e.target.value)} className={inp(errors.wakeTime)} />
+            <Err msg={errors.wakeTime} />
           </div>
           <div>
-            <Label>Bed time</Label>
-            <input type="time" value={form.bedTime} onChange={e=>set("bedTime",e.target.value)} className={inp()} />
+            <Label>Bed time <span className="text-red-400">*</span></Label>
+            <input type="time" value={form.bedTime} onChange={e=>set("bedTime",e.target.value)} className={inp(errors.bedTime)} />
+            <Err msg={errors.bedTime} />
           </div>
           <div>
-            <Label>Sleep duration (hours)</Label>
-            <input type="number" placeholder="7" min={1} max={14} value={form.sleepDuration} onChange={e=>set("sleepDuration",e.target.value)} className={inp()} />
+            <Label>Sleep duration (hours) <span className="text-red-400">*</span></Label>
+            <input type="number" min={1} max={14} value={form.sleepDuration} onChange={e=>set("sleepDuration",e.target.value)} className={inp(errors.sleepDuration)} />
+            <Err msg={errors.sleepDuration} />
           </div>
           <div>
-            <Label>Workout time</Label>
-            <input type="time" value={form.workoutTime} onChange={e=>set("workoutTime",e.target.value)} className={inp()} />
+            <Label>Workout time <span className="text-red-400">*</span></Label>
+            <input type="time" value={form.workoutTime} onChange={e=>set("workoutTime",e.target.value)} className={inp(errors.workoutTime)} />
+            <Err msg={errors.workoutTime} />
           </div>
         </div>
       );
@@ -352,11 +415,11 @@ export default function NutritionAssessment() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>College timing</Label>
-              <input type="text" placeholder="e.g. 9-4" value={form.collegeTime} onChange={e=>set("collegeTime",e.target.value.replace(/[^0-9\-]/g,""))} className={inp()} />
+              <input type="text" value={form.collegeTime} onChange={e=>set("collegeTime",e.target.value.replace(/[^0-9\-]/g,""))} className={inp()} />
             </div>
             <div>
               <Label>Work timing</Label>
-              <input type="text" placeholder="e.g. 10-18" value={form.workTime} onChange={e=>set("workTime",e.target.value.replace(/[^0-9\-]/g,""))} className={inp()} />
+              <input type="text" value={form.workTime} onChange={e=>set("workTime",e.target.value.replace(/[^0-9\-]/g,""))} className={inp()} />
             </div>
           </div>
         </div>
@@ -368,7 +431,7 @@ export default function NutritionAssessment() {
           {(["medicalConditions","allergies","supplements"] as const).map((key,i)=>(
             <div key={key}>
               <Label>{["Medical conditions","Allergies","Current supplements / medicines"][i]}</Label>
-              <textarea rows={3} placeholder={["Diabetes, BP, PCOS, thyroid...","Lactose, gluten, nuts...","Whey protein, Vitamin D, Omega-3..."][i]}
+              <textarea rows={1}
                 value={form[key]} onChange={e=>set(key,e.target.value)} className={textareaBase} />
             </div>
           ))}
@@ -395,12 +458,12 @@ export default function NutritionAssessment() {
           {form.goals.includes("Other") && (
             <div>
               <Label>Specify your goal</Label>
-              <input type="text" placeholder="Tell us your goal..." value={form.otherGoal} onChange={e=>set("otherGoal",e.target.value)} className={inp()} />
+              <input type="text" value={form.otherGoal} onChange={e=>set("otherGoal",e.target.value)} className={inp()} />
             </div>
           )}
           <div>
             <Label>Additional remarks</Label>
-            <textarea rows={4} placeholder="Eating habits, likes/dislikes, meal timings, previous diet plans, special instructions..."
+            <textarea rows={2}
               value={form.remarks} onChange={e=>set("remarks",e.target.value)} className={textareaBase} />
           </div>
         </div>
@@ -413,7 +476,6 @@ export default function NutritionAssessment() {
             Describe what you ate over the last 7 days — include timings, meals, and quantities as best as you can.
           </p>
           <textarea rows={10}
-            placeholder={"Example:\nMorning (7am): 2 chapati + sabzi\nAfternoon (1pm): Rice + dal + salad\nEvening (5pm): Tea + biscuits\nNight (9pm): 1 roti + vegetables..."}
             value={form.foodHistory} onChange={e=>set("foodHistory",e.target.value)} className={textareaBase} />
           <Err msg={errors.foodHistory} />
         </div>
@@ -422,11 +484,10 @@ export default function NutritionAssessment() {
       case 7: {
         const rows: [string, string][] = [
           ["Name", form.name], ["Phone", form.phone],
-          ...(form.email ? [["Email", form.email] as [string,string]] : []),
           ["Age", form.age], ...(form.gender ? [["Gender", form.gender] as [string,string]] : []),
           ["Weight", `${form.weight} kg`], ["Height", `${form.height} cm`],
           ...(bmiVal ? [["BMI", `${bmiVal.toFixed(1)} — ${bmiCat?.label}`] as [string,string]] : []),
-          ...(form.targetWeight ? [["Target weight", `${form.targetWeight} kg`] as [string,string]] : []),
+          ...(bfVal ? [["Body Fat (Est.)", `${bfVal.toFixed(1)}% — ${bfCat?.label}`] as [string,string]] : []),
           ...(form.wakeTime ? [["Wake-up", form.wakeTime] as [string,string]] : []),
           ...(form.bedTime ? [["Bed time", form.bedTime] as [string,string]] : []),
           ...(form.sleepDuration ? [["Sleep", `${form.sleepDuration} hrs`] as [string,string]] : []),
@@ -443,21 +504,21 @@ export default function NutritionAssessment() {
         ];
         return (
           <div className="space-y-5">
-            <p className="text-[#F2EFE9]/50 text-sm">Please review your information before submitting.</p>
-            <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl divide-y divide-white/[0.06] overflow-hidden">
-              {rows.map(([k,v])=>(
-                <div key={k} className="flex gap-4 px-5 py-3">
-                  <span className="text-[#F2EFE9]/40 text-[0.8rem] font-semibold uppercase tracking-wide w-36 shrink-0">{k}</span>
-                  <span className="text-[#F2EFE9]/90 text-[0.87rem] leading-snug">{v}</span>
-                </div>
-              ))}
-            </div>
-            <label className={`flex items-start gap-3 p-4 border rounded-2xl cursor-pointer transition-all ${form.consent ? "border-[#E8A820]/50 bg-[#E8A820]/[0.06]" : "border-white/[0.10]"}`}>
-              <input type="checkbox" checked={form.consent} onChange={e=>set("consent",e.target.checked)} className="accent-[#E8A820] mt-0.5 shrink-0 w-4 h-4" />
-              <span className="text-[0.87rem] text-[#F2EFE9]/55 leading-relaxed">
-                I confirm that the information provided is accurate and can be used to prepare my personalised nutrition plan.
-              </span>
-            </label>
+          <p className="text-[#F2EFE9]/50 text-sm">Please review your information before submitting.</p>
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl divide-y divide-white/[0.06] overflow-hidden">
+            {rows.map(([k,v])=>(
+              <div key={k} className="flex gap-4 px-5 py-3">
+                <span className="text-[#F2EFE9]/40 text-[0.8rem] font-semibold uppercase tracking-wide w-36 shrink-0">{k}</span>
+                <span className="text-[#F2EFE9]/90 text-[0.87rem] leading-snug">{v}</span>
+              </div>
+            ))}
+          </div>
+          <label className={`flex items-start gap-3 p-4 border rounded-2xl cursor-pointer transition-all ${form.consent ? "border-[#E8A820]/50 bg-[#E8A820]/[0.06]" : "border-white/[0.10]"}`}>
+            <input type="checkbox" checked={form.consent} onChange={e=>set("consent",e.target.checked)} className="accent-[#E8A820] mt-0.5 shrink-0 w-4 h-4" />
+            <span className="text-[0.87rem] text-[#F2EFE9]/55 leading-relaxed">
+              I confirm that the information provided is accurate and can be used to prepare my personalised nutrition plan.
+            </span>
+          </label>
             <Err msg={errors.consent} />
           </div>
         );
@@ -470,15 +531,11 @@ export default function NutritionAssessment() {
   const StepIcon = STEPS[step].icon;
 
   return (
-    <div className="min-h-screen bg-[#1C1C1E] text-[#F2EFE9] relative">
-      {/* Dot pattern — only visible outside the form area, fade in centre */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
+    <div className="min-h-screen bg-[#1C1C1E] text-[#F2EFE9] relative flex flex-col overflow-hidden">
+      <div 
+        className="fixed inset-0 pointer-events-none z-0 opacity-50 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(232,168,32,0.16) 1px, transparent 1px)",
-          backgroundSize: "26px 26px",
-          maskImage: "radial-gradient(ellipse 60% 80% at 50% 50%, transparent 30%, black 80%)",
-          WebkitMaskImage: "radial-gradient(ellipse 60% 80% at 50% 50%, transparent 30%, black 80%)",
+          backgroundImage: "url('https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=80&w=2000')",
         }}
       />
       <PlanNavbar />
@@ -488,7 +545,7 @@ export default function NutritionAssessment() {
           {/* ── Header ──────────────────────────────────── */}
           <div className="text-center mb-10">
             <div className="eyebrow justify-center mb-4">Personalised plan</div>
-            <h1 className="font-display font-black text-[clamp(2rem,5vw,2.8rem)] leading-tight mb-3">
+            <h1 className="font-display font-black text-[clamp(2rem,5vw,2.8rem)] leading-tight mb-3 text-white">
               Nutrition <span className="text-gold-gradient">assessment</span>
             </h1>
             <p className="text-[#F2EFE9]/45 text-[0.93rem] max-w-md mx-auto">
@@ -503,29 +560,30 @@ export default function NutritionAssessment() {
               const done = i < step;
               const active = i === step;
               return (
-                <div key={i} className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wide whitespace-nowrap shrink-0 transition-all ${
-                  active ? "bg-[#E8A820] text-black" :
-                  done   ? "bg-[#E8A820]/15 text-[#E8A820]" :
-                           "bg-white/[0.04] text-[#F2EFE9]/30"
-                }`}>
+                <button
+                  type="button"
+                  key={i}
+                  onClick={() => {
+                    if (i === step) return;
+                    setDir(i > step ? 1 : -1);
+                    setStep(i);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wide whitespace-nowrap shrink-0 transition-all ${
+                    active ? "bg-[#E8A820] text-black hover:bg-[#d49518]" :
+                    done   ? "bg-[#E8A820]/15 text-[#E8A820] hover:bg-[#E8A820]/25" :
+                             "bg-white/[0.04] text-[#F2EFE9]/30 hover:text-[#F2EFE9]/60 hover:bg-white/[0.08]"
+                  }`}
+                >
                   <Icon size={12} />
                   {s.label}
-                </div>
+                </button>
               );
             })}
           </div>
 
-          {/* ── Progress bar ────────────────────────────── */}
-          <div className="h-1.5 bg-white/[0.06] rounded-full mb-8 overflow-hidden">
-            <motion.div
-              className="h-full bg-[#E8A820] rounded-full origin-left"
-              animate={{ width: `${pct}%` }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            />
-          </div>
-
           {/* ── Card ─────────────────────────────────────── */}
-          <div className="bg-white/[0.04] border border-white/[0.08] rounded-[24px] overflow-hidden">
+          <div className="bg-[#18181a] border border-white/[0.08] rounded-[24px] overflow-hidden shadow-2xl shadow-black/80 relative z-10">
             {/* Card header */}
             <div className="flex items-center gap-3 px-7 py-5 border-b border-white/[0.06]">
               <div className="w-9 h-9 rounded-xl bg-[#E8A820] flex items-center justify-center shrink-0">
@@ -538,7 +596,16 @@ export default function NutritionAssessment() {
             </div>
 
             {/* Card body — animated */}
-            <div className="px-7 py-7 overflow-hidden">
+            <div className="px-7 py-7 overflow-hidden" onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+                e.preventDefault();
+                const inputs = Array.from(document.querySelectorAll('input, textarea'));
+                const idx = inputs.indexOf(e.target);
+                if (idx > -1 && idx < inputs.length - 1) {
+                  (inputs[idx + 1] as HTMLElement).focus();
+                }
+              }
+            }}>
               <AnimatePresence mode="wait" custom={dir}>
                 <motion.div
                   key={step}
@@ -578,7 +645,9 @@ export default function NutritionAssessment() {
 
         </div>
       </main>
-      <Footer />
+      <div className="relative z-10 bg-[#1C1C1E]">
+        <Footer />
+      </div>
     </div>
   );
 }

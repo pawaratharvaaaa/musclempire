@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import NumberFlow from "@number-flow/react";
 import { Dumbbell, Users, ArrowRight, Check } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
@@ -43,10 +44,7 @@ const unisexFeatures: PricingFeature[] = [
   { name: "Trainer assistance",               included: "basic"   },
   { name: "Flexible workout timings",         included: "basic"   },
   { name: "Workout guidance",                 included: "basic"   },
-  { name: "CrossFit training area",           included: "basic"   },
-  { name: "CrossFit sessions",                included: "standard"},
   { name: "Form correction coaching",         included: "premium" },
-  { name: "Diet & nutrition coaching",        included: "dietician" },
 ];
 
 /* ── Female gym data ──────────────────────────────────────── */
@@ -86,7 +84,6 @@ const femaleFeatures: PricingFeature[] = [
   { name: "Workout guidance",                 included: "basic"    },
   { name: "Priority trainer support",         included: "standard" },
   { name: "Progress check-ins",               included: "premium"  },
-  { name: "Diet & nutrition coaching",        included: "dietician" },
 ];
 
 const gyms = [
@@ -98,7 +95,7 @@ const gyms = [
     tagStyle: "bg-[#E8A820] text-[#1C1C1E]",
     desc: "A complete fitness destination with strength training, cardio, CrossFit, expert trainers, and premium equipment for all fitness levels.",
     price: "Starting from ₹1,500/month",
-    features: ["Expert trainers", "Full strength & cardio equipment", "CrossFit sessions", "All fitness levels welcome"],
+    features: ["Expert trainers", "Full strength & cardio equipment", "All fitness levels welcome"],
     href: "/unisex-gym-plans",
     featured: true,
     bgImg: unisexBg,
@@ -115,7 +112,7 @@ const gyms = [
     tagStyle: "bg-pink-500/15 text-pink-400 border border-pink-500/30",
     desc: "A dedicated women's space offering strength training, CrossFit, weight management, and personal coaching in a comfortable environment.",
     price: "Starting from ₹1,500/month",
-    features: ["Women-only environment", "Personal coaching", "Weight management", "Crossfit & strength training"],
+    features: ["Women-only environment", "Personal coaching", "Weight management", "Strength training"],
     href: "/female-gym-plans",
     featured: false,
     bgImg: femaleBg,
@@ -126,9 +123,139 @@ const gyms = [
   },
 ];
 
+type PlanType = "gym" | "crossfit" | "crossfit_gym";
+
+function GymCard({ gym, i, onSelect }: { gym: typeof gyms[0], i: number, onSelect: (g: typeof gyms[0], pt: PlanType) => void }) {
+  const [planType, setPlanType] = useState<PlanType>("gym");
+
+  const currentPrice = planType === "gym" ? 1500 : planType === "crossfit" ? 2000 : 3000;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ delay: i * 0.12, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className={`group relative flex flex-col rounded-[22px] p-8 border transition-all duration-300 overflow-hidden hover:-translate-y-2 ${
+        gym.featured
+          ? "bg-[#232325]/90 border-[#E8A820]/30 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-[#E8A820]/60 hover:shadow-[0_20px_50px_rgba(232,168,32,0.15)]"
+          : "bg-[#1a1018]/90 border-pink-500/20 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-pink-500/40 hover:shadow-[0_20px_50px_rgba(236,72,153,0.15)]"
+      }`}
+    >
+      {/* Background Image Layer */}
+      <div className="absolute inset-0 -z-20 overflow-hidden rounded-[22px] pointer-events-none">
+        <div 
+          className="w-full h-full bg-cover bg-center transition-all duration-700 opacity-[0.07] group-hover:opacity-[0.16] group-hover:scale-110"
+          style={{ backgroundImage: `url(${gym.bgImg})` }}
+        />
+      </div>
+
+      {/* Tint Overlay for contrast */}
+      <div 
+        className={`absolute inset-0 -z-10 rounded-[22px] transition-opacity duration-300 pointer-events-none ${
+          gym.featured 
+            ? "bg-gradient-to-b from-[#232325]/85 via-[#232325]/95 to-[#232325]" 
+            : "bg-gradient-to-b from-[#1a1018]/85 via-[#1a1018]/95 to-[#1a1018]"
+        }`} 
+      />
+
+      {/* Tag */}
+      <span className={`absolute top-6 right-6 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full z-10 ${gym.tagStyle}`}>
+        {gym.tag}
+      </span>
+
+      {/* Accent glow on hover */}
+      <div 
+        className="absolute inset-0 rounded-[22px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10"
+        style={{ 
+          background: `radial-gradient(circle at 50% 20%, ${gym.glowColor} 0%, transparent 60%)` 
+        }} 
+      />
+
+      {/* Icon */}
+      <div className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 ${
+        gym.featured ? "bg-[#E8A820]/14 text-[#E8A820]" : "bg-pink-500/[0.12] text-pink-400"
+      }`}>
+        <gym.Icon size={24} />
+      </div>
+
+      <h3 className="text-white font-black text-[1.2rem] tracking-tight mb-1 pr-20 z-10">{gym.title}</h3>
+      <p className={`text-[11px] font-bold uppercase tracking-widest mb-5 z-10 ${gym.featured ? "text-[#E8A820]" : "text-pink-400"}`}>
+        {gym.subtitle}
+      </p>
+
+      <div className={`w-8 h-[1.5px] mb-5 rounded-full z-10 transition-all duration-300 group-hover:w-16 ${gym.featured ? "bg-[#E8A820]" : "bg-pink-500/40"}`} />
+
+      <p className="text-white/45 text-[0.875rem] leading-relaxed mb-6 flex-1 z-10">{gym.desc}</p>
+
+      {/* Features */}
+      <ul className="space-y-2 mb-7 z-10">
+        {gym.features.map((f, j) => (
+          <li key={j} className="flex items-center gap-2.5 text-[0.85rem] text-white/60 transition-colors duration-300 group-hover:text-white/80">
+            <Check size={13} className={gym.featured ? "text-[#E8A820]" : "text-pink-400"} strokeWidth={3} />
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      {/* Toggles */}
+      <div className="flex items-center justify-center gap-1 mb-5 z-10 relative bg-black/40 p-1.5 rounded-full border border-white/10 w-full mx-auto">
+        {(["gym", "crossfit", "crossfit_gym"] as const).map(type => {
+          const active = planType === type;
+          const label = type === "gym" ? "Gym" : type === "crossfit" ? "CrossFit" : "Gym + CF";
+          return (
+            <button
+              key={type}
+              onClick={() => setPlanType(type)}
+              className="flex-1 px-2 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap"
+              style={{
+                background: active ? gym.accentColor : "transparent",
+                color: active ? (gym.featured ? "#1C1C1E" : "white") : "rgba(255,255,255,0.6)",
+              }}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Price */}
+      <div className={`mb-5 px-5 py-3.5 rounded-xl border z-10 transition-all duration-300 flex items-baseline gap-1 ${
+        gym.featured
+          ? "bg-[#E8A820]/[0.05] border-[#E8A820]/15 group-hover:bg-[#E8A820]/[0.10] group-hover:border-[#E8A820]/30"
+          : "bg-pink-500/[0.04] border-pink-500/15 group-hover:bg-pink-500/[0.08] group-hover:border-pink-500/30"
+      }`}>
+        <span className="text-[0.8rem] text-white/50 mr-1 font-medium">Starting from</span>
+        <span className="text-[1rem] text-white/40 font-bold">₹</span>
+        <NumberFlow
+          value={currentPrice}
+          className="text-[1.2rem] font-black text-white"
+        />
+        <span className="text-[0.8rem] text-white/50 ml-1 font-medium">/month</span>
+      </div>
+
+      {/* CTA */}
+      <button
+        onClick={() => onSelect(gym, planType)}
+        className={`w-full flex items-center justify-center gap-2 font-bold text-[13px] h-[52px] rounded-xl transition-all duration-300 z-10 ${
+          gym.featured
+            ? "btn-gold group-hover:shadow-[0_10px_25px_rgba(232,168,32,0.25)]"
+            : "text-white font-bold hover:-translate-y-0.5 group-hover:shadow-[0_10px_25px_rgba(236,72,153,0.25)]"
+        }`}
+        style={!gym.featured ? {
+          background: "linear-gradient(135deg, #ec4899, #db2777)",
+          boxShadow: "0 4px 20px rgba(236,72,153,0.25)",
+        } : undefined}
+      >
+        View all plans <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+      </button>
+    </motion.div>
+  );
+}
+
 export default function Pricing() {
   const [, navigate] = useLocation();
-  const [modalGym, setModalGym] = useState<typeof gyms[0] | null>(null);
+  const [modalGym, setModalGym] = useState<{gym: typeof gyms[0], planType: PlanType} | null>(null);
 
   return (
     <section id="pricing" className="py-28 bg-[#1C1C1E] relative overflow-hidden">
@@ -181,99 +308,7 @@ export default function Pricing() {
         {/* Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-[1200px] mx-auto items-stretch">
           {gyms.map((gym, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 32 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: i * 0.12, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className={`group relative flex flex-col rounded-[22px] p-8 border transition-all duration-300 overflow-hidden hover:-translate-y-2 ${
-                gym.featured
-                  ? "bg-[#232325]/90 border-[#E8A820]/30 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-[#E8A820]/60 hover:shadow-[0_20px_50px_rgba(232,168,32,0.15)]"
-                  : "bg-[#1a1018]/90 border-pink-500/20 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-pink-500/40 hover:shadow-[0_20px_50px_rgba(236,72,153,0.15)]"
-              }`}
-            >
-              {/* Background Image Layer */}
-              <div className="absolute inset-0 -z-20 overflow-hidden rounded-[22px] pointer-events-none">
-                <div 
-                  className="w-full h-full bg-cover bg-center transition-all duration-700 opacity-[0.07] group-hover:opacity-[0.16] group-hover:scale-110"
-                  style={{ backgroundImage: `url(${gym.bgImg})` }}
-                />
-              </div>
-
-              {/* Tint Overlay for contrast */}
-              <div 
-                className={`absolute inset-0 -z-10 rounded-[22px] transition-opacity duration-300 pointer-events-none ${
-                  gym.featured 
-                    ? "bg-gradient-to-b from-[#232325]/85 via-[#232325]/95 to-[#232325]" 
-                    : "bg-gradient-to-b from-[#1a1018]/85 via-[#1a1018]/95 to-[#1a1018]"
-                }`} 
-              />
-
-              {/* Tag */}
-              <span className={`absolute top-6 right-6 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full z-10 ${gym.tagStyle}`}>
-                {gym.tag}
-              </span>
-
-              {/* Accent glow on hover */}
-              <div 
-                className="absolute inset-0 rounded-[22px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10"
-                style={{ 
-                  background: `radial-gradient(circle at 50% 20%, ${gym.glowColor} 0%, transparent 60%)` 
-                }} 
-              />
-
-              {/* Icon */}
-              <div className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 ${
-                gym.featured ? "bg-[#E8A820]/14 text-[#E8A820]" : "bg-pink-500/[0.12] text-pink-400"
-              }`}>
-                <gym.Icon size={24} />
-              </div>
-
-              <h3 className="text-white font-black text-[1.2rem] tracking-tight mb-1 pr-20 z-10">{gym.title}</h3>
-              <p className={`text-[11px] font-bold uppercase tracking-widest mb-5 z-10 ${gym.featured ? "text-[#E8A820]" : "text-pink-400"}`}>
-                {gym.subtitle}
-              </p>
-
-              <div className={`w-8 h-[1.5px] mb-5 rounded-full z-10 transition-all duration-300 group-hover:w-16 ${gym.featured ? "bg-[#E8A820]" : "bg-pink-500/40"}`} />
-
-              <p className="text-white/45 text-[0.875rem] leading-relaxed mb-6 flex-1 z-10">{gym.desc}</p>
-
-              {/* Features */}
-              <ul className="space-y-2 mb-7 z-10">
-                {gym.features.map((f, j) => (
-                  <li key={j} className="flex items-center gap-2.5 text-[0.85rem] text-white/60 transition-colors duration-300 group-hover:text-white/80">
-                    <Check size={13} className={gym.featured ? "text-[#E8A820]" : "text-pink-400"} strokeWidth={3} />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Price */}
-              <div className={`mb-5 px-5 py-3.5 rounded-xl border text-white font-black text-[1.05rem] z-10 transition-all duration-300 ${
-                gym.featured
-                  ? "bg-[#E8A820]/[0.05] border-[#E8A820]/15 group-hover:bg-[#E8A820]/[0.10] group-hover:border-[#E8A820]/30"
-                  : "bg-pink-500/[0.04] border-pink-500/15 group-hover:bg-pink-500/[0.08] group-hover:border-pink-500/30"
-              }`}>
-                {gym.price}
-              </div>
-
-              {/* CTA */}
-              <button
-                onClick={() => setModalGym(gym)}
-                className={`w-full flex items-center justify-center gap-2 font-bold text-[13px] h-[52px] rounded-xl transition-all duration-300 z-10 ${
-                  gym.featured
-                    ? "btn-gold group-hover:shadow-[0_10px_25px_rgba(232,168,32,0.25)]"
-                    : "text-white font-bold hover:-translate-y-0.5 group-hover:shadow-[0_10px_25px_rgba(236,72,153,0.25)]"
-                }`}
-                style={!gym.featured ? {
-                  background: "linear-gradient(135deg, #ec4899, #db2777)",
-                  boxShadow: "0 4px 20px rgba(236,72,153,0.25)",
-                } : undefined}
-              >
-                View all plans <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
-              </button>
-            </motion.div>
+            <GymCard key={i} gym={gym} i={i} onSelect={(g, pt) => setModalGym({ gym: g, planType: pt })} />
           ))}
 
           {/* Dietitian Plan Card */}
@@ -356,16 +391,20 @@ export default function Pricing() {
         <PricingModal
           open={!!modalGym}
           onClose={() => setModalGym(null)}
-          title={modalGym.title}
-          subtitle={modalGym.subtitle}
-          accentColor={modalGym.accentColor}
-          features={modalGym.tableFeatures}
-          plans={modalGym.plans}
+          title={`${modalGym.gym.title} (${modalGym.planType === 'gym' ? 'Gym Only' : modalGym.planType === 'crossfit' ? 'CrossFit Only' : 'Gym + CrossFit'})`}
+          subtitle={modalGym.gym.subtitle}
+          accentColor={modalGym.gym.accentColor}
+          features={modalGym.gym.tableFeatures}
+          plans={modalGym.gym.plans.map(p => ({
+            ...p,
+            price: {
+              monthly: modalGym.planType === 'gym' ? p.price.monthly : modalGym.planType === 'crossfit' ? p.price.monthly + 500 : p.price.monthly + 1000,
+              yearly: modalGym.planType === 'gym' ? p.price.yearly : modalGym.planType === 'crossfit' ? p.price.yearly + 500 : p.price.yearly + 1000,
+            }
+          }))}
           onGetStarted={(plan) => {
-            const amount = plan.price.monthly; // Note: We now store the total package price here
-            const planName = `${modalGym.title} - ${plan.name}`;
-            
-            // Amount is in rupees, Razorpay expects paise
+            const amount = plan.price.monthly;
+            const planName = `${modalGym.gym.title} [${modalGym.planType}] - ${plan.name}`;
             openRazorpay(planName, amount * 100);
             setModalGym(null);
           }}
