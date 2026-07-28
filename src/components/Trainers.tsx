@@ -67,7 +67,7 @@ export default function Trainers() {
               <img 
                 src={trainer.image} 
                 alt={trainer.name} 
-                className="w-full h-full object-cover object-center filter grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                className="w-full h-full object-cover object-center filter md:grayscale md:group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
               />
               
               {/* Overlay Content */}

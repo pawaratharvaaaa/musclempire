@@ -15,7 +15,7 @@ const N = SERVICES.length;
 
 /* ── Shared card face ──────────────────────────────────────── */
 function CardFace({ s, w, h, isFront }: { s: typeof SERVICES[0]; w: number; h: number; isFront: boolean }) {
-  const fs = Math.max(13, Math.round(w * 0.075));
+  const fs = Math.max(24, Math.round(w * 0.135));
   return (
     <div style={{
       width: w, height: h, flexShrink: 0,

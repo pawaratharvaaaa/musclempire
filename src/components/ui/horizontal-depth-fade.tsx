@@ -270,7 +270,7 @@ export function HorizontalDepthFade({
                   aria-label={img.alt ?? `Image ${i + 1}`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-8 text-white">
-                  {img.title && <h3 className="font-display font-black text-2xl tracking-tight mb-2">{img.title}</h3>}
+                  {img.title && <h3 className="font-display font-black text-[1.85rem] md:text-[2.2rem] leading-tight tracking-tight mb-2">{img.title}</h3>}
                   {img.description && <p className="text-white/70 text-sm font-medium leading-relaxed">{img.description}</p>}
                 </div>
               </figure>

@@ -1,5 +1,12 @@
-import { useState, useLayoutEffect } from "react";
+import { useState, useLayoutEffect, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+type Meal = {
+  name: string;
+  time: string;
+  food: string;
+};
+import chalkboardBg from "@/assets/images/chalkboard-bg.png";
 import { StarsBackground } from "@/components/ui/stars";
 import { CheckCircle2, User, Scale, Heart, Utensils, Target, FileText, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
@@ -11,7 +18,7 @@ import type { AssessmentData } from "@/lib/sheets";
 const WA_NUMBER = "919773053632";
 
 type Form = {
-  name: string; phone: string; age: string; gender: string;
+  name: string; phone: string; email: string; age: string; gender: string;
   weight: string; height: string;
   wakeTime: string; bedTime: string; sleepDuration: string; workoutTime: string;
   foodPref: string;
@@ -22,7 +29,7 @@ type Form = {
 };
 
 const empty: Form = {
-  name: "", phone: "", age: "", gender: "",
+  name: "", phone: "", email: "", age: "", gender: "",
   weight: "", height: "",
   wakeTime: "", bedTime: "", sleepDuration: "", workoutTime: "",
   foodPref: "",
@@ -120,6 +127,31 @@ export default function NutritionAssessment() {
   const [step, setStep]     = useState(0);
   const [dir, setDir]       = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [meals, setMeals] = useState<Meal[]>([]);
+
+  // Sync meals to foodHistory string representation
+  useEffect(() => {
+    if (meals.length > 0) {
+      const historyStr = meals
+        .map((m, idx) => `Meal #${idx + 1}: ${m.name || "N/A"} (${m.time || "N/A"}) - ${m.food || "N/A"}`)
+        .join("\n");
+      setForm(f => ({ ...f, foodHistory: historyStr }));
+    } else {
+      setForm(f => ({ ...f, foodHistory: "" }));
+    }
+  }, [meals]);
+
+  const addMeal = () => {
+    setMeals([...meals, { name: "", time: "", food: "" }]);
+  };
+
+  const removeMeal = (idx: number) => {
+    setMeals(meals.filter((_, i) => i !== idx));
+  };
+
+  const updateMeal = (idx: number, key: keyof Meal, val: string) => {
+    setMeals(meals.map((m, i) => i === idx ? { ...m, [key]: val } : m));
+  };
 
   useLayoutEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -143,6 +175,8 @@ export default function NutritionAssessment() {
       if (!form.name.trim()) e.name = "Required";
       if (!form.phone.trim() || !/^\+?[0-9]{10,13}$/.test(form.phone.replace(/\s/g, ""))) e.phone = "Enter valid phone";
       if (!form.age || isNaN(Number(form.age))) e.age = "Required";
+      if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Enter valid email";
+      if (!form.gender) e.gender = "Required";
     }
     if (s === 1) {
       if (!form.weight) e.weight = "Required";
@@ -156,13 +190,28 @@ export default function NutritionAssessment() {
     }
     if (s === 3) {
       if (!form.foodPref) e.foodPref = "Select one";
+      if (!form.collegeTime.trim()) e.collegeTime = "Required (type N/A if not applicable)";
+      if (!form.workTime.trim()) e.workTime = "Required (type N/A if not applicable)";
+    }
+    if (s === 4) {
+      if (!form.medicalConditions.trim()) e.medicalConditions = "Required (type None if not applicable)";
+      if (!form.allergies.trim()) e.allergies = "Required (type None if not applicable)";
+      if (!form.supplements.trim()) e.supplements = "Required (type None if not applicable)";
     }
     if (s === 5) {
       if (form.goals.length === 0) e.goals = "Select at least one goal";
+      if (form.goals.includes("Other") && !form.otherGoal.trim()) e.otherGoal = "Required";
+      if (!form.remarks.trim()) e.remarks = "Required (type N/A if not applicable)";
     }
     if (s === 6) {
-      if (!form.foodHistory.trim() || form.foodHistory.trim().length < 10)
-        e.foodHistory = "Please describe your last 7 days food history.";
+      if (meals.length === 0) {
+        e.foodHistory = "Please add at least one meal.";
+      } else {
+        const missing = meals.some(m => !m.name.trim() || !m.time.trim() || !m.food.trim());
+        if (missing) {
+          e.foodHistory = "Please fill in all fields (Meal Name, Time, and Food) for each added meal.";
+        }
+      }
     }
     if (s === 7) {
       if (!form.consent) e.consent = "Please confirm";
@@ -190,6 +239,7 @@ export default function NutritionAssessment() {
       ...validateStep(1),
       ...validateStep(2),
       ...validateStep(3),
+      ...validateStep(4),
       ...validateStep(5),
       ...validateStep(6),
       ...validateStep(7),
@@ -200,6 +250,7 @@ export default function NutritionAssessment() {
       else if (Object.keys(validateStep(1)).length) setStep(1);
       else if (Object.keys(validateStep(2)).length) setStep(2);
       else if (Object.keys(validateStep(3)).length) setStep(3);
+      else if (Object.keys(validateStep(4)).length) setStep(4);
       else if (Object.keys(validateStep(5)).length) setStep(5);
       else if (Object.keys(validateStep(6)).length) setStep(6);
       else if (Object.keys(validateStep(7)).length) setStep(7);
@@ -209,7 +260,7 @@ export default function NutritionAssessment() {
     const today = new Date().toLocaleDateString("en-IN");
     const goalsList = [...form.goals, form.otherGoal ? `Other: ${form.otherGoal}` : ""].filter(Boolean).join(", ");
     const payload: AssessmentData = {
-      date: today, name: form.name, phone: form.phone, email: "",
+      date: today, name: form.name, phone: form.phone, email: form.email,
       age: form.age, gender: form.gender, weight: form.weight, height: form.height,
       bmi: bmiVal ? bmiVal.toFixed(1) : "", bmiCategory: bmiCat?.label || "",
       wakeTime: form.wakeTime, bedTime: form.bedTime, sleepDuration: form.sleepDuration,
@@ -225,7 +276,7 @@ export default function NutritionAssessment() {
     const waMsg = [
       `🏋️ *Muscle Empire – Nutrition Assessment*`, ``,
       `*👤 Personal Details*`,
-      `Name: ${form.name}`, `Phone: ${form.phone}`,
+      `Name: ${form.name}`, `Phone: ${form.phone}`, `Email: ${form.email}`,
       `Age: ${form.age}`, form.gender ? `Gender: ${form.gender}` : null, ``,
       `*📏 Body Measurements*`,
       `Weight: ${form.weight} kg`, `Height: ${form.height} cm`,
@@ -255,11 +306,15 @@ export default function NutritionAssessment() {
   /* ── Success screen ─────────────────────────────────────────── */
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[#1C1C1E] text-[#F2EFE9] flex flex-col relative overflow-hidden">
+      <div className="min-h-screen bg-black text-[#F2EFE9] flex flex-col relative overflow-hidden">
         <div 
-          className="fixed inset-0 pointer-events-none z-0 opacity-50 bg-cover bg-center bg-no-repeat"
+          className="fixed inset-0 pointer-events-none z-0 opacity-80 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=80&w=2000')",
+            backgroundImage: `url(${chalkboardBg})`,
+            maskImage: "linear-gradient(to bottom, transparent 0px, transparent 100px, black 160px), radial-gradient(ellipse 70% 60% at 50% 55%, transparent 40%, black 80%)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, transparent 100px, black 160px), radial-gradient(ellipse 70% 60% at 50% 55%, transparent 40%, black 80%)",
+            maskComposite: "intersect",
+            WebkitMaskComposite: "destination-in",
           }}
         />
         <PlanNavbar />
@@ -318,14 +373,20 @@ export default function NutritionAssessment() {
               <input type="number" min={10} max={90} value={form.age} onChange={e=>set("age",e.target.value)} className={inp(errors.age)} />
               <Err msg={errors.age} />
             </div>
+            <div>
+              <Label>Email address <span className="text-red-400">*</span></Label>
+              <input type="email" value={form.email} onChange={e=>set("email",e.target.value)} className={inp(errors.email)} />
+              <Err msg={errors.email} />
+            </div>
           </div>
           <div>
-            <Label>Gender</Label>
+            <Label>Gender <span className="text-red-400">*</span></Label>
             <div className="flex flex-wrap gap-3">
               {["Male","Female","Other"].map(g=>(
                 <PillOption key={g} label={g} active={form.gender===g} onClick={()=>set("gender",g)} />
               ))}
             </div>
+            <Err msg={errors.gender} />
           </div>
         </div>
       );
@@ -406,7 +467,7 @@ export default function NutritionAssessment() {
           <div>
             <Label>Food preference <span className="text-red-400">*</span></Label>
             <div className="flex flex-wrap gap-3">
-              {["Vegetarian","Non-Vegetarian","Eggitarian"].map(f=>(
+              {["Vegetarian","Non-Vegetarian","Vegan"].map(f=>(
                 <PillOption key={f} label={f} active={form.foodPref===f} onClick={()=>set("foodPref",f)} />
               ))}
             </div>
@@ -414,12 +475,14 @@ export default function NutritionAssessment() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label>College timing</Label>
-              <input type="text" value={form.collegeTime} onChange={e=>set("collegeTime",e.target.value.replace(/[^0-9\-]/g,""))} className={inp()} />
+              <Label>College timing <span className="text-red-400">*</span></Label>
+              <input type="text" value={form.collegeTime} onChange={e=>set("collegeTime",e.target.value)} className={inp(errors.collegeTime)} />
+              <Err msg={errors.collegeTime} />
             </div>
             <div>
-              <Label>Work timing</Label>
-              <input type="text" value={form.workTime} onChange={e=>set("workTime",e.target.value.replace(/[^0-9\-]/g,""))} className={inp()} />
+              <Label>Work timing <span className="text-red-400">*</span></Label>
+              <input type="text" value={form.workTime} onChange={e=>set("workTime",e.target.value)} className={inp(errors.workTime)} />
+              <Err msg={errors.workTime} />
             </div>
           </div>
         </div>
@@ -430,9 +493,14 @@ export default function NutritionAssessment() {
         <div className="space-y-5">
           {(["medicalConditions","allergies","supplements"] as const).map((key,i)=>(
             <div key={key}>
-              <Label>{["Medical conditions","Allergies","Current supplements / medicines"][i]}</Label>
+              <Label>
+                {["Medical conditions","Allergies","Current supplements / medicines"][i]} <span className="text-red-400">*</span>
+              </Label>
               <textarea rows={1}
-                value={form[key]} onChange={e=>set(key,e.target.value)} className={textareaBase} />
+                value={form[key]} onChange={e=>set(key,e.target.value)} 
+                className={`${textareaBase} ${errors[key] ? "border-red-400/60" : "border-white/[0.12]"}`} 
+              />
+              <Err msg={errors[key]} />
             </div>
           ))}
         </div>
@@ -457,14 +525,18 @@ export default function NutritionAssessment() {
           </div>
           {form.goals.includes("Other") && (
             <div>
-              <Label>Specify your goal</Label>
-              <input type="text" value={form.otherGoal} onChange={e=>set("otherGoal",e.target.value)} className={inp()} />
+              <Label>Specify your goal <span className="text-red-400">*</span></Label>
+              <input type="text" value={form.otherGoal} onChange={e=>set("otherGoal",e.target.value)} className={inp(errors.otherGoal)} />
+              <Err msg={errors.otherGoal} />
             </div>
           )}
           <div>
-            <Label>Additional remarks</Label>
+            <Label>Additional remarks <span className="text-red-400">*</span></Label>
             <textarea rows={2}
-              value={form.remarks} onChange={e=>set("remarks",e.target.value)} className={textareaBase} />
+              value={form.remarks} onChange={e=>set("remarks",e.target.value)} 
+              className={`${textareaBase} ${errors.remarks ? "border-red-400/60" : "border-white/[0.12]"}`} 
+            />
+            <Err msg={errors.remarks} />
           </div>
         </div>
       );
@@ -472,18 +544,79 @@ export default function NutritionAssessment() {
       /* Step 6 — Food history */
       case 6: return (
         <div className="space-y-4">
-          <p className="text-[#F2EFE9]/50 text-[0.9rem] leading-relaxed">
-            Describe what you ate over the last 7 days — include timings, meals, and quantities as best as you can.
-          </p>
-          <textarea rows={10}
-            value={form.foodHistory} onChange={e=>set("foodHistory",e.target.value)} className={textareaBase} />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+            <p className="text-[#F2EFE9]/50 text-[0.9rem] leading-relaxed">
+              Describe what you ate over the last 7 days.
+            </p>
+            <button
+              type="button"
+              onClick={addMeal}
+              className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 text-xs font-bold uppercase tracking-wider transition-all duration-200 shrink-0 self-start sm:self-auto font-sans"
+            >
+              + Add Meal
+            </button>
+          </div>
+          {meals.length === 0 ? (
+            <div className="flex flex-col items-center justify-center border border-white/[0.08] bg-white/[0.02] rounded-2xl py-12 px-4 text-center">
+              <p className="text-[#F2EFE9]/40 text-sm">Click "+ Add Meal" to add meal entries to the diet plan.</p>
+            </div>
+          ) : (
+            <div className="space-y-4 max-h-[380px] overflow-y-auto pr-1">
+              {meals.map((m, idx) => (
+                <div key={idx} className="p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] relative space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-widest text-[#E8A820]">Meal #{idx + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeMeal(idx)}
+                      className="text-xs text-red-400 hover:text-red-300 font-bold uppercase tracking-wider"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Meal Name <span className="text-red-400">*</span></Label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Breakfast, Pre-workout"
+                        value={m.name}
+                        onChange={e => updateMeal(idx, "name", e.target.value)}
+                        className={inp()}
+                      />
+                    </div>
+                    <div>
+                      <Label>Meal Time <span className="text-red-400">*</span></Label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 9:00 AM"
+                        value={m.time}
+                        onChange={e => updateMeal(idx, "time", e.target.value)}
+                        className={inp()}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Food &amp; Quantity <span className="text-red-400">*</span></Label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. 3 boiled eggs, 2 slices of oats bread"
+                      value={m.food}
+                      onChange={e => updateMeal(idx, "food", e.target.value)}
+                      className={textareaBase}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           <Err msg={errors.foodHistory} />
         </div>
       );
       /* Step 7 — Review & submit */
       case 7: {
         const rows: [string, string][] = [
-          ["Name", form.name], ["Phone", form.phone],
+          ["Name", form.name], ["Phone", form.phone], ["Email", form.email],
           ["Age", form.age], ...(form.gender ? [["Gender", form.gender] as [string,string]] : []),
           ["Weight", `${form.weight} kg`], ["Height", `${form.height} cm`],
           ...(bmiVal ? [["BMI", `${bmiVal.toFixed(1)} — ${bmiCat?.label}`] as [string,string]] : []),
@@ -531,11 +664,15 @@ export default function NutritionAssessment() {
   const StepIcon = STEPS[step].icon;
 
   return (
-    <div className="min-h-screen bg-[#1C1C1E] text-[#F2EFE9] relative flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-black text-[#F2EFE9] relative flex flex-col overflow-hidden">
       <div 
-        className="fixed inset-0 pointer-events-none z-0 opacity-50 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 pointer-events-none z-0 opacity-80 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=80&w=2000')",
+          backgroundImage: `url(${chalkboardBg})`,
+          maskImage: "linear-gradient(to bottom, transparent 0px, transparent 100px, black 160px), radial-gradient(ellipse 70% 60% at 50% 55%, transparent 40%, black 80%)",
+          WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, transparent 100px, black 160px), radial-gradient(ellipse 70% 60% at 50% 55%, transparent 40%, black 80%)",
+          maskComposite: "intersect",
+          WebkitMaskComposite: "destination-in",
         }}
       />
       <PlanNavbar />

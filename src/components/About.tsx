@@ -23,14 +23,43 @@ interface Entry {
 
 const entries: Entry[] = [
   {
-    year: "2011",
-    tag: "Junior",
-    tagColor: "var(--gold)",
-    narrative: "Debut season — triple crown on the first state platform.",
+    year: "Today",
+    tag: "Coaching era",
+    tagColor: "#8c8c8c",
+    narrative: "Competition closed. Every athlete trained here inherits the standard those 21 medals set.",
+    medals: [],
+  },
+  {
+    year: "2017",
+    tag: "Senior debut",
+    tagColor: "#ff5a1f",
+    narrative: "Moved up to Seniors. Clean sweep on the first attempt.",
     medals: [
       { name: "Mumbai Shree",      level: "City",   result: "Overall Champion", tier: "gold" },
-      { name: "Maharashtra Kishor",level: "State",  result: "Gold",             tier: "gold" },
-      { name: "Bharat Kishor",     level: "Nation", result: "Gold",             tier: "gold" },
+      { name: "Maharashtra Shree", level: "State",  result: "Gold",             tier: "gold" },
+      { name: "Bharat Shree",      level: "Nation", result: "Gold",             tier: "gold" },
+    ],
+  },
+  {
+    year: "AIU",
+    tag: "All India University",
+    tagColor: "#c08056",
+    narrative: "Represented Mumbai at nationals, returned with a podium.",
+    medals: [
+      { name: "2013–14", level: "National Camp", result: "Represented", tier: "gold"   },
+      { name: "2015–16", level: "AIU",           result: "Bronze",      tier: "bronze" },
+    ],
+  },
+  {
+    year: "Univ.",
+    tag: "Mumbai University",
+    tagColor: "#8c8c8c",
+    narrative: "Four inter-university seasons representing Mumbai.",
+    medals: [
+      { name: "2012–13", level: "", result: "Silver", tier: "silver" },
+      { name: "2013–14", level: "", result: "Gold",   tier: "gold"   },
+      { name: "2015–16", level: "", result: "Gold",   tier: "gold"   },
+      { name: "2016–17", level: "", result: "Silver", tier: "silver" },
     ],
   },
   {
@@ -45,44 +74,15 @@ const entries: Entry[] = [
     ],
   },
   {
-    year: "2017",
-    tag: "Senior debut",
-    tagColor: "#ff5a1f",
-    narrative: "Moved up to Seniors. Clean sweep on the first attempt.",
+    year: "2011",
+    tag: "Junior",
+    tagColor: "var(--gold)",
+    narrative: "Debut season — triple crown on the first state platform.",
     medals: [
       { name: "Mumbai Shree",      level: "City",   result: "Overall Champion", tier: "gold" },
-      { name: "Maharashtra Shree", level: "State",  result: "Gold",             tier: "gold" },
-      { name: "Bharat Shree",      level: "Nation", result: "Gold",             tier: "gold" },
+      { name: "Maharashtra Kishor",level: "State",  result: "Gold",             tier: "gold" },
+      { name: "Bharat Kishor",     level: "Nation", result: "Gold",             tier: "gold" },
     ],
-  },
-  {
-    year: "Univ.",
-    tag: "Mumbai University",
-    tagColor: "#aaa",
-    narrative: "Four inter-university seasons representing Mumbai.",
-    medals: [
-      { name: "2012–13", level: "", result: "Silver", tier: "silver" },
-      { name: "2013–14", level: "", result: "Gold",   tier: "gold"   },
-      { name: "2015–16", level: "", result: "Gold",   tier: "gold"   },
-      { name: "2016–17", level: "", result: "Silver", tier: "silver" },
-    ],
-  },
-  {
-    year: "AIU",
-    tag: "All India University",
-    tagColor: "#c08056",
-    narrative: "Represented Mumbai at nationals, returned with a podium.",
-    medals: [
-      { name: "2013–14", level: "National Camp", result: "Represented", tier: "gold"   },
-      { name: "2015–16", level: "AIU",           result: "Bronze",      tier: "bronze" },
-    ],
-  },
-  {
-    year: "Today",
-    tag: "Coaching era",
-    tagColor: "#555",
-    narrative: "Competition closed. Every athlete trained here inherits the standard those 21 medals set.",
-    medals: [],
   },
 ];
 
@@ -118,7 +118,7 @@ function FadeUp({ children, className = "" }: { children: React.ReactNode; class
    MINIMAL ENTRY CARD
    ──────────────────────────────────────────────────────────────── */
 
-function EntryCard({ e, isLast }: { e: Entry; isLast: boolean }) {
+function EntryCard({ e }: { e: Entry }) {
   return (
     <div
       className="group relative px-5 py-5 rounded-xl transition-all duration-300"
@@ -138,14 +138,13 @@ function EntryCard({ e, isLast }: { e: Entry; isLast: boolean }) {
       {/* Top row: year + tag */}
       <div className="flex items-baseline justify-between gap-3 mb-2">
         <span
-          className="font-anton text-3xl leading-none"
-          style={{ color: isLast ? "rgba(255,255,255,0.2)" : "var(--gold)" }}
+          className="font-anton text-3xl leading-none text-[var(--gold)]"
         >
           {e.year}
         </span>
         <span
-          className="text-[10px] uppercase tracking-[0.22em] shrink-0"
-          style={{ color: e.tagColor, opacity: 0.85 }}
+          className="text-[10px] uppercase tracking-[0.22em] shrink-0 font-bold"
+          style={{ color: e.tagColor }}
         >
           {e.tag}
         </span>
@@ -184,10 +183,10 @@ function EntryCard({ e, isLast }: { e: Entry; isLast: boolean }) {
       )}
 
       {/* CTA for "Today" card */}
-      {isLast && (
+      {e.year === "Today" && (
         <a
           href="#pricing"
-          className="inline-flex items-center gap-1.5 text-[12px] text-[var(--gold)] hover:text-white transition mt-2 group/link"
+          className="inline-flex items-center gap-1.5 text-[12px] text-[var(--gold)] hover:text-white transition mt-2 group/link font-bold"
         >
           Train under this standard
           <span className="transition group-hover/link:translate-x-0.5">→</span>
@@ -348,7 +347,7 @@ export default function About() {
               >
                 <div className="px-3 py-4 flex flex-col gap-2.5">
                   {entries.map((e, i) => (
-                    <EntryCard key={i} e={e} isLast={i === entries.length - 1} />
+                    <EntryCard key={i} e={e} />
                   ))}
                   <div className="h-8" />
                 </div>

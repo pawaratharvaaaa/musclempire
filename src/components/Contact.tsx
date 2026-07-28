@@ -12,8 +12,9 @@ export default function Contact() {
     lastName: "",
     email: "",
     phone: "",
-    companyName: "",
-    subject: "",
+    age: "",
+    goals: [] as string[],
+    customGoal: "",
     message: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,8 +38,11 @@ export default function Contact() {
     if (form.email.trim() && !/\S+@\S+\.\S+/.test(form.email.trim())) {
       e.email = "Enter a valid email address.";
     }
-    if (!form.subject.trim()) {
-      e.subject = "Please enter a subject.";
+    if (!form.age.trim() || isNaN(Number(form.age.trim())) || Number(form.age.trim()) <= 0) {
+      e.age = "Please enter a valid age.";
+    }
+    if (form.goals.includes("Others") && !form.customGoal.trim()) {
+      e.customGoal = "Please specify your goal.";
     }
     return e;
   };
@@ -52,18 +56,21 @@ export default function Contact() {
     const fullName = `${form.firstName} ${form.lastName}`.trim();
     const today = new Date().toLocaleDateString("en-IN");
     
-    const notesStr = `Company: ${form.companyName}\nEmail: ${form.email}\nMessage: ${form.message}`;
+    const selectedGoalsList = form.goals.map(g => g === "Others" ? form.customGoal : g).filter(Boolean);
+    const selectedGoals = selectedGoalsList.length > 0 ? selectedGoalsList.join(", ") : "N/A";
+    const notesStr = `Email: ${form.email}\nMessage: ${form.message}`;
+    
     fetch(`${APPS_SCRIPT_URL}?${new URLSearchParams({ 
       action: "enquiry", 
       date: today, 
       name: fullName, 
       phone: form.phone, 
-      age: "N/A", 
-      goal: form.subject, 
+      age: form.age, 
+      goal: selectedGoals, 
       notes: notesStr 
     })}`, { redirect: "follow" }).catch(() => null);
     
-    const msg = encodeURIComponent(`Hi! I'd like to get in touch with Muscle Empire.\n\n*Name:* ${fullName}\n*Phone:* ${form.phone}\n*Email:* ${form.email || "N/A"}\n*Company:* ${form.companyName || "N/A"}\n*Subject:* ${form.subject}\n*Message:* ${form.message}`);
+    const msg = encodeURIComponent(`Hi! I'd like to get in touch with Muscle Empire.\n\n*Name:* ${fullName}\n*Phone:* ${form.phone}\n*Email:* ${form.email || "N/A"}\n*Age:* ${form.age}\n*Goal:* ${selectedGoals}\n*Message:* ${form.message}`);
     
     window.open(`https://wa.me/${OWNER_PHONE}?text=${msg}`, "_blank");
     
@@ -86,12 +93,15 @@ export default function Contact() {
       lastName: "",
       email: "",
       phone: "",
-      companyName: "",
-      subject: "",
+      age: "",
+      goals: [],
+      customGoal: "",
       message: ""
     });
     setErrors({});
-  };  const getInputClass = (fieldName: keyof typeof form, value: string) => {
+  };
+
+  const getInputClass = (fieldName: keyof typeof form, value: string) => {
     const base = "w-full h-12 pl-10 pr-4 bg-[#1C1C1E] border border-white/[0.12] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-[#E8A820] focus:ring-1 focus:ring-[#E8A820]/50 transition-all text-sm";
     if (errors[fieldName]) {
       return `${base} border-red-500 focus:border-red-500 focus:ring-red-500`;
@@ -150,28 +160,44 @@ export default function Contact() {
                 </div>
               </div>
 
-              {/* Location */}
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#E8A820] shrink-0 border border-white/[0.06]">
+              {/* Operating Hours */}
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#E8A820] shrink-0 border border-white/[0.06] mt-0.5">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">Operating Hours</p>
+                  <p className="text-white font-semibold text-sm leading-relaxed">
+                    Unisex: Mon–Sat 6 AM – 11 PM
+                  </p>
+                  <p className="text-white font-semibold text-sm leading-relaxed">
+                    Female: Mon–Sat 6–12 PM & 4–10 PM
+                  </p>
+                </div>
+              </div>
+
+              {/* Unisex Gym */}
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#E8A820] shrink-0 border border-white/[0.06] mt-0.5">
                   <MapPin size={18} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-0.5">Location</p>
-                  <span className="text-white font-semibold text-sm">
-                    Ghatkopar West, Mumbai - 400084
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">Unisex Gym</p>
+                  <span className="text-white font-semibold text-sm leading-relaxed">
+                    J/16, Jay Hanuman Mandir, Barvenagar Colony, Bhatwadi, Ghatkopar (West), Mumbai – 400084
                   </span>
                 </div>
               </div>
 
-              {/* Timings */}
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#E8A820] shrink-0 border border-white/[0.06]">
-                  <Clock size={18} />
+              {/* Female Gym */}
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#E8A820] shrink-0 border border-white/[0.06] mt-0.5">
+                  <MapPin size={18} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-0.5">Timings</p>
-                  <span className="text-white font-semibold text-sm">
-                    Monday – Saturday, 6:00 AM – 11:00 PM
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">Female Gym</p>
+                  <span className="text-white font-semibold text-sm leading-relaxed">
+                    1st Floor, Ranveer Apartment, Sanjay Kokate Lane, Bhatwadi, Ghatkopar (West), Mumbai – 400084
                   </span>
                 </div>
               </div>
@@ -179,7 +205,7 @@ export default function Contact() {
 
             {/* Map Embed */}
             <iframe
-              src="https://maps.google.com/maps?q=Muscle%20Empire%20Gymnasium%20Ghatkopar%20West%20Mumbai&t=&z=14&ie=UTF8&iwloc=&output=embed"
+              src="https://maps.google.com/maps?q=Muscle%20Empire%20Gym%20Bhatwadi%20Barve%20Nagar%20Ghatkopar%20West%20Mumbai&t=&z=16&ie=UTF8&iwloc=&output=embed"
               className="w-full h-[220px] rounded-2xl border border-white/[0.08] shadow-sm mt-6 invert-[0.9] hue-rotate-[180deg]"
               allowFullScreen
               loading="lazy"
@@ -311,41 +337,127 @@ export default function Contact() {
                       </div>
                     </div>
 
-                    {/* Company Name & Subject */}
+                    {/* Age */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="relative">
-                        <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Company Name</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                            <Building2 size={16} />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Enter company name"
-                            value={form.companyName}
-                            onChange={e => setForm({...form, companyName: e.target.value})}
-                            className={getInputClass("companyName", form.companyName)}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="relative">
-                        <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Subject</label>
-                        <div className="relative">
+                        <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Age</label>
+                        <div className="relative flex items-center">
                           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
-                            <FileText size={16} />
+                            <User size={16} />
                           </div>
                           <input
                             type="text"
-                            placeholder="Enter Subject"
-                            value={form.subject}
-                            onChange={e => setForm({...form, subject: e.target.value})}
-                            className={getInputClass("subject", form.subject)}
+                            placeholder="Enter age"
+                            value={form.age}
+                            onChange={e => {
+                              const val = e.target.value;
+                              if (val === "" || /^[0-9]*$/.test(val)) {
+                                setForm({...form, age: val});
+                              }
+                            }}
+                            className={`${getInputClass("age", form.age)} pr-20`}
                           />
+                          <div className="absolute right-1 flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentAge = parseInt(form.age) || 0;
+                                if (currentAge > 0) {
+                                  setForm({ ...form, age: (currentAge - 1).toString() });
+                                }
+                              }}
+                              className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer select-none"
+                            >
+                              -
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentAge = parseInt(form.age) || 0;
+                                setForm({ ...form, age: (currentAge + 1).toString() });
+                              }}
+                              className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer select-none"
+                            >
+                              +
+                            </button>
+                          </div>
                         </div>
-                        {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
+                        {errors.age && <p className="text-red-500 text-xs mt-1">{errors.age}</p>}
                       </div>
                     </div>
+
+                    {/* My Goal */}
+                    <div className="relative">
+                      <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-2">My Goal</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                          "Full Body Workout",
+                          "Weight Gain",
+                          "Weight Loss",
+                          "Muscle Gain",
+                          "Cardio",
+                          "Others"
+                        ].map((g) => {
+                          const isSelected = form.goals.includes(g);
+                          return (
+                            <button
+                              key={g}
+                              type="button"
+                              onClick={() => {
+                                const newGoals = form.goals.includes(g)
+                                  ? form.goals.filter((x) => x !== g)
+                                  : [...form.goals, g];
+                                setForm({ ...form, goals: newGoals });
+                              }}
+                              className={`relative flex items-center gap-3 px-5 py-3.5 rounded-full border text-left transition-all duration-200 ${
+                                isSelected
+                                  ? "border-[#E8A820] bg-[#E8A820]/[0.06] text-white"
+                                  : "border-white/[0.08] bg-[#1C1C1E] text-neutral-400 hover:bg-white/[0.02]"
+                              }`}
+                            >
+                              <div
+                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 ${
+                                  isSelected ? "border-[#E8A820]" : "border-neutral-600"
+                                }`}
+                              >
+                                {isSelected && (
+                                  <div className="w-2.5 h-2.5 rounded-full bg-[#E8A820]" />
+                                )}
+                              </div>
+                              <span className="text-sm font-semibold tracking-wide">{g}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Specify Goal (conditionally rendered) */}
+                    <AnimatePresence>
+                      {form.goals.includes("Others") && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                          animate={{ opacity: 1, height: "auto", marginTop: 12 }}
+                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                          transition={{ duration: 0.25, ease: "easeInOut" }}
+                          className="relative overflow-hidden"
+                        >
+                          <label className="block text-neutral-400 font-semibold text-xs uppercase tracking-wider mb-1.5">Specify Goal</label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+                              <FileText size={16} />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Describe your goal"
+                              value={form.customGoal}
+                              onChange={e => setForm({...form, customGoal: e.target.value})}
+                              className={getInputClass("customGoal", form.customGoal)}
+                            />
+                          </div>
+                          {errors.customGoal && <p className="text-red-500 text-xs mt-1">{errors.customGoal}</p>}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Message */}
                     <div className="relative">

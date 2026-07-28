@@ -121,13 +121,13 @@ export default function Hero() {
               style={{ letterSpacing: "-0.02em" }}
             >
               {/* TRANSFORM */}
-              <div className="text-white overflow-hidden" style={{ fontSize: "clamp(2.2rem,7vw,6.5rem)", lineHeight: 1.05 }}>
+              <div className="text-white overflow-hidden" style={{ fontSize: "clamp(2.6rem, 8vw, 7.5rem)", lineHeight: 1.05 }}>
                 Transform
               </div>
 
               {/* YOUR BODY. — gold */}
               <div style={{
-                fontSize: "clamp(2rem,6.5vw,5.8rem)", lineHeight: 1.05,
+                fontSize: "clamp(2.4rem, 7.5vw, 6.8rem)", lineHeight: 1.05,
                 background: "linear-gradient(135deg,#E8A820,#FF9500)",
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>
@@ -135,12 +135,12 @@ export default function Hero() {
               </div>
 
               {/* ELEVATE */}
-              <div className="text-white mt-2 lg:mt-6" style={{ fontSize: "clamp(2.1rem,6.8vw,6rem)", lineHeight: 1.05 }}>
+              <div className="text-white mt-2 lg:mt-6" style={{ fontSize: "clamp(2.5rem, 7.8vw, 7rem)", lineHeight: 1.05 }}>
                 Elevate
               </div>
 
               {/* YOUR LIFE. */}
-              <div style={{ fontSize: "clamp(1.8rem,6vw,5.2rem)", lineHeight: 1.05, color: "rgba(255,255,255,0.68)" }}>
+              <div style={{ fontSize: "clamp(2.2rem, 7vw, 6.2rem)", lineHeight: 1.05, color: "rgba(255,255,255,0.68)" }}>
                 your life.
               </div>
 
