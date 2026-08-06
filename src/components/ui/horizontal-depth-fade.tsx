@@ -160,10 +160,10 @@ export function HorizontalDepthFade({
       </div>
 
       {/* Desktop View: Vertically scrolling parallax columns responding to page scroll */}
-      <div className="hidden lg:block relative w-full max-w-7xl mx-auto px-5 md:px-8 overflow-visible py-16">
-        <div className="flex gap-6 overflow-visible">
+      <div className="hidden lg:block relative w-full px-4 overflow-visible py-16">
+        <div className="flex gap-4 overflow-visible">
           {columns.map((col, colIdx) => (
-            <div key={colIdx} className="parallax-col flex-1 flex flex-col gap-6">
+            <div key={colIdx} className="parallax-col flex-1 flex flex-col gap-4">
               {col.map((img, i) => (
                 <div
                   key={i}

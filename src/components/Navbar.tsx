@@ -35,13 +35,25 @@ function smoothScroll(href: string) {
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [nameVisible, setNameVisible] = useState(true);
   const [activeSection, setActiveSection] = useState("home");
   const [pricingOpen, setPricingOpen] = useState(false);
   const pricingRef = useRef<HTMLLIElement>(null);
+  const lastScrollY = useRef(0);
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 50);
+    const fn = () => {
+      const current = window.scrollY;
+      setScrolled(current > 50);
+      if (current > 80) {
+        // scrolling down → hide; scrolling up → show
+        setNameVisible(current < lastScrollY.current);
+      } else {
+        setNameVisible(true);
+      }
+      lastScrollY.current = current;
+    };
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
@@ -93,7 +105,11 @@ export default function Navbar() {
   return (
     <>
       {/* Logo and Name in top-left */}
-      <div className="fixed top-8 left-5 md:left-8 z-50 pointer-events-auto">
+      <motion.div
+        className="fixed top-8 left-5 md:left-8 z-50 pointer-events-auto"
+        animate={{ opacity: nameVisible ? 1 : 0, y: nameVisible ? 0 : -16 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
         <a href="/" onClick={e => { e.preventDefault(); navigate("/"); }} className="flex items-center gap-3 group select-none">
           <div className="relative shrink-0">
             <div className="absolute inset-0 rounded-full bg-[#E8A820]/20 blur-lg group-hover:bg-[#E8A820]/35 transition-all duration-400" />
@@ -101,10 +117,14 @@ export default function Navbar() {
           </div>
           <span className="font-display font-black text-[1.12rem] tracking-tight leading-none text-[#E8A820]">Muscle Empire</span>
         </a>
-      </div>
+      </motion.div>
 
       {/* StaggeredMenu (visible at all sizes, toggle button in top-right) */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[60]">
+      <motion.div
+        className="fixed top-0 left-0 w-full h-full pointer-events-none z-[60]"
+        animate={{ opacity: nameVisible ? 1 : 0, y: nameVisible ? 0 : -16 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
         <StaggeredMenu
           position="right"
           isFixed
@@ -121,7 +141,7 @@ export default function Navbar() {
           onMenuOpen={() => window.dispatchEvent(new CustomEvent("menuStateChange", { detail: true }))}
           onMenuClose={() => window.dispatchEvent(new CustomEvent("menuStateChange", { detail: false }))}
         />
-      </div>
+      </motion.div>
     </>
   );
 }

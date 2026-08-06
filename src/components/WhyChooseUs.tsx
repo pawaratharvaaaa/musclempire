@@ -81,8 +81,8 @@ export default function WhyChooseUs() {
       
       <HorizontalDepthFade
         images={FEATURES}
-        itemWidth={400}
-        itemHeight={560}
+        itemWidth={520}
+        itemHeight={700}
         gap="2rem"
         className="z-10"
       />
