@@ -18,6 +18,7 @@ const pricingLinks = [
 
 /* StaggeredMenu items */
 const staggeredItems = [
+  { label: "Gallery", ariaLabel: "View gallery", link: "/gallery" },
   ...navLinks.map(l => ({ label: l.name, ariaLabel: `Go to ${l.name}`, link: l.href })),
   { label: "Pricing", ariaLabel: "View pricing plans", link: "#pricing" },
 ];
@@ -120,18 +121,13 @@ export default function Navbar() {
       </motion.div>
 
       {/* StaggeredMenu (visible at all sizes, toggle button in top-right) */}
-      <motion.div
-        className="fixed top-0 left-0 w-full h-full pointer-events-none z-[60]"
-        animate={{ opacity: nameVisible ? 1 : 0, y: nameVisible ? 0 : -16 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-      >
+      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[60]">
         <StaggeredMenu
           position="right"
           isFixed
           items={staggeredItems}
           socialItems={staggeredSocials}
           displaySocials
-
           menuButtonColor="#F2EFE9"
           openMenuButtonColor="#F2EFE9"
           changeMenuColorOnOpen
@@ -141,7 +137,7 @@ export default function Navbar() {
           onMenuOpen={() => window.dispatchEvent(new CustomEvent("menuStateChange", { detail: true }))}
           onMenuClose={() => window.dispatchEvent(new CustomEvent("menuStateChange", { detail: false }))}
         />
-      </motion.div>
+      </div>
     </>
   );
 }

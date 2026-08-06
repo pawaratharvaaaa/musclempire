@@ -5,12 +5,8 @@ const SESSION_KEY = "me_admin_session";
 const PASS_CACHE_KEY = "me_admin_pwd_cache";
 const ADMIN_TOKEN = "ME9773GYM";
 async function fetchPassword(): Promise<string> {
-  try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getPassword&token=${ADMIN_TOKEN}`, { redirect: "follow" });
-    const json = await res.json();
-    if (json?.password) { localStorage.setItem(PASS_CACHE_KEY, json.password); return json.password; }
-  } catch {}
-  return localStorage.getItem(PASS_CACHE_KEY) || DEFAULT_PASS;
+  // Always use default password, ignoring remote cache
+  return DEFAULT_PASS;
 }
 async function savePassword(newPass: string): Promise<void> {
   localStorage.setItem(PASS_CACHE_KEY, newPass);
@@ -18,6 +14,7 @@ async function savePassword(newPass: string): Promise<void> {
 }
 export async function login(username: string, password: string): Promise<boolean> {
   if (username !== ADMIN_USER) return false;
+  localStorage.removeItem(PASS_CACHE_KEY); // clear any stale cached password
   const correctPass = await fetchPassword();
   if (password === correctPass) { localStorage.setItem(SESSION_KEY, "true"); return true; }
   return false;
