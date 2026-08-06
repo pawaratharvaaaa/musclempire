@@ -53,7 +53,7 @@ export const FEATURES = [
 
 export default function WhyChooseUs() {
   return (
-    <section id="why-choose-us" className="bg-white pt-28 relative">
+    <section id="why-choose-us" className="bg-white pt-28 pb-28 relative">
       {/* Background Grid Pattern */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-40"
@@ -74,21 +74,15 @@ export default function WhyChooseUs() {
             <span className="text-gold-gradient">With Us</span>
           </h2>
           <p className="text-black/60 text-lg leading-relaxed">
-            Scroll down to explore the premium features that set Muscle Empire apart from the rest.
+            Explore the premium features that set Muscle Empire apart from the rest.
           </p>
         </div>
       </div>
       
       <HorizontalDepthFade
         images={FEATURES}
-        scrollLength={400}
-        itemWidth={340}
-        itemHeight={460}
-        brightnessBoost={60}
-        focusSpread={1}
-        scaleEffect={1}
-        blur={10}
-        dim={15}
+        itemWidth={400}
+        itemHeight={560}
         gap="2rem"
         className="z-10"
       />
