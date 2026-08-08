@@ -2,6 +2,7 @@ import { FaInstagram, FaFacebookF } from "react-icons/fa";
 import logo from "@/assets/images/logo.svg";
 
 const quickLinks = [
+  { href: "/branches", label: "Branches" },
   { href: "#about",    label: "Achievements" },
   { href: "#services", label: "Programs" },
   { href: "#pricing",  label: "Membership" },

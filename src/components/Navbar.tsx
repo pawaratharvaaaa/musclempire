@@ -6,6 +6,7 @@ import logo from "@/assets/images/logo.svg";
 import StaggeredMenu from "@/components/ui/StaggeredMenu";
 
 const navLinks = [
+  { name: "Branches", href: "/branches", isPage: true },
   { name: "Reviews", href: "#reviews" },
   { name: "Contact", href: "#contact" },
   { name: "Offers", href: "/offers", isPage: true },
@@ -18,6 +19,7 @@ const pricingLinks = [
 
 /* StaggeredMenu items */
 const staggeredItems = [
+  { label: "Branches", ariaLabel: "View branch locations", link: "/branches" },
   { label: "Gallery", ariaLabel: "View gallery", link: "/gallery" },
   ...navLinks.map(l => ({ label: l.name, ariaLabel: `Go to ${l.name}`, link: l.href })),
   { label: "Pricing", ariaLabel: "View pricing plans", link: "#pricing" },
