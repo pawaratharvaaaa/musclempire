@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import FloatingContact from "@/components/FloatingContact";
 import DemoBar from "@/components/DemoBar";
+import OfferPopup from "@/components/OfferPopup";
 
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Home = lazy(() => import("@/pages/Home"));
@@ -45,6 +46,7 @@ function PublicWidgets() {
     <>
       <FloatingContact />
       <DemoBar />
+      <OfferPopup />
     </>
   );
 }

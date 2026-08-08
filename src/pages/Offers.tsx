@@ -4,28 +4,25 @@ import { Tag, Clock, Calendar, Zap } from "lucide-react";
 import PlanNavbar from "@/components/PlanNavbar";
 import Footer from "@/components/Footer";
 
-// ── Offer data — edit here to add/remove offers ───────────────────────────────
-const ongoingOffers: Offer[] = [
-  // Example — uncomment and fill to add an offer:
-  // {
-  //   title: "Summer Shred Special",
-  //   description: "Get 20% off on quarterly membership. Beat the heat and get in shape this summer.",
-  //   discount: "20% OFF",
-  //   validTill: "31 July 2026",
-  //   cta: "Claim Offer",
-  // },
-];
+import { activeOffers as importedActiveOffers } from "@/data/offers";
+
+const ongoingOffers: Offer[] = importedActiveOffers.map(o => ({
+  title: o.title,
+  description: o.description,
+  discount: o.discount,
+  validTill: o.validTill,
+  cta: o.ctaText,
+  whatsappMessage: o.whatsappMessage
+}));
 
 const upcomingOffers: Offer[] = [
-  // Example — uncomment to add upcoming offer:
-  // {
-  //   title: "Independence Day Special",
-  //   description: "Flat 15% off on annual membership. Freedom to train without limits.",
-  //   launchDate: "15 August 2026",
-  //   teaser: "Coming soon — save big on your fitness journey.",
-  // },
+  {
+    title: "Diwali & New Year Fitness Blowout",
+    description: "Flat 30% off on Annual VIP Memberships + Free Personal Training Package.",
+    launchDate: "15 October 2026",
+    teaser: "Coming soon — save big on your long-term fitness goals.",
+  }
 ];
-// ─────────────────────────────────────────────────────────────────────────────
 
 type Offer = {
   title: string;
@@ -91,18 +88,12 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
         {/* CTA */}
         {!upcoming && (
           <a
-            href="#contact"
-            onClick={e => {
-              e.preventDefault();
-              window.history.back();
-              setTimeout(() => {
-                const el = document.getElementById("contact");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              }, 300);
-            }}
+            href={`https://wa.me/919773053632?text=${encodeURIComponent(offer.whatsappMessage || `Hi Muscle Empire! I would like to claim the ${offer.title} offer.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="w-full flex items-center justify-center bg-primary hover:bg-primary/90 text-black font-black uppercase tracking-widest py-3 rounded-xl text-sm transition-colors mt-1"
           >
-            {offer.cta || "Unlock True Yourself"}
+            {offer.cta || "Claim Offer"}
           </a>
         )}
       </div>
