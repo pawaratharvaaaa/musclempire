@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Tag, Clock, Calendar, Zap } from "lucide-react";
+import { Tag, Clock, Calendar, Zap, MessageSquare } from "lucide-react";
 import PlanNavbar from "@/components/PlanNavbar";
 import Footer from "@/components/Footer";
+import { GradientBackground } from "@/components/ui/desert-horizon";
 
 import { activeOffers as importedActiveOffers } from "@/data/offers";
 
@@ -12,7 +13,7 @@ const ongoingOffers: Offer[] = importedActiveOffers.map(o => ({
   discount: o.discount,
   validTill: o.validTill,
   cta: o.ctaText,
-  whatsappMessage: o.whatsappMessage
+  whatsappMessage: o.whatsappMessage,
 }));
 
 const upcomingOffers: Offer[] = [
@@ -21,7 +22,7 @@ const upcomingOffers: Offer[] = [
     description: "Flat 30% off on Annual VIP Memberships + Free Personal Training Package.",
     launchDate: "15 October 2026",
     teaser: "Coming soon — save big on your long-term fitness goals.",
-  }
+  },
 ];
 
 type Offer = {
@@ -33,6 +34,7 @@ type Offer = {
   teaser?: string;
   cta?: string;
   image?: string;
+  whatsappMessage?: string;
 };
 
 function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boolean }) {
@@ -42,14 +44,14 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="bg-card border border-border rounded-xl overflow-hidden flex flex-col hover:border-primary/40 transition-colors shadow-lg"
+      className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col hover:shadow-lg hover:border-gray-300 transition-all shadow-sm"
     >
       {/* Banner */}
-      <div className="relative h-44 bg-gradient-to-br from-primary/20 to-yellow-600/10 flex items-center justify-center">
+      <div className="relative h-44 bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
         {offer.image ? (
           <img src={offer.image} alt={offer.title} className="w-full h-full object-cover" loading="lazy" />
         ) : (
-          <Zap size={48} className="text-primary/40" />
+          <Zap size={48} className="text-gray-300" />
         )}
         {/* Badge */}
         {upcoming ? (
@@ -57,7 +59,7 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
             Coming Soon
           </span>
         ) : offer.discount ? (
-          <span className="absolute top-3 right-3 bg-primary text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
+          <span className="absolute top-3 right-3 bg-gray-900 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
             {offer.discount}
           </span>
         ) : null}
@@ -65,22 +67,30 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
 
       {/* Content */}
       <div className="p-5 flex flex-col gap-3 flex-1">
-        <h3 className="text-white font-black uppercase tracking-tight text-lg leading-tight">{offer.title}</h3>
-        <p className="text-muted-foreground text-sm leading-relaxed flex-1">
+        <h3 className="text-gray-900 font-black uppercase tracking-tight text-lg leading-tight">
+          {offer.title}
+        </h3>
+        <p className="text-gray-500 text-sm leading-relaxed flex-1">
           {upcoming ? offer.teaser : offer.description}
         </p>
 
         {/* Meta */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 text-xs text-gray-400">
           {upcoming ? (
             <>
-              <Calendar size={13} className="text-primary" />
-              <span>Launches: <span className="text-white font-bold">{offer.launchDate}</span></span>
+              <Calendar size={13} />
+              <span>
+                Launches:{" "}
+                <span className="text-gray-700 font-bold">{offer.launchDate}</span>
+              </span>
             </>
           ) : offer.validTill ? (
             <>
-              <Clock size={13} className="text-primary" />
-              <span>Valid till: <span className="text-white font-bold">{offer.validTill}</span></span>
+              <Clock size={13} />
+              <span>
+                Valid till:{" "}
+                <span className="text-gray-700 font-bold">{offer.validTill}</span>
+              </span>
             </>
           ) : null}
         </div>
@@ -88,11 +98,14 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
         {/* CTA */}
         {!upcoming && (
           <a
-            href={`https://wa.me/919773053632?text=${encodeURIComponent(offer.whatsappMessage || `Hi Muscle Empire! I would like to claim the ${offer.title} offer.`)}`}
+            href={`https://wa.me/919773053632?text=${encodeURIComponent(
+              offer.whatsappMessage || `Hi Muscle Empire! I would like to claim the ${offer.title} offer.`
+            )}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-center bg-primary hover:bg-primary/90 text-black font-black uppercase tracking-widest py-3 rounded-xl text-sm transition-colors mt-1"
+            className="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-700 text-white font-black uppercase tracking-widest py-3 rounded-xl text-sm transition-colors mt-1"
           >
+            <MessageSquare size={15} />
             {offer.cta || "Claim Offer"}
           </a>
         )}
@@ -104,97 +117,60 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
 function EmptyState({ title, desc }: { title: string; desc: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-20 h-20 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center mb-5">
-        <Tag size={32} className="text-primary/40" />
+      <div className="w-20 h-20 bg-gray-100 border border-gray-200 rounded-full flex items-center justify-center mb-5">
+        <Tag size={32} className="text-gray-300" />
       </div>
-      <h4 className="text-white font-black uppercase tracking-wide text-xl mb-2">{title}</h4>
-      <p className="text-muted-foreground text-sm max-w-xs">{desc}</p>
+      <h4 className="text-gray-900 font-black uppercase tracking-wide text-xl mb-2">{title}</h4>
+      <p className="text-gray-500 text-sm max-w-xs">{desc}</p>
     </div>
   );
 }
 
 export default function Offers() {
-  const [activeTab, setActiveTab] = useState<"ongoing" | "upcoming">("ongoing");
   const ongoingRef = useRef<HTMLDivElement>(null);
   const upcomingRef = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => { window.scrollTo(0, 0); }, []);
-
-  // Update active tab based on scroll position
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setActiveTab(entry.target.id as "ongoing" | "upcoming");
-          }
-        });
-      },
-      { threshold: 0.4 }
-    );
-    if (ongoingRef.current) observer.observe(ongoingRef.current);
-    if (upcomingRef.current) observer.observe(upcomingRef.current);
-    return () => observer.disconnect();
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
   }, []);
 
-  const scrollTo = (ref: React.RefObject<HTMLDivElement>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <PlanNavbar />
-      <main className="pt-24 pb-20">
-        <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+    <div className="relative min-h-screen bg-white text-gray-900 overflow-hidden">
+      {/* Desert Horizon gradient fills the entire page background */}
+      <GradientBackground className="fixed inset-0 -z-10" />
+      {/* White overlay so content stays readable but gradient peeks through */}
+      <div className="fixed inset-0 -z-10 bg-white/70" />
 
-          {/* Header */}
-          <div className="text-center mb-10">
-            <p className="text-primary font-bold uppercase tracking-[0.2em] text-xs mb-3 flex items-center justify-center gap-2">
-              <span className="w-8 h-px bg-primary inline-block" />
+      <PlanNavbar />
+
+      <main className="pb-20">
+        {/* Header */}
+        <div className="pt-32 pb-16">
+          <div className="container mx-auto px-4 md:px-6 max-w-6xl text-center">
+            <p className="text-amber-900/60 font-bold uppercase tracking-[0.2em] text-xs mb-3 flex items-center justify-center gap-2">
+              <span className="w-8 h-px bg-amber-900/30 inline-block" />
               Limited Time
-              <span className="w-8 h-px bg-primary inline-block" />
+              <span className="w-8 h-px bg-amber-900/30 inline-block" />
             </p>
-            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight mb-4">
+            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight mb-4 text-gray-900">
               Exclusive{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-800 to-amber-500">
                 Offers
               </span>
             </h1>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+            <p className="text-amber-900/60 text-lg max-w-xl mx-auto">
               Take advantage of our latest fitness deals and upcoming promotions.
             </p>
           </div>
+        </div>
 
-          {/* Sticky Tabs */}
-          <div className="sticky top-20 z-40 bg-background/90 backdrop-blur-md border-b border-border/50 mb-12 -mx-4 px-4 md:-mx-6 md:px-6">
-            <div className="flex gap-2 py-3 max-w-xs mx-auto">
-              <button
-                onClick={() => scrollTo(ongoingRef)}
-                className={`flex-1 py-2.5 text-sm font-black uppercase tracking-widest rounded-lg transition-all ${
-                  activeTab === "ongoing"
-                    ? "bg-primary text-black"
-                    : "bg-card text-muted-foreground hover:text-white border border-border"
-                }`}
-              >
-                Ongoing
-              </button>
-              <button
-                onClick={() => scrollTo(upcomingRef)}
-                className={`flex-1 py-2.5 text-sm font-black uppercase tracking-widest rounded-lg transition-all ${
-                  activeTab === "upcoming"
-                    ? "bg-primary text-black"
-                    : "bg-card text-muted-foreground hover:text-white border border-border"
-                }`}
-              >
-                Upcoming
-              </button>
-            </div>
-          </div>
+        <div className="container mx-auto px-4 md:px-6 max-w-6xl pt-10">
+
 
           {/* Ongoing Offers */}
           <div id="ongoing" ref={ongoingRef} className="mb-20 scroll-mt-36">
-            <h2 className="text-white font-black uppercase tracking-wider text-2xl mb-8 flex items-center gap-3">
-              <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+            <h2 className="text-gray-900 font-black uppercase tracking-wider text-2xl mb-8 flex items-center gap-3">
+              <span className="w-2 h-2 bg-gray-900 rounded-full animate-pulse" />
               Ongoing Offers
             </h2>
             {ongoingOffers.length > 0 ? (
@@ -213,7 +189,7 @@ export default function Offers() {
 
           {/* Upcoming Offers */}
           <div id="upcoming" ref={upcomingRef} className="scroll-mt-36">
-            <h2 className="text-white font-black uppercase tracking-wider text-2xl mb-8 flex items-center gap-3">
+            <h2 className="text-gray-900 font-black uppercase tracking-wider text-2xl mb-8 flex items-center gap-3">
               <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
               Upcoming Offers
             </h2>
@@ -233,6 +209,7 @@ export default function Offers() {
 
         </div>
       </main>
+
       <Footer />
     </div>
   );

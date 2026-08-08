@@ -9,6 +9,7 @@ import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import Preloader from "@/components/Preloader";
+import OfferPopup from "@/components/OfferPopup";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,8 @@ export default function Home() {
       window.scrollTo(0, parseInt(saved, 10));
       sessionStorage.removeItem("scroll_before_plans");
     }
+    // Always show the offer popup on every home page load/reload
+    sessionStorage.removeItem("muscle_empire_offer_modal_dismissed");
   }, []);
 
   return (
@@ -39,6 +42,7 @@ export default function Home() {
             <Contact />
           </main>
           <Footer />
+          <OfferPopup />
         </div>
       )}
     </>

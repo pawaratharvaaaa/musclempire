@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Tag, Sparkles, Clock, ArrowRight, MessageSquare, Flame } from "lucide-react";
+import { X, Sparkles, Clock, ArrowRight, MessageSquare, Flame } from "lucide-react";
 import { useLocation } from "wouter";
 import { activeOffers, Offer } from "@/data/offers";
 
@@ -12,12 +12,11 @@ export default function OfferPopup() {
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    // Check if popup was already dismissed in this session
     const isDismissed = sessionStorage.getItem("muscle_empire_offer_modal_dismissed");
     if (!isDismissed) {
       const timer = setTimeout(() => {
         setIsOpen(true);
-      }, 1400); // 1.4 second smooth entry delay
+      }, 1400);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -43,102 +42,109 @@ export default function OfferPopup() {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
           />
 
-          {/* Modal Container */}
+          {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-lg bg-[#1C1C1E] border border-[#E8A820]/40 rounded-3xl p-6 sm:p-8 shadow-[0_25px_70px_rgba(232,168,32,0.15)] text-white z-10 overflow-hidden"
+            exit={{ opacity: 0, scale: 0.92, y: 24 }}
+            transition={{ type: "spring", damping: 26, stiffness: 320 }}
+            className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl z-10 overflow-hidden"
           >
-            {/* Ambient Background Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#E8A820]/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+            {/* Top accent strip */}
+            <div className="h-1 w-full bg-gradient-to-r from-gray-800 via-gray-600 to-gray-800" />
 
-            {/* Close Button */}
-            <button
-              onClick={handleClose}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-neutral-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer z-20"
-              aria-label="Close offers popup"
-            >
-              <X size={18} />
-            </button>
+            <div className="p-6 sm:p-8">
+              {/* Close Button */}
+              <button
+                onClick={handleClose}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close offers popup"
+              >
+                <X size={16} />
+              </button>
 
-            {/* Modal Header Badge */}
-            <div className="flex items-center gap-2 mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#E8A820]/15 border border-[#E8A820]/40 text-[#E8A820] text-xs font-black uppercase tracking-widest">
-                <Sparkles size={13} />
-                <span>{currentOffer.badge}</span>
-              </span>
-              <span className="flex items-center gap-1 text-[11px] text-neutral-400 font-semibold bg-white/[0.04] px-2.5 py-1 rounded-full">
-                <Flame size={12} className="text-[#E8A820]" />
-                Exclusive Web Deal
-              </span>
-            </div>
+              {/* Header badges */}
+              <div className="flex items-center gap-2 mb-5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-900 text-white text-[11px] font-bold uppercase tracking-widest">
+                  <Sparkles size={11} />
+                  {currentOffer.badge}
+                </span>
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[11px] font-semibold">
+                  <Flame size={11} className="text-orange-400" />
+                  Exclusive Deal
+                </span>
+              </div>
 
-            {/* Offer Main Details */}
-            <div className="mb-6">
-              <div className="inline-block bg-gradient-to-r from-[#E8A820] to-yellow-500 text-black px-4 py-1.5 rounded-xl font-black text-xl sm:text-2xl uppercase tracking-tight mb-3 shadow-lg">
+              {/* Discount badge */}
+              <div className="inline-block bg-gray-900 text-white px-4 py-1.5 rounded-lg font-black text-xl sm:text-2xl uppercase tracking-tight mb-3">
                 {currentOffer.discount}
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white mb-2 leading-snug">
+              {/* Title */}
+              <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900 mb-2 leading-tight">
                 {currentOffer.title}
               </h2>
 
-              <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed mb-4">
+              {/* Description */}
+              <p className="text-gray-500 text-sm leading-relaxed mb-4">
                 {currentOffer.description}
               </p>
 
-              <div className="flex items-center gap-2 text-xs text-neutral-400">
-                <Clock size={14} className="text-[#E8A820]" />
-                <span>Valid until: <strong className="text-white">{currentOffer.validTill}</strong></span>
+              {/* Valid until */}
+              <div className="flex items-center gap-2 text-xs text-gray-400 mb-6">
+                <Clock size={13} />
+                <span>
+                  Valid until:{" "}
+                  <strong className="text-gray-700">{currentOffer.validTill}</strong>
+                </span>
               </div>
-            </div>
 
-            {/* Carousel Dots if multiple offers */}
-            {activeOffers.length > 1 && (
-              <div className="flex items-center justify-center gap-2 mb-6">
-                {activeOffers.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentIndex(idx)}
-                    className={`h-2 rounded-full transition-all cursor-pointer ${
-                      currentIndex === idx ? "w-6 bg-[#E8A820]" : "w-2 bg-white/20"
-                    }`}
-                    aria-label={`Go to offer ${idx + 1}`}
-                  />
-                ))}
+              {/* Carousel dots */}
+              {activeOffers.length > 1 && (
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  {activeOffers.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentIndex(idx)}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        currentIndex === idx
+                          ? "w-6 bg-gray-900"
+                          : "w-2 bg-gray-300"
+                      }`}
+                      aria-label={`Go to offer ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => handleClaimWhatsApp(currentOffer)}
+                  className="flex-1 h-11 bg-gray-900 hover:bg-gray-700 text-white font-bold uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+                >
+                  <MessageSquare size={15} />
+                  {currentOffer.ctaText}
+                </button>
+
+                <button
+                  onClick={handleViewAllOffers}
+                  className="h-11 px-5 bg-white hover:bg-gray-50 text-gray-700 font-bold uppercase tracking-wider text-xs rounded-xl border border-gray-200 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  All Offers
+                  <ArrowRight size={13} />
+                </button>
               </div>
-            )}
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <button
-                onClick={() => handleClaimWhatsApp(currentOffer)}
-                className="w-full sm:flex-1 h-12 bg-[#E8A820] hover:bg-[#d49518] text-black font-black uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer"
-              >
-                <MessageSquare size={16} />
-                <span>{currentOffer.ctaText}</span>
-              </button>
-
-              <button
-                onClick={handleViewAllOffers}
-                className="w-full sm:w-auto px-5 h-12 bg-white/5 hover:bg-white/10 text-white font-bold uppercase tracking-wider text-xs rounded-xl border border-white/10 flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <span>All Offers</span>
-                <ArrowRight size={14} className="text-[#E8A820]" />
-              </button>
             </div>
           </motion.div>
         </div>
