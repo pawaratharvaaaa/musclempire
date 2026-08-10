@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
@@ -24,6 +24,19 @@ export default function Home() {
     // Always show the offer popup on every home page load/reload
     sessionStorage.removeItem("muscle_empire_offer_modal_dismissed");
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      const hash = sessionStorage.getItem("scroll_to_hash");
+      if (hash) {
+        sessionStorage.removeItem("scroll_to_hash");
+        setTimeout(() => {
+          const el = document.querySelector(hash);
+          if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 76, behavior: "smooth" });
+        }, 300);
+      }
+    }
+  }, [loading]);
 
   return (
     <>

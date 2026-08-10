@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import logo from "@/assets/images/logo.svg";
+import logo from "@/assets/images/logo.png";
 import heroBg from "@/assets/images/hero-bg.png";
 import { FEATURES } from "@/components/WhyChooseUs";
 
@@ -47,7 +47,7 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
           className="w-20 h-20 mb-6 rounded-full border-2 border-[#E8A820]/60 object-cover" 
         />
         <span className="font-display font-black text-xl text-[#C8900A] tracking-widest uppercase mb-10">
-          Muscle Empire
+          Muscle Empire®
         </span>
       </div>
 

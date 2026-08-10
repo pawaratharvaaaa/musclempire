@@ -22,6 +22,7 @@ const TermsPage = lazy(() => import("@/pages/Terms"));
 const GalleryPage = lazy(() => import("@/pages/GalleryPage"));
 const BranchesPage = lazy(() => import("@/pages/Branches"));
 const AdminGallery = lazy(() => import("@/pages/AdminGallery"));
+const AdminOffers = lazy(() => import("@/pages/AdminOffers"));
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ function Router() {
         <Route path="/gallery" component={GalleryPage} />
         <Route path="/branches" component={BranchesPage} />
         <Route path="/pronectar-admin-2026/gallery" component={AdminGallery} />
+        <Route path="/pronectar-admin-2026/offers" component={AdminOffers} />
         {/* Private admin routes */}
         <Route path="/pronectar-admin-2026" component={AdminLogin} />
         <Route path="/pronectar-admin-2026/dashboard" component={AdminDashboard} />

@@ -1,20 +1,13 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Tag, Clock, Calendar, Zap, MessageSquare } from "lucide-react";
 import PlanNavbar from "@/components/PlanNavbar";
 import Footer from "@/components/Footer";
 import { GradientBackground } from "@/components/ui/desert-horizon";
 
-import { activeOffers as importedActiveOffers } from "@/data/offers";
+import { getOffers } from "@/lib/offersStore";
+import chalkboardBg from "@/assets/images/chalkboard-bg.png";
 
-const ongoingOffers: Offer[] = importedActiveOffers.map(o => ({
-  title: o.title,
-  description: o.description,
-  discount: o.discount,
-  validTill: o.validTill,
-  cta: o.ctaText,
-  whatsappMessage: o.whatsappMessage,
-}));
 
 const upcomingOffers: Offer[] = [
   {
@@ -22,6 +15,7 @@ const upcomingOffers: Offer[] = [
     description: "Flat 30% off on Annual VIP Memberships + Free Personal Training Package.",
     launchDate: "15 October 2026",
     teaser: "Coming soon — save big on your long-term fitness goals.",
+    image: chalkboardBg,
   },
 ];
 
@@ -129,9 +123,28 @@ function EmptyState({ title, desc }: { title: string; desc: string }) {
 export default function Offers() {
   const ongoingRef = useRef<HTMLDivElement>(null);
   const upcomingRef = useRef<HTMLDivElement>(null);
+  const [ongoingOffers, setOngoingOffers] = useState<Offer[]>([]);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    const fetchOffers = () => {
+      const list = getOffers().map(o => ({
+        title: o.title,
+        description: o.description,
+        discount: o.discount,
+        validTill: o.validTill,
+        cta: o.ctaText,
+        whatsappMessage: o.whatsappMessage,
+        image: o.image,
+      }));
+      setOngoingOffers(list);
+    };
+    fetchOffers();
+    window.addEventListener("offersUpdated", fetchOffers);
+    return () => window.removeEventListener("offersUpdated", fetchOffers);
   }, []);
 
   return (

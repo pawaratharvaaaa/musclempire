@@ -169,7 +169,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     // Load logo (non-blocking — PDF generates even if logo fails)
     let logoDataUrl = "";
     try {
-      const logoModule = await import("@/assets/images/logo.jpeg");
+      const logoModule = await import("@/assets/images/logo.png");
       const response = await fetch(logoModule.default);
       const blob = await response.blob();
       logoDataUrl = await new Promise<string>((resolve) => {
@@ -182,7 +182,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
 
     // Logo ABOVE the yellow banner (left side)
     if (logoDataUrl) {
-      doc.addImage(logoDataUrl, "JPEG", margin, y, 22, 22);
+      doc.addImage(logoDataUrl, "PNG", margin, y, 22, 22);
     }
 
     // Yellow banner — starts after logo height

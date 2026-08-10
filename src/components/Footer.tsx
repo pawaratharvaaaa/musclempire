@@ -1,5 +1,5 @@
 import { FaInstagram, FaFacebookF } from "react-icons/fa";
-import logo from "@/assets/images/logo.svg";
+import logo from "@/assets/images/logo.png";
 
 const quickLinks = [
   { href: "/branches", label: "Branches" },
@@ -33,7 +33,7 @@ export default function Footer() {
                 className="h-12 w-12 rounded-full object-cover border-[1.5px] border-[#E8A820]/60 group-hover:border-[#E8A820] transition-colors"
               />
               <span className="font-display font-black text-[1.05rem] text-[#C8900A] tracking-tight">
-                Muscle Empire
+                Muscle Empire®
               </span>
             </button>
             <p className="text-black text-[0.85rem] leading-relaxed mb-6">

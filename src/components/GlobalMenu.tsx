@@ -1,8 +1,8 @@
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 import StaggeredMenu from "@/components/ui/StaggeredMenu";
 
 const navLinks = [
-  { name: "Branches", href: "/branches", isPage: true },
   { name: "Reviews", href: "#reviews" },
   { name: "Contact", href: "#contact" },
   { name: "Offers", href: "/offers", isPage: true },
@@ -28,10 +28,18 @@ function smoothScroll(href: string) {
 }
 
 export default function GlobalMenu() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
 
   const handleItemClick = (item: { label: string; link: string }, e: React.MouseEvent) => {
     e.preventDefault();
+
+    const isHash = item.link.startsWith("#");
+    if (isHash && location !== "/") {
+      sessionStorage.setItem("scroll_to_hash", item.link);
+      navigate("/");
+      return;
+    }
+
     const link = navLinks.find(l => l.name === item.label);
     if (link) {
       if (link.isPage || link.href.startsWith("/")) {

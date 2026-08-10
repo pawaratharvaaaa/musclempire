@@ -2,14 +2,42 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, Clock, ArrowRight, MessageSquare, Flame } from "lucide-react";
 import { useLocation } from "wouter";
-import { activeOffers, Offer } from "@/data/offers";
+import { getOffers } from "@/lib/offersStore";
+import type { Offer } from "@/data/offers";
+
 
 const OWNER_PHONE = "919773053632";
 
+const slideVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 100 : -100,
+    opacity: 0
+  }),
+  center: {
+    zIndex: 1,
+    x: 0,
+    opacity: 1
+  },
+  exit: (direction: number) => ({
+    zIndex: 0,
+    x: direction < 0 ? 100 : -100,
+    opacity: 0
+  })
+};
+
 export default function OfferPopup() {
   const [isOpen, setIsOpen] = useState(false);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    setOffers(getOffers());
+    const handler = () => setOffers(getOffers());
+    window.addEventListener("offersUpdated", handler);
+    return () => window.removeEventListener("offersUpdated", handler);
+  }, []);
 
   useEffect(() => {
     const isDismissed = sessionStorage.getItem("muscle_empire_offer_modal_dismissed");
@@ -37,7 +65,43 @@ export default function OfferPopup() {
     navigate("/offers");
   };
 
-  const currentOffer = activeOffers[currentIndex] || activeOffers[0];
+  const paginate = (newDirection: number) => {
+    setDirection(newDirection);
+    setCurrentIndex((prevIndex) => {
+      let nextIndex = prevIndex + newDirection;
+      if (nextIndex < 0) nextIndex = offers.length - 1;
+      if (nextIndex >= offers.length) nextIndex = 0;
+      return nextIndex;
+    });
+  };
+
+  const handleDotClick = (idx: number) => {
+    if (idx > currentIndex) {
+      setDirection(1);
+    } else if (idx < currentIndex) {
+      setDirection(-1);
+    }
+    setCurrentIndex(idx);
+  };
+
+  const handleDragEnd = (_event: any, info: any) => {
+    const swipeThreshold = 50; // pixels
+    if (info.offset.x < -swipeThreshold) {
+      paginate(1);
+    } else if (info.offset.x > swipeThreshold) {
+      paginate(-1);
+    }
+  };
+
+  const currentOffer = offers[currentIndex] || offers[0] || {
+    badge: "Special Offer",
+    discount: "Promo",
+    title: "Muscle Empire",
+    description: "Welcome to Muscle Empire Gymnasium",
+    validTill: "Limited Time",
+    ctaText: "Claim Discount",
+    whatsappMessage: "Hi Muscle Empire!"
+  };
 
   return (
     <AnimatePresence>
@@ -67,55 +131,78 @@ export default function OfferPopup() {
               {/* Close Button */}
               <button
                 onClick={handleClose}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center transition-colors cursor-pointer"
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center transition-colors cursor-pointer z-20"
                 aria-label="Close offers popup"
               >
                 <X size={16} />
               </button>
 
-              {/* Header badges */}
-              <div className="flex items-center gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-900 text-white text-[11px] font-bold uppercase tracking-widest">
-                  <Sparkles size={11} />
-                  {currentOffer.badge}
-                </span>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[11px] font-semibold">
-                  <Flame size={11} className="text-orange-400" />
-                  Exclusive Deal
-                </span>
-              </div>
+              {/* Swipeable Container */}
+              <div className="overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y min-h-[260px] flex flex-col">
+                <AnimatePresence initial={false} mode="wait" custom={direction}>
+                  <motion.div
+                    key={currentIndex}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 }
+                    }}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.6}
+                    onDragEnd={handleDragEnd}
+                    className="w-full flex-1 flex flex-col"
+                  >
+                    {/* Header badges */}
+                    <div className="flex items-center gap-2 mb-5">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-900 text-white text-[11px] font-bold uppercase tracking-widest">
+                        <Sparkles size={11} />
+                        {currentOffer.badge}
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[11px] font-semibold">
+                        <Flame size={11} className="text-orange-400" />
+                        Exclusive Deal
+                      </span>
+                    </div>
 
-              {/* Discount badge */}
-              <div className="inline-block bg-gray-900 text-white px-4 py-1.5 rounded-lg font-black text-xl sm:text-2xl uppercase tracking-tight mb-3">
-                {currentOffer.discount}
-              </div>
+                    {/* Discount badge */}
+                    <div className="inline-block self-start bg-gray-900 text-white px-4 py-1.5 rounded-lg font-black text-xl sm:text-2xl uppercase tracking-tight mb-3">
+                      {currentOffer.discount}
+                    </div>
 
-              {/* Title */}
-              <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900 mb-2 leading-tight">
-                {currentOffer.title}
-              </h2>
+                    {/* Title */}
+                    <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900 mb-2 leading-tight">
+                      {currentOffer.title}
+                    </h2>
 
-              {/* Description */}
-              <p className="text-gray-500 text-sm leading-relaxed mb-4">
-                {currentOffer.description}
-              </p>
+                    {/* Description */}
+                    <p className="text-gray-500 text-sm leading-relaxed mb-4">
+                      {currentOffer.description}
+                    </p>
 
-              {/* Valid until */}
-              <div className="flex items-center gap-2 text-xs text-gray-400 mb-6">
-                <Clock size={13} />
-                <span>
-                  Valid until:{" "}
-                  <strong className="text-gray-700">{currentOffer.validTill}</strong>
-                </span>
+                    {/* Valid until */}
+                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-6">
+                      <Clock size={13} />
+                      <span>
+                        Valid until:{" "}
+                        <strong className="text-gray-700">{currentOffer.validTill}</strong>
+                      </span>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
               {/* Carousel dots */}
-              {activeOffers.length > 1 && (
+              {offers.length > 1 && (
                 <div className="flex items-center justify-center gap-2 mb-6">
-                  {activeOffers.map((_, idx) => (
+                  {offers.map((_, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setCurrentIndex(idx)}
+                      onClick={() => handleDotClick(idx)}
                       className={`h-2 rounded-full transition-all cursor-pointer ${
                         currentIndex === idx
                           ? "w-6 bg-gray-900"

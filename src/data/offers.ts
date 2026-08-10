@@ -1,3 +1,7 @@
+import newMemberOffer from "@/assets/images/new_member_offer.jpg";
+import duoOffer from "@/assets/images/duo_offer.jpg";
+import femaleOffer from "@/assets/images/female_offer.jpg";
+
 export interface Offer {
   id: string;
   title: string;
@@ -23,7 +27,8 @@ export const activeOffers: Offer[] = [
     validTill: "31 August 2026",
     ctaText: "Claim 25% Discount",
     whatsappMessage: "Hi Muscle Empire! I would like to claim the 25% OFF New Member Transformation Special.",
-    isFeatured: true
+    isFeatured: true,
+    image: newMemberOffer
   },
   {
     id: "duo-membership",
@@ -35,7 +40,8 @@ export const activeOffers: Offer[] = [
     validTill: "Limited Slots",
     ctaText: "Claim Duo Offer",
     whatsappMessage: "Hi Muscle Empire! I would like to claim the Duo Membership 50% Off Offer for me and my gym partner.",
-    isFeatured: true
+    isFeatured: true,
+    image: duoOffer
   },
   {
     id: "female-exclusive-pass",
@@ -47,6 +53,7 @@ export const activeOffers: Offer[] = [
     validTill: "Valid This Month",
     ctaText: "Claim Female Pass",
     whatsappMessage: "Hi Muscle Empire! I would like to claim the 3 Free PT Sessions offer at the Female Gym Branch.",
-    isFeatured: true
+    isFeatured: true,
+    image: femaleOffer
   }
 ];

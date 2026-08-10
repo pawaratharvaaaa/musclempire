@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { getGalleryImages, addGalleryImage, removeGalleryImage, type GalleryImage } from "@/lib/galleryStore";
-import { Plus, Trash2, Image as ImageIcon, LogOut, Users, Upload } from "lucide-react";
+import { Plus, Trash2, Image as ImageIcon, LogOut, Users, Upload, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
@@ -79,10 +79,17 @@ export default function AdminGallery() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => navigate("/pronectar-admin-2026/dashboard")}
-                    className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-white border border-white/10 hover:border-white/30 rounded-lg text-xs uppercase tracking-widest transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-white border border-white/10 hover:border-white/30 rounded-lg text-xs uppercase tracking-widest transition-colors cursor-pointer"
                   >
                     <Users size={14} />
                     Assessments
+                  </button>
+                  <button
+                    onClick={() => navigate("/pronectar-admin-2026/offers")}
+                    className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-white border border-white/10 hover:border-white/30 rounded-lg text-xs uppercase tracking-widest transition-colors cursor-pointer"
+                  >
+                    <Tag size={14} />
+                    Offers
                   </button>
                 </div>
               </div>

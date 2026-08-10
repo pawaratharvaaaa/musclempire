@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { fetchSubmissions, deleteRecord, type AssessmentData } from "@/lib/sheets";
-import { Search, RefreshCw, Users, Clock, CheckCircle2, AlertCircle, LogOut, Trash2, Activity, Image as ImageIcon } from "lucide-react";
+import { Search, RefreshCw, Users, Clock, CheckCircle2, AlertCircle, LogOut, Trash2, Activity, Image as ImageIcon, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
@@ -99,8 +99,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => navigate("/pronectar-admin-2026/gallery")}
-              className="flex items-center gap-2 text-white/50 hover:text-green-400 text-sm transition-colors">
+              className="flex items-center gap-2 text-white/50 hover:text-green-400 text-sm transition-colors cursor-pointer">
               <ImageIcon size={14} /> Gallery
+            </button>
+            <button onClick={() => navigate("/pronectar-admin-2026/offers")}
+              className="flex items-center gap-2 text-white/50 hover:text-green-400 text-sm transition-colors cursor-pointer">
+              <Tag size={14} /> Offers
             </button>
             <button onClick={handleRefresh} className="flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors">
               <RefreshCw size={14} /> Refresh

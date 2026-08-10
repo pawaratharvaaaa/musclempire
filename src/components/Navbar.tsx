@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "wouter";
-import logo from "@/assets/images/logo.svg";
+import logo from "@/assets/images/logo.png";
 
 export default function Navbar() {
   const [nameVisible, setNameVisible] = useState(true);
@@ -42,7 +42,7 @@ export default function Navbar() {
           />
         </div>
         <span className="font-display font-black text-[1.12rem] tracking-tight leading-none text-[#E8A820]">
-          Muscle Empire
+          Muscle Empire®
         </span>
       </a>
     </motion.div>
