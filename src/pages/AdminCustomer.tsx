@@ -166,7 +166,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     const usableW = W - margin * 2;
     let y = 10;
 
-    // Load logo (non-blocking — PDF generates even if logo fails)
+    // Load logo
     let logoDataUrl = "";
     try {
       const logoModule = await import("@/assets/images/logo.png");
@@ -180,62 +180,84 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       });
     } catch { logoDataUrl = ""; }
 
-    // Logo ABOVE the yellow banner (left side)
+    // --- TOP HEADER (Logo + Title + Contacts) ---
     if (logoDataUrl) {
       doc.addImage(logoDataUrl, "PNG", margin, y, 22, 22);
     }
 
-    // Yellow banner — starts after logo height
-    doc.setFillColor(255, 208, 0);
-    doc.rect(margin + 24, y, usableW - 24, 22, "F");
-    doc.setFontSize(18);
+    // Huge bold condensed uppercase title "MUSCLE EMPIRE NUTRITION"
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(50, 30, 5);
-    doc.text("MUSCLE EMPIRE NUTRITION", margin + 24 + (usableW - 24) / 2, y + 14, { align: "center" });
-    y += 24;
+    doc.setFontSize(21);
+    doc.setTextColor(0, 0, 0);
+    doc.text("MUSCLE EMPIRE NUTRITION", margin + 25, y + 10);
 
-    // Contact line — larger, bold, spaced like the template
-    doc.setFontSize(10);
+    // Contact Numbers line
+    doc.setFontSize(9.5);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 30, 30);
-    doc.text("Office : - 9137870108", margin, y + 2);
-    doc.text("|", 72, y + 2);
-    doc.text("Sagar Kharat : -  9773053632", 77, y + 2);
-    doc.text("|", 152, y + 2);
-    doc.text("8779682084", 156, y + 2);
-    y += 8;
-    doc.setDrawColor(200, 200, 200);
+    doc.text("Office : - 9137870108  |  Sagar Kharat : -  9773053632  |  8779682084", margin + 25, y + 18);
+
+    y += 24;
+    doc.setLineWidth(0.6);
+    doc.setDrawColor(0, 0, 0);
     doc.line(margin, y, W - margin, y);
     y += 5;
 
-    // Patient info
-    doc.setFontSize(8.5); doc.setTextColor(0, 0, 0);
-    const lbl = (text: string, val: string, x: number, yy: number, lw: number) => {
-      doc.setFont("helvetica", "bold"); doc.text(text, x, yy);
-      doc.setFont("helvetica", "normal"); doc.text(String(val || "--"), x + lw, yy);
+    // --- FIELD ROWS (Matching exact reference image typography & layout) ---
+    doc.setFontSize(8.5);
+
+    const fLine = (x: number, label: string, val: string, underline = true) => {
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text(label, x, y);
+      const lw = doc.getTextWidth(label);
+      const valStr = String(val || "").trim() || "--";
+      doc.setFont("helvetica", "normal");
+      doc.text(valStr, x + lw + 1, y);
+      if (underline && valStr !== "--") {
+        const vw = doc.getTextWidth(valStr);
+        doc.setLineWidth(0.2);
+        doc.line(x + lw + 1, y + 0.6, x + lw + 1 + Math.max(vw, 10), y + 0.6);
+      }
     };
 
-    lbl("Name :", customer.name, margin, y, 13);
-    lbl("Date :", customer.date, 105, y, 10);
-    lbl("Age :", (customer.age || "--") + " yrs", 160, y, 8);
-    y += 6;
-    lbl("Gender :", customer.gender || "--", margin, y, 15);
-    lbl("Weight :", (customer.weight || "--") + " kg", 60, y, 14);
-    lbl("Height :", (customer.height || "--") + " cm", 110, y, 14);
-    y += 6;
-    lbl("BMI :", (customer.bmi || "--") + " (" + (customer.bmiCategory || "--") + ")", margin, y, 8);
-    y += 6;
-    lbl("Wake-up :", clean(customer.wakeTime), margin, y, 17);
-    lbl("Bed Time :", clean(customer.bedTime), 75, y, 18);
-    lbl("Food Pref :", customer.foodPref || "--", 145, y, 19);
-    y += 6;
-    lbl("College :", clean(customer.collegeTime).substring(0, 15), margin, y, 16);
-    lbl("Workout :", clean(customer.workoutTime).substring(0, 15), 75, y, 17);
-    lbl("Target :", (customer.targetWeight || "--") + " kg", 145, y, 13);
-    y += 6;
-    lbl("Remark :", customer.remarks || customer.goals || "--", margin, y, 16);
-    y += 7;
+    // Row 1: Name, MF No., Contacts No., Date, Age
+    fLine(margin, "Name : ", customer.name);
+    fLine(margin + 60, "MF No. : ", String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0"));
+    fLine(margin + 92, "Contacts No. : ", customer.phone || "--");
+    fLine(margin + 142, "Date : ", customer.date || new Date().toLocaleDateString("en-IN"));
+    fLine(margin + 172, "Age : ", String(customer.age || "--"));
 
+    y += 5.5;
+
+    // Row 2: Gender, Weight (Kg), Height (cms), BMI, Food Pref
+    fLine(margin, "Gender : ", customer.gender || "--");
+    fLine(margin + 30, "Weight (Kg) : ", String(customer.weight || "--"));
+    fLine(margin + 68, "Height (cms) : ", String(customer.height || "--"));
+    fLine(margin + 102, "BMI : ", customer.bmi ? `${customer.bmi} (${customer.bmiCategory || ""})` : "--");
+    fLine(margin + 152, "VEG / NON-VEG / EGGETARIAN. : ", (customer.foodPref || "--").toUpperCase(), false);
+
+    y += 5.5;
+
+    // Row 3: Wake-up Time (Morning), Bed Time (Night), Duty
+    fLine(margin, "Wake-up Time (Morning) : ", clean(customer.wakeTime));
+    fLine(margin + 80, "Bed Time (Night) : ", clean(customer.bedTime));
+    fLine(margin + 152, "Duty : ", customer.duty || "Regular / Shifted", false);
+
+    y += 5.5;
+
+    // Row 4: Rest Time, Working Time
+    fLine(margin, "Rest Time : ", clean(customer.restTime));
+    fLine(margin + 80, "Working Time : ", clean(customer.workTime));
+
+    y += 5.5;
+
+    // Row 5: Workout Time, Remark
+    fLine(margin, "Workout Time : ", clean(customer.workoutTime));
+    fLine(margin + 70, "Remark : ", customer.remarks || customer.goals || "--");
+
+    y += 6.5;
+    doc.setLineWidth(0.6);
     doc.line(margin, y, W - margin, y);
     y += 5;
 
@@ -302,25 +324,26 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     // Additional section
     const hasExtra = EXTRA_FIELDS.some(f => extras[f.key]);
     if (hasExtra) {
+      const extraColW = 45;
       if (y + 15 > 278) { doc.addPage(); y = 15; }
       doc.setFillColor(50, 30, 5);
       doc.rect(margin, y, usableW, 6, "F");
       doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
       doc.text("Additional", margin + 2, y + 4.5);
-      doc.text("Suggestion", margin + mealColW + 2, y + 4.5);
+      doc.text("Suggestion", margin + extraColW + 2, y + 4.5);
       y += 6;
       doc.setTextColor(0, 0, 0); doc.setFontSize(8); altRow = false;
       EXTRA_FIELDS.filter(f => extras[f.key]).forEach((f) => {
-        const lines = doc.splitTextToSize(extras[f.key], usableW - mealColW - 4) as string[];
+        const lines = doc.splitTextToSize(extras[f.key], usableW - extraColW - 4) as string[];
         const rowH = Math.max(7, lines.length * 5 + 3);
         if (y + rowH > 278) { doc.addPage(); y = 15; }
         if (altRow) { doc.setFillColor(240, 240, 255); doc.rect(margin, y, usableW, rowH, "F"); }
         altRow = !altRow;
-        doc.rect(margin, y, mealColW, rowH);
-        doc.rect(margin + mealColW, y, usableW - mealColW, rowH);
+        doc.rect(margin, y, extraColW, rowH);
+        doc.rect(margin + extraColW, y, usableW - extraColW, rowH);
         doc.setFont("helvetica", "bold"); doc.text(f.label, margin + 2, y + 5);
         doc.setFont("helvetica", "normal");
-        lines.forEach((line, i) => doc.text(line, margin + mealColW + 2, y + 5 + i * 5));
+        lines.forEach((line, i) => doc.text(line, margin + extraColW + 2, y + 5 + i * 5));
         y += rowH;
       });
     }
