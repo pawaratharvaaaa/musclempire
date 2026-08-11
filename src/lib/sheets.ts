@@ -1,4 +1,4 @@
-export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJECDM-7G_wkNiQ6mXR1wJygnhU7L-nNmA5jAep1H7RzhVciG1FBIUF-XtgYBzv-z2JA/exec";
+export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKXlerfZE8Hhp2103jdLKfGvcygM92ixS8TWMeDm1OPAhky4rokUUjehS0g-kRhufXdA/exec";
 
 export type AssessmentData = {
   id?: string;
@@ -7,7 +7,8 @@ export type AssessmentData = {
   age: string; gender: string; weight: string; height: string;
   bmi: string; bmiCategory: string; wakeTime: string; bedTime: string;
   sleepDuration: string; workoutTime: string; targetWeight: string;
-  weightChange: string; foodPref: string; collegeTime: string; workTime: string;
+  weightChange: string; foodPref: string; duty?: string; restTime?: string;
+  collegeTime: string; workTime: string;
   medicalConditions: string; allergies: string; supplements: string;
   goals: string; remarks: string; status: string;
   foodHistory?: string;

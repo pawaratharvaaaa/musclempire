@@ -8,7 +8,7 @@ type Meal = {
 };
 import chalkboardBg from "@/assets/images/chalkboard-bg.png";
 import { StarsBackground } from "@/components/ui/stars";
-import { CheckCircle2, User, Scale, Heart, Utensils, Target, FileText, Clock, ChevronRight, ChevronLeft } from "lucide-react";
+import { CheckCircle2, User, Scale, Heart, Utensils, Target, FileText, Clock, ChevronRight, ChevronLeft, ChevronUp, ChevronDown } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import PlanNavbar from "@/components/PlanNavbar";
 import Footer from "@/components/Footer";
@@ -17,10 +17,26 @@ import type { AssessmentData } from "@/lib/sheets";
 
 const WA_NUMBER = "919773053632";
 
+const blockNonNumericKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (
+    ["Backspace", "Delete", "Tab", "Escape", "Enter", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key) ||
+    (e.ctrlKey || e.metaKey)
+  ) {
+    return;
+  }
+  if (!/^[0-9]$/.test(e.key)) {
+    e.preventDefault();
+  }
+};
+
 type Form = {
   name: string; phone: string; email: string; age: string; gender: string;
   weight: string; height: string;
-  wakeTime: string; bedTime: string; sleepDuration: string; workoutTime: string;
+  wakeTime: string; bedTime: string; sleepDuration: string;
+  duty: string;
+  restTimeFrom: string; restTimeTo: string; restTime: string;
+  doesWorkout: string; workoutType: string;
+  workoutTimeFrom: string; workoutTimeTo: string; workoutTime: string;
   foodPref: string;
   collegeTime: string; workTime: string;
   medicalConditions: string; allergies: string; supplements: string;
@@ -31,7 +47,11 @@ type Form = {
 const empty: Form = {
   name: "", phone: "", email: "", age: "", gender: "",
   weight: "", height: "",
-  wakeTime: "", bedTime: "", sleepDuration: "", workoutTime: "",
+  wakeTime: "", bedTime: "", sleepDuration: "",
+  duty: "",
+  restTimeFrom: "", restTimeTo: "", restTime: "",
+  doesWorkout: "", workoutType: "",
+  workoutTimeFrom: "", workoutTimeTo: "", workoutTime: "",
   foodPref: "",
   collegeTime: "", workTime: "",
   medicalConditions: "", allergies: "", supplements: "",
@@ -76,6 +96,33 @@ function bodyFatCategory(bf: number, gender: string) {
     return { label: "Obese", color: "text-red-400", bg: "bg-red-400/10 border-red-400/25" };
   }
 }
+
+const formatTime12h = (timeStr: string): string => {
+  if (!timeStr) return "";
+  if (timeStr.includes(" to ")) {
+    const parts = timeStr.split(" to ");
+    const formattedParts = parts.map(p => formatTime12h(p)).filter(Boolean);
+    return formattedParts.join(" to ");
+  }
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return timeStr;
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  if (isNaN(hours)) return timeStr;
+  const period = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  return `${hours}:${minutes} ${period}`;
+};
+
+const getTimeIcon = (timeStr: string): string => {
+  if (!timeStr) return "⏰";
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return "⏰";
+  const hours = parseInt(match[1], 10);
+  if (isNaN(hours)) return "⏰";
+  return (hours >= 6 && hours < 18) ? "☀️" : "🌙";
+};
 
 /* ── Shared UI primitives ──────────────────────────────────────── */
 const inp = (err?: string) =>
@@ -129,7 +176,6 @@ export default function NutritionAssessment() {
   const [submitted, setSubmitted] = useState(false);
   const [meals, setMeals] = useState<Meal[]>([]);
 
-  // Sync meals to foodHistory string representation
   useEffect(() => {
     if (meals.length > 0) {
       const historyStr = meals
@@ -160,48 +206,64 @@ export default function NutritionAssessment() {
   const bfVal = bmiVal ? bodyFat(bmiVal, form.age, form.gender) : null;
   const bfCat = bfVal ? bodyFatCategory(bfVal, form.gender) : null;
 
-  const set = (k: keyof Form, v: string | boolean | string[]) =>
+  const set = (k: keyof Form, v: string | boolean | string[]) => {
     setForm(f => ({ ...f, [k]: v }));
+    if (errors[k]) {
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next[k];
+        return next;
+      });
+    }
+  };
 
   const toggleGoal = (g: string) => {
     const cur = form.goals;
     set("goals", cur.includes(g) ? cur.filter(x => x !== g) : [...cur, g]);
   };
 
-  /* per-step validation */
   const validateStep = (s: number) => {
     const e: Partial<Record<keyof Form, string>> = {};
     if (s === 0) {
-      if (!form.name.trim()) e.name = "Required";
-      if (!form.phone.trim() || !/^\+?[0-9]{10,13}$/.test(form.phone.replace(/\s/g, ""))) e.phone = "Enter valid phone";
-      if (!form.age || isNaN(Number(form.age))) e.age = "Required";
-      if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Enter valid email";
-      if (!form.gender) e.gender = "Required";
+      if (!form.name.trim()) e.name = "Full name is required";
+      if (!form.phone.trim() || form.phone.replace(/\s/g, "").length !== 10) {
+        e.phone = "Enter a valid 10-digit mobile number";
+      }
+      if (!form.age || isNaN(Number(form.age))) e.age = "Age is required";
+      if (!form.email.trim()) {
+        e.email = "Email address is required";
+      } else if (!form.email.includes("@")) {
+        e.email = "Please include an '@' in the email address (e.g. name@domain.com)";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+        e.email = "Enter a valid email address (e.g. name@domain.com)";
+      }
+      if (!form.gender) e.gender = "Gender selection is required";
     }
     if (s === 1) {
-      if (!form.weight) e.weight = "Required";
-      if (!form.height) e.height = "Required";
+      if (!form.weight) e.weight = "Weight is required";
+      if (!form.height) e.height = "Height is required";
     }
     if (s === 2) {
-      if (!form.wakeTime) e.wakeTime = "Required";
-      if (!form.bedTime) e.bedTime = "Required";
-      if (!form.sleepDuration) e.sleepDuration = "Required";
-      if (!form.workoutTime) e.workoutTime = "Required";
+      if (!form.wakeTime) e.wakeTime = "Wake-up time is required";
+      if (!form.bedTime) e.bedTime = "Bed time is required";
+      if (!form.sleepDuration) e.sleepDuration = "Sleep duration is required";
+      if (!form.doesWorkout) {
+        e.doesWorkout = "Please select whether you workout";
+      } else if (form.doesWorkout === "Yes") {
+        if (!form.workoutType) e.workoutType = "Please select workout option";
+        if (!form.workoutTimeFrom || !form.workoutTimeTo) {
+          e.workoutTime = "Workout start time and end time are required";
+        }
+      }
     }
     if (s === 3) {
-      if (!form.foodPref) e.foodPref = "Select one";
-      if (!form.collegeTime.trim()) e.collegeTime = "Required (type N/A if not applicable)";
-      if (!form.workTime.trim()) e.workTime = "Required (type N/A if not applicable)";
+      if (!form.foodPref) e.foodPref = "Food preference selection is required";
     }
     if (s === 4) {
-      if (!form.medicalConditions.trim()) e.medicalConditions = "Required (type None if not applicable)";
-      if (!form.allergies.trim()) e.allergies = "Required (type None if not applicable)";
-      if (!form.supplements.trim()) e.supplements = "Required (type None if not applicable)";
     }
     if (s === 5) {
       if (form.goals.length === 0) e.goals = "Select at least one goal";
-      if (form.goals.includes("Other") && !form.otherGoal.trim()) e.otherGoal = "Required";
-      if (!form.remarks.trim()) e.remarks = "Required (type N/A if not applicable)";
+      if (form.goals.includes("Other") && !form.otherGoal.trim()) e.otherGoal = "Goal specification is required";
     }
     if (s === 6) {
       if (meals.length === 0) {
@@ -214,12 +276,17 @@ export default function NutritionAssessment() {
       }
     }
     if (s === 7) {
-      if (!form.consent) e.consent = "Please confirm";
+      if (!form.consent) e.consent = "Please confirm declaration before submitting";
     }
     return e;
   };
 
   const goNext = () => {
+    const errs = validateStep(step);
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
     setErrors({});
     setDir(1);
     setStep(s => s + 1);
@@ -235,67 +302,58 @@ export default function NutritionAssessment() {
 
   const handleSubmit = async () => {
     const e = {
-      ...validateStep(0),
-      ...validateStep(1),
-      ...validateStep(2),
-      ...validateStep(3),
-      ...validateStep(4),
-      ...validateStep(5),
-      ...validateStep(6),
-      ...validateStep(7),
+      ...validateStep(0), ...validateStep(1), ...validateStep(2), ...validateStep(3),
+      ...validateStep(4), ...validateStep(5), ...validateStep(6), ...validateStep(7),
     };
     if (Object.keys(e).length) {
       setErrors(e);
-      if (Object.keys(validateStep(0)).length) setStep(0);
-      else if (Object.keys(validateStep(1)).length) setStep(1);
-      else if (Object.keys(validateStep(2)).length) setStep(2);
-      else if (Object.keys(validateStep(3)).length) setStep(3);
-      else if (Object.keys(validateStep(4)).length) setStep(4);
-      else if (Object.keys(validateStep(5)).length) setStep(5);
-      else if (Object.keys(validateStep(6)).length) setStep(6);
-      else if (Object.keys(validateStep(7)).length) setStep(7);
+      for(let i=0; i<8; i++) if (Object.keys(validateStep(i)).length) { setStep(i); break; }
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    const today = new Date().toLocaleDateString("en-IN");
+    const foodHistoryStr = meals.map((m, idx) => `Meal #${idx + 1}: ${m.name || "N/A"} (${formatTime12h(m.time)}) - ${m.food || "N/A"}`).join("\n");
+    const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
     const goalsList = [...form.goals, form.otherGoal ? `Other: ${form.otherGoal}` : ""].filter(Boolean).join(", ");
     const payload: AssessmentData = {
       date: today, name: form.name, phone: form.phone, email: form.email,
       age: form.age, gender: form.gender, weight: form.weight, height: form.height,
       bmi: bmiVal ? bmiVal.toFixed(1) : "", bmiCategory: bmiCat?.label || "",
-      wakeTime: form.wakeTime, bedTime: form.bedTime, sleepDuration: form.sleepDuration,
-      workoutTime: form.workoutTime, targetWeight: "",
+      wakeTime: formatTime12h(form.wakeTime), bedTime: formatTime12h(form.bedTime), sleepDuration: form.sleepDuration,
+      workoutTime: form.doesWorkout === "Yes" ? `${form.workoutType} (${formatTime12h(form.workoutTimeFrom)} - ${formatTime12h(form.workoutTimeTo)})` : "No",
+      duty: form.duty, restTime: formatTime12h(form.restTime), targetWeight: "",
       weightChange: "", foodPref: form.foodPref,
-      collegeTime: form.collegeTime, workTime: form.workTime,
+      collegeTime: formatTime12h(form.collegeTime), workTime: formatTime12h(form.workTime),
       medicalConditions: form.medicalConditions, allergies: form.allergies,
       supplements: form.supplements, goals: goalsList, remarks: form.remarks,
-      foodHistory: form.foodHistory, status: "New",
+      foodHistory: foodHistoryStr, status: "New",
       notes: bfVal ? `Estimated Body Fat: ${bfVal.toFixed(1)}% (${bfCat?.label})` : "",
     };
     await submitAssessment(payload);
     const waMsg = [
       `🏋️ *Muscle Empire – Nutrition Assessment*`, ``,
       `*👤 Personal Details*`,
-      `Name: ${form.name}`, `Phone: ${form.phone}`, `Email: ${form.email}`,
+      `Name: ${form.name}`, `Phone: +91 ${form.phone}`, `Email: ${form.email}`,
       `Age: ${form.age}`, form.gender ? `Gender: ${form.gender}` : null, ``,
       `*📏 Body Measurements*`,
       `Weight: ${form.weight} kg`, `Height: ${form.height} cm`,
       bmiVal ? `BMI: ${bmiVal.toFixed(1)} (${bmiCat?.label})` : null,
       bfVal ? `Body Fat: ${bfVal.toFixed(1)}% (${bfCat?.label})` : null, ``,
       `*🌙 Lifestyle*`,
-      form.wakeTime ? `Wake-up: ${form.wakeTime}` : null,
-      form.bedTime ? `Bed: ${form.bedTime}` : null,
+      form.wakeTime ? `Wake-up: ${formatTime12h(form.wakeTime)}` : null,
+      form.bedTime ? `Bed: ${formatTime12h(form.bedTime)}` : null,
       form.sleepDuration ? `Sleep: ${form.sleepDuration} hrs` : null,
-      form.workoutTime ? `Workout: ${form.workoutTime}` : null, ``,
+      form.duty ? `Duty: ${form.duty}` : null,
+      form.restTime ? `Rest time: ${formatTime12h(form.restTime)}` : null,
+      form.doesWorkout ? `Workout: ${form.doesWorkout === "Yes" ? `Yes (${form.workoutType}) — ${formatTime12h(form.workoutTimeFrom)} - ${formatTime12h(form.workoutTimeTo)}` : "No"}` : null, ``,
       `*🥗 Food Preference*`, `Food Pref: ${form.foodPref}`,
-      form.collegeTime ? `College: ${form.collegeTime}` : null,
-      form.workTime ? `Work: ${form.workTime}` : null, ``,
+      form.collegeTime ? `College: ${formatTime12h(form.collegeTime)}` : null,
+      form.workTime ? `Work: ${formatTime12h(form.workTime)}` : null, ``,
       `*🎯 Goals*`, `Goals: ${goalsList}`, ``,
       form.medicalConditions ? `*⚕️ Medical:*\n${form.medicalConditions}` : null,
       form.allergies ? `*⚠️ Allergies:*\n${form.allergies}` : null,
       form.supplements ? `*💊 Supplements:*\n${form.supplements}` : null,
       form.remarks ? `*📝 Remarks:*\n${form.remarks}` : null,
-      form.foodHistory ? `*🍽️ Food History (7 Days):*\n${form.foodHistory}` : null,
+      foodHistoryStr ? `*🍽️ Food History (7 Days):*\n${foodHistoryStr}` : null,
       ``, `_Submitted on ${today}_`,
     ].filter(Boolean).join("\n");
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMsg)}`, "_blank");
@@ -365,12 +423,75 @@ export default function NutritionAssessment() {
             </div>
             <div>
               <Label>Mobile number <span className="text-red-400">*</span></Label>
-              <input type="tel" value={form.phone} onChange={e=>set("phone",e.target.value)} className={inp(errors.phone)} />
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#F2EFE9]/60 font-bold text-[0.9rem] pointer-events-none select-none">
+                  +91
+                </span>
+                <input
+                  type="tel"
+                  maxLength={10}
+                  value={form.phone}
+                  onKeyDown={blockNonNumericKeys}
+                  onChange={e=>set("phone",e.target.value.replace(/[^0-9]/g,""))}
+                  className={`${inp(errors.phone)} pl-14`}
+                />
+              </div>
               <Err msg={errors.phone} />
             </div>
             <div>
               <Label>Age <span className="text-red-400">*</span></Label>
-              <input type="number" min={10} max={90} value={form.age} onChange={e=>set("age",e.target.value)} className={inp(errors.age)} />
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={3}
+                  value={form.age}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      const val = parseInt(form.age, 10);
+                      const current = isNaN(val) ? 24 : val;
+                      if (current < 99) set("age", String(current + 1));
+                    } else if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      const val = parseInt(form.age, 10);
+                      const current = isNaN(val) ? 25 : val;
+                      if (current > 10) set("age", String(current - 1));
+                    } else {
+                      blockNonNumericKeys(e);
+                    }
+                  }}
+                  onChange={e=>set("age",e.target.value.replace(/[^0-9]/g,""))}
+                  className={`${inp(errors.age)} pr-10`}
+                />
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex flex-col bg-[#2C2C2E] border border-white/10 rounded-md overflow-hidden shrink-0 select-none">
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => {
+                      const val = parseInt(form.age, 10);
+                      const current = isNaN(val) ? 24 : val;
+                      if (current < 99) set("age", String(current + 1));
+                    }}
+                    className="px-1.5 py-0.5 hover:bg-white/20 active:bg-white/30 text-white/70 hover:text-white flex items-center justify-center transition-colors"
+                  >
+                    <span className="text-[8px] leading-none">▲</span>
+                  </button>
+                  <div className="h-[1px] bg-white/10" />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => {
+                      const val = parseInt(form.age, 10);
+                      const current = isNaN(val) ? 25 : val;
+                      if (current > 10) set("age", String(current - 1));
+                    }}
+                    className="px-1.5 py-0.5 hover:bg-white/20 active:bg-white/30 text-white/70 hover:text-white flex items-center justify-center transition-colors"
+                  >
+                    <span className="text-[8px] leading-none">▼</span>
+                  </button>
+                </div>
+              </div>
               <Err msg={errors.age} />
             </div>
             <div>
@@ -396,12 +517,12 @@ export default function NutritionAssessment() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Weight (kg) <span className="text-red-400">*</span></Label>
-              <input type="number" min={20} max={300} value={form.weight} onChange={e=>set("weight",e.target.value)} className={inp(errors.weight)} />
+              <input type="text" inputMode="numeric" maxLength={3} value={form.weight} onKeyDown={blockNonNumericKeys} onChange={e=>set("weight",e.target.value.replace(/[^0-9]/g,""))} className={inp(errors.weight)} />
               <Err msg={errors.weight} />
             </div>
             <div>
               <Label>Height (cm) <span className="text-red-400">*</span></Label>
-              <input type="number" min={100} max={250} value={form.height} onChange={e=>set("height",e.target.value)} className={inp(errors.height)} />
+              <input type="text" inputMode="numeric" maxLength={3} value={form.height} onKeyDown={blockNonNumericKeys} onChange={e=>set("height",e.target.value.replace(/[^0-9]/g,""))} className={inp(errors.height)} />
               <Err msg={errors.height} />
             </div>
           </div>
@@ -437,27 +558,148 @@ export default function NutritionAssessment() {
       );
       /* Step 2 — Lifestyle */
       case 2: return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <Label>Wake-up time <span className="text-red-400">*</span></Label>
-            <input type="time" value={form.wakeTime} onChange={e=>set("wakeTime",e.target.value)} className={inp(errors.wakeTime)} />
-            <Err msg={errors.wakeTime} />
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Wake-up time <span className="text-red-400">*</span></Label>
+              <input type="time" value={form.wakeTime} onChange={e=>set("wakeTime",e.target.value)} className={inp(errors.wakeTime)} />
+              {form.wakeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.wakeTime)}</span>}
+              <Err msg={errors.wakeTime} />
+            </div>
+            <div>
+              <Label>Bed time <span className="text-red-400">*</span></Label>
+              <input type="time" value={form.bedTime} onChange={e=>set("bedTime",e.target.value)} className={inp(errors.bedTime)} />
+              {form.bedTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.bedTime)}</span>}
+              <Err msg={errors.bedTime} />
+            </div>
+            <div>
+              <Label>Sleep duration (hours) <span className="text-red-400">*</span></Label>
+              <input type="text" inputMode="numeric" maxLength={2} value={form.sleepDuration} onKeyDown={blockNonNumericKeys} onChange={e=>set("sleepDuration",e.target.value.replace(/[^0-9]/g,""))} className={inp(errors.sleepDuration)} />
+              <Err msg={errors.sleepDuration} />
+            </div>
+            <div>
+              <Label>Duty type <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
+              <div className="flex flex-wrap gap-3">
+                {["Regular","Shifted"].map(d=>(
+                  <PillOption key={d} label={d} active={form.duty===d} onClick={()=>set("duty",d)} />
+                ))}
+              </div>
+            </div>
           </div>
+
           <div>
-            <Label>Bed time <span className="text-red-400">*</span></Label>
-            <input type="time" value={form.bedTime} onChange={e=>set("bedTime",e.target.value)} className={inp(errors.bedTime)} />
-            <Err msg={errors.bedTime} />
+            <Label>Rest time <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
+            <div className="flex items-center gap-3">
+              <input
+                type="time"
+                value={form.restTimeFrom}
+                onChange={e => {
+                  set("restTimeFrom", e.target.value);
+                  const to = form.restTimeTo;
+                  set("restTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                }}
+                className={inp()}
+              />
+              <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
+              <input
+                type="time"
+                value={form.restTimeTo}
+                onChange={e => {
+                  set("restTimeTo", e.target.value);
+                  const from = form.restTimeFrom;
+                  set("restTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                }}
+                className={inp()}
+              />
+            </div>
+            {form.restTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.restTime)}</span>}
           </div>
-          <div>
-            <Label>Sleep duration (hours) <span className="text-red-400">*</span></Label>
-            <input type="number" min={1} max={14} value={form.sleepDuration} onChange={e=>set("sleepDuration",e.target.value)} className={inp(errors.sleepDuration)} />
-            <Err msg={errors.sleepDuration} />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label>College timing <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
+              <input type="time" value={form.collegeTime} onChange={e=>set("collegeTime",e.target.value)} className={inp()} />
+              {form.collegeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.collegeTime)}</span>}
+            </div>
+            <div>
+              <Label>Work timing <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
+              <input type="time" value={form.workTime} onChange={e=>set("workTime",e.target.value)} className={inp()} />
+              {form.workTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.workTime)}</span>}
+            </div>
           </div>
-          <div>
-            <Label>Workout time <span className="text-red-400">*</span></Label>
-            <input type="time" value={form.workoutTime} onChange={e=>set("workoutTime",e.target.value)} className={inp(errors.workoutTime)} />
-            <Err msg={errors.workoutTime} />
+
+          <div className="pt-2 border-t border-white/[0.08]">
+            <Label>Do you workout? <span className="text-red-400">*</span></Label>
+            <div className="flex flex-wrap gap-3 mb-2">
+              {["Yes", "No"].map(w => (
+                <PillOption
+                  key={w}
+                  label={w}
+                  active={form.doesWorkout === w}
+                  onClick={() => {
+                    set("doesWorkout", w);
+                    if (w === "No") {
+                      set("workoutType", "");
+                      set("workoutTimeFrom", "");
+                      set("workoutTimeTo", "");
+                      set("workoutTime", "No workout");
+                    }
+                  }}
+                />
+              ))}
+            </div>
+            <Err msg={errors.doesWorkout} />
           </div>
+
+          {form.doesWorkout === "Yes" && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-4 pt-1">
+              <div>
+                <Label>Workout option <span className="text-red-400">*</span></Label>
+                <div className="flex flex-wrap gap-3">
+                  {["Enrolled in Gym", "Self Workout"].map(wt => (
+                    <PillOption
+                      key={wt}
+                      label={wt}
+                      active={form.workoutType === wt}
+                      onClick={() => set("workoutType", wt)}
+                    />
+                  ))}
+                </div>
+                <Err msg={errors.workoutType} />
+              </div>
+
+              <div>
+                <Label>Workout time <span className="text-red-400">*</span></Label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="time"
+                    value={form.workoutTimeFrom}
+                    onChange={e => {
+                      set("workoutTimeFrom", e.target.value);
+                      const to = form.workoutTimeTo;
+                      set("workoutTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                    }}
+                    className={inp(errors.workoutTime)}
+                  />
+                  <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
+                  <input
+                    type="time"
+                    value={form.workoutTimeTo}
+                    onChange={e => {
+                      set("workoutTimeTo", e.target.value);
+                      const from = form.workoutTimeFrom;
+                      set("workoutTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                    }}
+                    className={inp(errors.workoutTime)}
+                  />
+                </div>
+                {form.workoutTime && form.workoutTime !== "No workout" && (
+                  <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.workoutTime)}</span>
+                )}
+                <Err msg={errors.workoutTime} />
+              </div>
+            </motion.div>
+          )}
         </div>
       );
 
@@ -467,23 +709,11 @@ export default function NutritionAssessment() {
           <div>
             <Label>Food preference <span className="text-red-400">*</span></Label>
             <div className="flex flex-wrap gap-3">
-              {["Vegetarian","Non-Vegetarian","Vegan"].map(f=>(
+              {["Vegetarian","Non-Vegetarian","Eggitarian","Vegan"].map(f=>(
                 <PillOption key={f} label={f} active={form.foodPref===f} onClick={()=>set("foodPref",f)} />
               ))}
             </div>
             <Err msg={errors.foodPref} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label>College timing <span className="text-red-400">*</span></Label>
-              <input type="text" value={form.collegeTime} onChange={e=>set("collegeTime",e.target.value)} className={inp(errors.collegeTime)} />
-              <Err msg={errors.collegeTime} />
-            </div>
-            <div>
-              <Label>Work timing <span className="text-red-400">*</span></Label>
-              <input type="text" value={form.workTime} onChange={e=>set("workTime",e.target.value)} className={inp(errors.workTime)} />
-              <Err msg={errors.workTime} />
-            </div>
           </div>
         </div>
       );
@@ -494,13 +724,12 @@ export default function NutritionAssessment() {
           {(["medicalConditions","allergies","supplements"] as const).map((key,i)=>(
             <div key={key}>
               <Label>
-                {["Medical conditions","Allergies","Current supplements / medicines"][i]} <span className="text-red-400">*</span>
+                {["Medical conditions","Allergies","Current supplements / medicines"][i]} <span className="text-xs font-normal text-white/40">(Optional)</span>
               </Label>
-              <textarea rows={1}
+              <textarea rows={2}
                 value={form[key]} onChange={e=>set(key,e.target.value)} 
-                className={`${textareaBase} ${errors[key] ? "border-red-400/60" : "border-white/[0.12]"}`} 
+                className={`${textareaBase} border-white/[0.12]`} 
               />
-              <Err msg={errors[key]} />
             </div>
           ))}
         </div>
@@ -531,12 +760,11 @@ export default function NutritionAssessment() {
             </div>
           )}
           <div>
-            <Label>Additional remarks <span className="text-red-400">*</span></Label>
+            <Label>Additional remarks <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
             <textarea rows={2}
               value={form.remarks} onChange={e=>set("remarks",e.target.value)} 
-              className={`${textareaBase} ${errors.remarks ? "border-red-400/60" : "border-white/[0.12]"}`} 
+              className={`${textareaBase} border-white/[0.12]`} 
             />
-            <Err msg={errors.remarks} />
           </div>
         </div>
       );
@@ -579,7 +807,6 @@ export default function NutritionAssessment() {
                       <Label>Meal Name <span className="text-red-400">*</span></Label>
                       <input
                         type="text"
-                        placeholder="e.g. Breakfast, Pre-workout"
                         value={m.name}
                         onChange={e => updateMeal(idx, "name", e.target.value)}
                         className={inp()}
@@ -588,8 +815,7 @@ export default function NutritionAssessment() {
                     <div>
                       <Label>Meal Time <span className="text-red-400">*</span></Label>
                       <input
-                        type="text"
-                        placeholder="e.g. 9:00 AM"
+                        type="time"
                         value={m.time}
                         onChange={e => updateMeal(idx, "time", e.target.value)}
                         className={inp()}
@@ -600,7 +826,6 @@ export default function NutritionAssessment() {
                     <Label>Food &amp; Quantity <span className="text-red-400">*</span></Label>
                     <textarea
                       rows={2}
-                      placeholder="e.g. 3 boiled eggs, 2 slices of oats bread"
                       value={m.food}
                       onChange={e => updateMeal(idx, "food", e.target.value)}
                       className={textareaBase}
@@ -616,18 +841,20 @@ export default function NutritionAssessment() {
       /* Step 7 — Review & submit */
       case 7: {
         const rows: [string, string][] = [
-          ["Name", form.name], ["Phone", form.phone], ["Email", form.email],
+          ["Name", form.name], ["Phone", `+91 ${form.phone}`], ["Email", form.email],
           ["Age", form.age], ...(form.gender ? [["Gender", form.gender] as [string,string]] : []),
           ["Weight", `${form.weight} kg`], ["Height", `${form.height} cm`],
           ...(bmiVal ? [["BMI", `${bmiVal.toFixed(1)} — ${bmiCat?.label}`] as [string,string]] : []),
           ...(bfVal ? [["Body Fat (Est.)", `${bfVal.toFixed(1)}% — ${bfCat?.label}`] as [string,string]] : []),
-          ...(form.wakeTime ? [["Wake-up", form.wakeTime] as [string,string]] : []),
-          ...(form.bedTime ? [["Bed time", form.bedTime] as [string,string]] : []),
+          ...(form.wakeTime ? [["Wake-up", formatTime12h(form.wakeTime)] as [string,string]] : []),
+          ...(form.bedTime ? [["Bed time", formatTime12h(form.bedTime)] as [string,string]] : []),
           ...(form.sleepDuration ? [["Sleep", `${form.sleepDuration} hrs`] as [string,string]] : []),
-          ...(form.workoutTime ? [["Workout", form.workoutTime] as [string,string]] : []),
+          ...(form.duty ? [["Duty type", form.duty] as [string,string]] : []),
+          ...(form.restTime ? [["Rest time", formatTime12h(form.restTime)] as [string,string]] : []),
+          ...(form.doesWorkout ? [["Workout", form.doesWorkout === "Yes" ? `${form.workoutType || "Yes"} (${formatTime12h(form.workoutTime)})` : "No"] as [string,string]] : []),
           ["Food preference", form.foodPref],
-          ...(form.collegeTime ? [["College timing", form.collegeTime] as [string,string]] : []),
-          ...(form.workTime ? [["Work timing", form.workTime] as [string,string]] : []),
+          ...(form.collegeTime ? [["College timing", formatTime12h(form.collegeTime)] as [string,string]] : []),
+          ...(form.workTime ? [["Work timing", formatTime12h(form.workTime)] as [string,string]] : []),
           ...(form.medicalConditions ? [["Medical conditions", form.medicalConditions] as [string,string]] : []),
           ...(form.allergies ? [["Allergies", form.allergies] as [string,string]] : []),
           ...(form.supplements ? [["Supplements", form.supplements] as [string,string]] : []),
@@ -702,6 +929,14 @@ export default function NutritionAssessment() {
                   key={i}
                   onClick={() => {
                     if (i === step) return;
+                    if (i > step) {
+                      const errs = validateStep(step);
+                      if (Object.keys(errs).length > 0) {
+                        setErrors(errs);
+                        return;
+                      }
+                    }
+                    setErrors({});
                     setDir(i > step ? 1 : -1);
                     setStep(i);
                     window.scrollTo({ top: 0, behavior: "smooth" });
