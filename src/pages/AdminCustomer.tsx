@@ -221,16 +221,15 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     doc.line(margin, y, W - margin, y);
     y += 5;
 
-    // --- DYNAMIC SIDE-BY-SIDE FIELD RENDERING (Zero Overlap Guaranteed) ---
-    doc.setFontSize(8.5);
+    // --- DYNAMIC SIDE-BY-SIDE FIELD RENDERING (No Underlines & All Form Fields) ---
+    doc.setFontSize(8);
 
     const drawInlineField = (
       currentX: number,
       currentY: number,
       label: string,
       val: string,
-      minSpacing = 6,
-      underline = true
+      minSpacing = 5
     ): number => {
       const valStr = String(val || "").trim() || "--";
       doc.setFont("helvetica", "bold");
@@ -243,56 +242,62 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       doc.text(valStr, valX, currentY);
 
       const valWidth = doc.getTextWidth(valStr);
-      if (underline && valStr !== "--") {
-        doc.setLineWidth(0.2);
-        doc.setDrawColor(0, 0, 0);
-        doc.line(valX, currentY + 0.6, valX + Math.max(valWidth, 8), currentY + 0.6);
-      }
-
       return currentX + labelWidth + valWidth + minSpacing;
     };
 
-    // Row 1: Name, MF No., Contacts No., Date, Age
+    // Row 1: Name, MF No., Contacts No., Email, Date, Age
     let cx = margin;
-    cx = drawInlineField(cx, y, "Name : ", customer.name, 6);
-    cx = drawInlineField(cx, y, "MF No. : ", String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0"), 6);
-    cx = drawInlineField(cx, y, "Contacts No. : ", customer.phone || "--", 6);
-    cx = drawInlineField(cx, y, "Date : ", formatPdfDate(customer.date), 6);
-    drawInlineField(cx, y, "Age : ", String(customer.age || "--"), 6);
+    cx = drawInlineField(cx, y, "Name : ", customer.name, 5);
+    cx = drawInlineField(cx, y, "MF No. : ", String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0"), 5);
+    cx = drawInlineField(cx, y, "Contacts No. : ", customer.phone || "--", 5);
+    cx = drawInlineField(cx, y, "Email : ", customer.email || "--", 5);
+    cx = drawInlineField(cx, y, "Date : ", formatPdfDate(customer.date), 5);
+    drawInlineField(cx, y, "Age : ", String(customer.age || "--"), 5);
 
-    y += 5.5;
+    y += 5;
 
     // Row 2: Gender, Weight (Kg), Height (cms), BMI, Food Pref
     cx = margin;
-    cx = drawInlineField(cx, y, "Gender : ", customer.gender || "--", 6);
-    cx = drawInlineField(cx, y, "Weight (Kg) : ", String(customer.weight || "--"), 6);
-    cx = drawInlineField(cx, y, "Height (cms) : ", String(customer.height || "--"), 6);
-    cx = drawInlineField(cx, y, "BMI : ", customer.bmi ? `${customer.bmi} (${customer.bmiCategory || ""})` : "--", 6);
-    drawInlineField(cx, y, "VEG / NON-VEG / EGGETARIAN. : ", (customer.foodPref || "--").toUpperCase(), 6, false);
+    cx = drawInlineField(cx, y, "Gender : ", customer.gender || "--", 5);
+    cx = drawInlineField(cx, y, "Weight (Kg) : ", customer.weight ? `${customer.weight} kg` : "--", 5);
+    cx = drawInlineField(cx, y, "Height (cms) : ", customer.height ? `${customer.height} cm` : "--", 5);
+    cx = drawInlineField(cx, y, "BMI : ", customer.bmi ? `${customer.bmi} (${customer.bmiCategory || ""})` : "--", 5);
+    drawInlineField(cx, y, "Food Pref : ", (customer.foodPref || "--").toUpperCase(), 5);
 
-    y += 5.5;
+    y += 5;
 
-    // Row 3: Wake-up Time (Morning), Bed Time (Night), Duty
+    // Row 3: Wake-up Time, Bed Time, Sleep Duration, Duty
     cx = margin;
-    cx = drawInlineField(cx, y, "Wake-up Time (Morning) : ", clean(customer.wakeTime), 8);
-    cx = drawInlineField(cx, y, "Bed Time (Night) : ", clean(customer.bedTime), 8);
-    drawInlineField(cx, y, "Duty : ", customer.duty || "Regular / Shifted", 8, false);
+    cx = drawInlineField(cx, y, "Wake-up Time : ", clean(customer.wakeTime), 5);
+    cx = drawInlineField(cx, y, "Bed Time : ", clean(customer.bedTime), 5);
+    cx = drawInlineField(cx, y, "Sleep Duration : ", customer.sleepDuration ? `${customer.sleepDuration} hrs` : "--", 5);
+    drawInlineField(cx, y, "Duty : ", customer.duty || "--", 5);
 
-    y += 5.5;
+    y += 5;
 
-    // Row 4: Rest Time, Working Time
+    // Row 4: College Timing, Working Time, Rest Time
     cx = margin;
-    cx = drawInlineField(cx, y, "Rest Time : ", clean(customer.restTime), 10);
-    drawInlineField(cx, y, "Working Time : ", clean(customer.workTime), 10);
+    cx = drawInlineField(cx, y, "College Timing : ", clean(customer.collegeTime), 5);
+    cx = drawInlineField(cx, y, "Working Time : ", clean(customer.workTime), 5);
+    drawInlineField(cx, y, "Rest Time : ", clean(customer.restTime), 5);
 
-    y += 5.5;
+    y += 5;
 
-    // Row 5: Workout Time, Remark
+    // Row 5: Workout Time, Goals, Medical Conditions
     cx = margin;
-    cx = drawInlineField(cx, y, "Workout Time : ", clean(customer.workoutTime), 10);
-    drawInlineField(cx, y, "Remark : ", customer.remarks || customer.goals || "--", 10);
+    cx = drawInlineField(cx, y, "Workout Time : ", clean(customer.workoutTime), 5);
+    cx = drawInlineField(cx, y, "Goals : ", customer.goals || "--", 5);
+    drawInlineField(cx, y, "Medical Conditions : ", customer.medicalConditions || "--", 5);
 
-    y += 6.5;
+    y += 5;
+
+    // Row 6: Allergies, Current Supplements, Additional Remarks
+    cx = margin;
+    cx = drawInlineField(cx, y, "Allergies : ", customer.allergies || "--", 5);
+    cx = drawInlineField(cx, y, "Supplements : ", customer.supplements || "--", 5);
+    drawInlineField(cx, y, "Remark : ", customer.remarks || "--", 5);
+
+    y += 6;
     doc.setLineWidth(0.6);
     doc.setDrawColor(0, 0, 0);
     doc.line(margin, y, W - margin, y);
