@@ -162,9 +162,27 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const W = 210;
-    const margin = 12;
+    const margin = 10;
     const usableW = W - margin * 2;
     let y = 10;
+
+    // Helper to format long date strings (e.g. "Tue Aug 11 2026 00:00:00 GMT+...") cleanly as "DD/MM/YYYY"
+    const formatPdfDate = (raw: string | undefined): string => {
+      if (!raw) return new Date().toLocaleDateString("en-IN");
+      const s = String(raw).trim();
+      if (s.includes("GMT") || s.includes("Dec 1899") || s.length > 20) {
+        try {
+          const d = new Date(s);
+          if (!isNaN(d.getTime())) {
+            const day = String(d.getDate()).padStart(2, "0");
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
+        } catch {}
+      }
+      return s.split("T")[0] || s;
+    };
 
     // Load logo
     let logoDataUrl = "";
@@ -185,7 +203,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       doc.addImage(logoDataUrl, "PNG", margin, y, 22, 22);
     }
 
-    // Huge bold condensed uppercase title "MUSCLE EMPIRE NUTRITION"
+    // Huge bold condensed uppercase title "MUSCLE EMPIRE NUTRITION" (Black & White Theme)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(21);
     doc.setTextColor(0, 0, 0);
@@ -194,7 +212,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     // Contact Numbers line
     doc.setFontSize(9.5);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 30, 30);
+    doc.setTextColor(0, 0, 0);
     doc.text("Office : - 9137870108  |  Sagar Kharat : -  9773053632  |  8779682084", margin + 25, y + 18);
 
     y += 24;
@@ -203,71 +221,90 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     doc.line(margin, y, W - margin, y);
     y += 5;
 
-    // --- FIELD ROWS (Matching exact reference image typography & layout) ---
+    // --- DYNAMIC SIDE-BY-SIDE FIELD RENDERING (Zero Overlap Guaranteed) ---
     doc.setFontSize(8.5);
 
-    const fLine = (x: number, label: string, val: string, underline = true) => {
+    const drawInlineField = (
+      currentX: number,
+      currentY: number,
+      label: string,
+      val: string,
+      minSpacing = 6,
+      underline = true
+    ): number => {
+      const valStr = String(val || "").trim() || "--";
       doc.setFont("helvetica", "bold");
       doc.setTextColor(0, 0, 0);
-      doc.text(label, x, y);
-      const lw = doc.getTextWidth(label);
-      const valStr = String(val || "").trim() || "--";
+      doc.text(label, currentX, currentY);
+      const labelWidth = doc.getTextWidth(label);
+
+      const valX = currentX + labelWidth;
       doc.setFont("helvetica", "normal");
-      doc.text(valStr, x + lw + 1, y);
+      doc.text(valStr, valX, currentY);
+
+      const valWidth = doc.getTextWidth(valStr);
       if (underline && valStr !== "--") {
-        const vw = doc.getTextWidth(valStr);
         doc.setLineWidth(0.2);
-        doc.line(x + lw + 1, y + 0.6, x + lw + 1 + Math.max(vw, 10), y + 0.6);
+        doc.setDrawColor(0, 0, 0);
+        doc.line(valX, currentY + 0.6, valX + Math.max(valWidth, 8), currentY + 0.6);
       }
+
+      return currentX + labelWidth + valWidth + minSpacing;
     };
 
     // Row 1: Name, MF No., Contacts No., Date, Age
-    fLine(margin, "Name : ", customer.name);
-    fLine(margin + 60, "MF No. : ", String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0"));
-    fLine(margin + 92, "Contacts No. : ", customer.phone || "--");
-    fLine(margin + 142, "Date : ", customer.date || new Date().toLocaleDateString("en-IN"));
-    fLine(margin + 172, "Age : ", String(customer.age || "--"));
+    let cx = margin;
+    cx = drawInlineField(cx, y, "Name : ", customer.name, 6);
+    cx = drawInlineField(cx, y, "MF No. : ", String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0"), 6);
+    cx = drawInlineField(cx, y, "Contacts No. : ", customer.phone || "--", 6);
+    cx = drawInlineField(cx, y, "Date : ", formatPdfDate(customer.date), 6);
+    drawInlineField(cx, y, "Age : ", String(customer.age || "--"), 6);
 
     y += 5.5;
 
     // Row 2: Gender, Weight (Kg), Height (cms), BMI, Food Pref
-    fLine(margin, "Gender : ", customer.gender || "--");
-    fLine(margin + 30, "Weight (Kg) : ", String(customer.weight || "--"));
-    fLine(margin + 68, "Height (cms) : ", String(customer.height || "--"));
-    fLine(margin + 102, "BMI : ", customer.bmi ? `${customer.bmi} (${customer.bmiCategory || ""})` : "--");
-    fLine(margin + 152, "VEG / NON-VEG / EGGETARIAN. : ", (customer.foodPref || "--").toUpperCase(), false);
+    cx = margin;
+    cx = drawInlineField(cx, y, "Gender : ", customer.gender || "--", 6);
+    cx = drawInlineField(cx, y, "Weight (Kg) : ", String(customer.weight || "--"), 6);
+    cx = drawInlineField(cx, y, "Height (cms) : ", String(customer.height || "--"), 6);
+    cx = drawInlineField(cx, y, "BMI : ", customer.bmi ? `${customer.bmi} (${customer.bmiCategory || ""})` : "--", 6);
+    drawInlineField(cx, y, "VEG / NON-VEG / EGGETARIAN. : ", (customer.foodPref || "--").toUpperCase(), 6, false);
 
     y += 5.5;
 
     // Row 3: Wake-up Time (Morning), Bed Time (Night), Duty
-    fLine(margin, "Wake-up Time (Morning) : ", clean(customer.wakeTime));
-    fLine(margin + 80, "Bed Time (Night) : ", clean(customer.bedTime));
-    fLine(margin + 152, "Duty : ", customer.duty || "Regular / Shifted", false);
+    cx = margin;
+    cx = drawInlineField(cx, y, "Wake-up Time (Morning) : ", clean(customer.wakeTime), 8);
+    cx = drawInlineField(cx, y, "Bed Time (Night) : ", clean(customer.bedTime), 8);
+    drawInlineField(cx, y, "Duty : ", customer.duty || "Regular / Shifted", 8, false);
 
     y += 5.5;
 
     // Row 4: Rest Time, Working Time
-    fLine(margin, "Rest Time : ", clean(customer.restTime));
-    fLine(margin + 80, "Working Time : ", clean(customer.workTime));
+    cx = margin;
+    cx = drawInlineField(cx, y, "Rest Time : ", clean(customer.restTime), 10);
+    drawInlineField(cx, y, "Working Time : ", clean(customer.workTime), 10);
 
     y += 5.5;
 
     // Row 5: Workout Time, Remark
-    fLine(margin, "Workout Time : ", clean(customer.workoutTime));
-    fLine(margin + 70, "Remark : ", customer.remarks || customer.goals || "--");
+    cx = margin;
+    cx = drawInlineField(cx, y, "Workout Time : ", clean(customer.workoutTime), 10);
+    drawInlineField(cx, y, "Remark : ", customer.remarks || customer.goals || "--", 10);
 
     y += 6.5;
     doc.setLineWidth(0.6);
+    doc.setDrawColor(0, 0, 0);
     doc.line(margin, y, W - margin, y);
     y += 5;
 
-    // 4-column Diet table: Time(history) | Foods Items/History | Time(diet) | Suggestion
+    // 4-column Diet table: Time(history) | Foods Items/History | Time(diet) | Suggestion (Black & White Theme)
     const histTimeW = 18;
     const histFoodW = 52;
     const dietTimeW = 22;
     const suggColW = usableW - histTimeW - histFoodW - dietTimeW;
 
-    doc.setFillColor(50, 30, 5);
+    doc.setFillColor(0, 0, 0);
     doc.rect(margin, y, usableW, 7, "F");
     doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
     doc.text("Time", margin + 1, y + 5);
@@ -276,7 +313,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     doc.text("Suggestion", margin + histTimeW + histFoodW + dietTimeW + 1, y + 5);
     y += 7;
 
-    doc.setTextColor(0, 0, 0); doc.setFontSize(7.5); doc.setDrawColor(180, 180, 180);
+    doc.setTextColor(0, 0, 0); doc.setFontSize(7.5); doc.setDrawColor(0, 0, 0);
 
     const historyLines = (customer.foodHistory || "").split("\n").filter(l => l.trim());
     const dietRows = meals.filter(m => m.meal || m.suggestion);
@@ -303,9 +340,10 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
 
       if (y + rowH > 278) { doc.addPage(); y = 15; }
 
-      if (altRow) { doc.setFillColor(255, 252, 220); doc.rect(margin, y, usableW, rowH, "F"); }
+      if (altRow) { doc.setFillColor(245, 245, 245); doc.rect(margin, y, usableW, rowH, "F"); }
       altRow = !altRow;
 
+      doc.setLineWidth(0.2);
       doc.rect(margin, y, histTimeW, rowH);
       doc.rect(margin + histTimeW, y, histFoodW, rowH);
       doc.rect(margin + histTimeW + histFoodW, y, dietTimeW, rowH);
@@ -321,12 +359,12 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       y += rowH;
     }
 
-    // Additional section
+    // Additional section (Black & White Theme)
     const hasExtra = EXTRA_FIELDS.some(f => extras[f.key]);
     if (hasExtra) {
       const extraColW = 45;
       if (y + 15 > 278) { doc.addPage(); y = 15; }
-      doc.setFillColor(50, 30, 5);
+      doc.setFillColor(0, 0, 0);
       doc.rect(margin, y, usableW, 6, "F");
       doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
       doc.text("Additional", margin + 2, y + 4.5);
@@ -337,8 +375,9 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
         const lines = doc.splitTextToSize(extras[f.key], usableW - extraColW - 4) as string[];
         const rowH = Math.max(7, lines.length * 5 + 3);
         if (y + rowH > 278) { doc.addPage(); y = 15; }
-        if (altRow) { doc.setFillColor(240, 240, 255); doc.rect(margin, y, usableW, rowH, "F"); }
+        if (altRow) { doc.setFillColor(245, 245, 245); doc.rect(margin, y, usableW, rowH, "F"); }
         altRow = !altRow;
+        doc.setLineWidth(0.2);
         doc.rect(margin, y, extraColW, rowH);
         doc.rect(margin + extraColW, y, usableW - extraColW, rowH);
         doc.setFont("helvetica", "bold"); doc.text(f.label, margin + 2, y + 5);
