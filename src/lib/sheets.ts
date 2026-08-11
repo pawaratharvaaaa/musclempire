@@ -44,7 +44,13 @@ function scriptGet(params: Record<string, string>): Promise<unknown> {
 export async function submitAssessment(data: AssessmentData): Promise<void> {
   // Use timestamp as unique ID — guarantees every submission is unique
   const id = String(Date.now());
-  const payload = { ...data, id, action: "submit" };
+  const payload = {
+    targetWeight: "",
+    weightChange: "",
+    ...data,
+    id,
+    action: "submit"
+  };
 
   const existing = getLocal();
   existing.unshift({ ...payload, _rowIndex: existing.length });
