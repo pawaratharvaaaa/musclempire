@@ -44,15 +44,22 @@ function scriptGet(params: Record<string, string>): Promise<unknown> {
 export async function submitAssessment(data: AssessmentData): Promise<void> {
   // Use timestamp as unique ID — guarantees every submission is unique
   const id = String(Date.now());
-  const payload = { ...data, id };
+  const payload = { ...data, id, action: "submit" };
 
   const existing = getLocal();
   existing.unshift({ ...payload, _rowIndex: existing.length });
   saveLocal(existing);
 
-  const params: Record<string, string> = { action: "submit" };
-  Object.entries(payload).forEach(([k, v]) => { if (k !== "action") params[k] = String(v ?? ""); });
-  scriptGet(params);
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("Sheets submission error:", err);
+  }
 }
 
 // Fast: returns localStorage immediately, falls back gracefully on Sheets error
