@@ -52,9 +52,25 @@ export async function submitAssessment(data: AssessmentData): Promise<void> {
 
   const params: Record<string, string> = {};
   Object.entries(payload).forEach(([k, v]) => { params[k] = String(v ?? ""); });
-  
-  // Send parameters directly to Google Apps Script
-  scriptGet(params);
+  const qs = new URLSearchParams(params).toString();
+  const url = `${APPS_SCRIPT_URL}?${qs}`;
+
+  // Method 1: GET fetch with mode: 'no-cors' (bypasses browser CORS redirection blocks)
+  fetch(url, { method: "GET", mode: "no-cors" }).catch(() => {});
+
+  // Method 2: POST fetch with mode: 'no-cors'
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+
+  // Method 3: Image ping GET (100% immune to CORS policies in all browsers)
+  try {
+    const img = new Image();
+    img.src = url;
+  } catch {}
 }
 
 // Fast: returns localStorage immediately, falls back gracefully on Sheets error
