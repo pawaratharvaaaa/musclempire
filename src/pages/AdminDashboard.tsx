@@ -7,6 +7,20 @@ import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
 import { setSelectedAssessment } from "@/lib/adminStore";
 
+function formatDate(raw: string | undefined): string {
+  if (!raw) return "--";
+  const s = String(raw).trim();
+  // Already clean format like "25/6/2026" or "11 Aug 2026"
+  if (!s.includes("GMT") && !s.includes("00:00:00") && s.length < 20) return s;
+  try {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    }
+  } catch {}
+  return s;
+}
+
 function StatusBadge({ status }: { status: string }) {
   const s = (status || "New").trim();
   const colors: Record<string, string> = {
@@ -178,7 +192,7 @@ export default function AdminDashboard() {
                           navigate(`/pronectar-admin-2026/customer/${row._rowIndex ?? row._arrayIndex}`);
                         }}>                        <td className="px-4 py-3 font-bold text-white">{row.name}</td>
                         <td className="px-4 py-3 text-white/60">{row.phone}</td>
-                        <td className="px-4 py-3 text-white/60">{row.date}</td>
+                        <td className="px-4 py-3 text-white/60">{formatDate(row.date)}</td>
                         <td className="px-4 py-3 text-white/60">{row.bmi}</td>
                         <td className="px-4 py-3 text-white/60 max-w-[150px] truncate">{row.goals}</td>
                         <td className="px-4 py-3 text-white/60">{row.foodPref}</td>
