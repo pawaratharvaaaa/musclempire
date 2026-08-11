@@ -450,12 +450,10 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
           </Section>
 
           <Section title="Body Measurements">
-            <InfoRow label="Weight" value={customer.weight + " kg"} />
-            <InfoRow label="Height" value={customer.height + " cm"} />
+            <InfoRow label="Weight" value={customer.weight ? customer.weight + " kg" : "--"} />
+            <InfoRow label="Height" value={customer.height ? customer.height + " cm" : "--"} />
             <InfoRow label="BMI" value={customer.bmi} />
             <InfoRow label="BMI Category" value={customer.bmiCategory} />
-            <InfoRow label="Target Weight" value={customer.targetWeight ? customer.targetWeight + " kg" : "--"} />
-            <InfoRow label="Weight Change" value={customer.weightChange ? customer.weightChange + " kg" : "--"} />
           </Section>
 
           <Section title="Lifestyle">
