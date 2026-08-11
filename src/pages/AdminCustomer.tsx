@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { fetchFresh, updateRecord, type AssessmentData } from "@/lib/sheets";
 import { ArrowLeft, Download, MessageCircle, CheckCircle2, Save, LogOut, Plus, Trash2 } from "lucide-react";
@@ -139,8 +139,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
   const [meals, setMeals] = useState<MealEntry[]>([]);
   const [extras, setExtras] = useState<Record<string, string>>({});
   const [rowIdx, setRowIdx] = useState<number>(0);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const isLoaded = useRef(false);
 
   useEffect(() => {
     // PRIMARY: module-level store — set synchronously before navigation, always correct
@@ -207,7 +206,25 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     const e: Record<string, string> = {};
     EXTRA_FIELDS.forEach(f => { e[f.key] = (rec as Record<string, unknown>)[f.key] as string || ""; });
     setExtras(e);
+    // Mark initial loading complete after setting initial state
+    setTimeout(() => { isLoaded.current = true; }, 100);
   }
+
+  // Debounced auto-save effect: saves automatically to localStorage and Sheets whenever meals/extras change
+  useEffect(() => {
+    if (!customer || !isLoaded.current) return;
+    const timer = setTimeout(() => {
+      const sheetsIdx = customer._rowIndex ?? rowIdx;
+      const updates: Partial<AssessmentData> = {
+        earlyMorning: JSON.stringify(meals),
+        status: customer.status === "New" ? "In Progress" : customer.status,
+        ...Object.fromEntries(EXTRA_FIELDS.map(f => [f.key, extras[f.key] || ""])),
+      };
+      updateRecord(sheetsIdx, updates);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [meals, extras, customer, rowIdx]);
 
   const addMeal = () => {
     setMeals(m => [...m, { id: Date.now().toString(), meal: "", time: "", suggestion: "" }]);
@@ -219,23 +236,6 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
 
   const updateMeal = (id: string, field: keyof MealEntry, value: string) => {
     setMeals(m => m.map(e => e.id === id ? { ...e, [field]: value } : e));
-  };
-
-  const handleSave = async () => {
-    if (!customer) return;
-    setSaving(true);
-    const sheetsIdx = customer._rowIndex ?? rowIdx;
-    // Store dynamic meals as JSON in earlyMorning field
-    const updates: Partial<AssessmentData> = {
-      earlyMorning: JSON.stringify(meals),
-      status: "In Progress",
-      ...Object.fromEntries(EXTRA_FIELDS.map(f => [f.key, extras[f.key] || ""])),
-    };
-    await updateRecord(sheetsIdx, updates);
-    setCustomer(c => c ? { ...c, status: "In Progress" } : c);
-    setSaved(true);
-    setSaving(false);
-    setTimeout(() => setSaved(false), 2000);
   };
 
   const handleMarkComplete = async () => {
@@ -309,102 +309,65 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     doc.line(margin, y, W - margin, y);
     y += 5;
 
-    // --- DYNAMIC SIDE-BY-SIDE FIELD RENDERING (Compact 8.5pt Font, Balanced Spacing & Overflow Protection) ---
+    // --- CONTINUOUS SIDE-BY-SIDE FIELD RENDERING (Fills Entire Page Width - Zero Blank Space) ---
     doc.setFontSize(8.5);
-    const rowGap = 6.5;
+    const rowGap = 6.0;
+    const bfStr = getBodyFatStr(customer.bmi, customer.age, customer.gender);
 
-    const drawInlineField = (
-      currentX: number,
-      currentY: number,
-      label: string,
-      val: string,
-      minSpacing = 10
-    ): number => {
-      const valStr = String(val || "").trim() || "--";
+    const fieldsToDraw: Array<{ label: string; val: string }> = [
+      { label: "Name : ", val: cleanText(customer.name) },
+      { label: "MF No. : ", val: String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0") },
+      { label: "Date : ", val: formatPdfDate(customer.date) },
+      { label: "Contacts No. : ", val: cleanText(customer.phone) },
+      { label: "Email : ", val: cleanText(customer.email) },
+      { label: "Age : ", val: cleanText(customer.age) },
+      { label: "Gender : ", val: cleanText(customer.gender) },
+      { label: "Weight (Kg) : ", val: customer.weight ? `${cleanText(customer.weight)} kg` : "--" },
+      { label: "Height (cms) : ", val: customer.height ? `${cleanText(customer.height)} cm` : "--" },
+      { label: "BMI : ", val: customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--" },
+      ...(bfStr !== "--" ? [{ label: "Body Fat (Est.) : ", val: bfStr }] : []),
+      { label: "Food Pref : ", val: cleanText(customer.foodPref).toUpperCase() },
+      { label: "Wake-up Time : ", val: clean(customer.wakeTime) },
+      { label: "Bed Time : ", val: clean(customer.bedTime) },
+      { label: "Sleep Duration : ", val: customer.sleepDuration ? `${cleanText(customer.sleepDuration)} hrs` : "--" },
+      { label: "Duty : ", val: cleanText(customer.duty) },
+      { label: "College Timing : ", val: clean(customer.collegeTime) },
+      { label: "Working Time : ", val: clean(customer.workTime) },
+      { label: "Rest Time : ", val: clean(customer.restTime) },
+      { label: "Workout Time : ", val: clean(customer.workoutTime) },
+      { label: "Goals : ", val: cleanText(customer.goals) },
+      { label: "Medical Conditions : ", val: cleanText(customer.medicalConditions) },
+      { label: "Allergies : ", val: cleanText(customer.allergies) },
+      { label: "Supplements : ", val: cleanText(customer.supplements) },
+      { label: "Remark : ", val: cleanText(customer.remarks) },
+    ];
+
+    let cx = margin;
+    const minGap = 7; // Horizontal gap between fields on the same line
+
+    fieldsToDraw.forEach((item) => {
+      const valStr = String(item.val || "").trim() || "--";
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(0, 0, 0);
-      const labelWidth = doc.getTextWidth(label);
-
+      const labelW = doc.getTextWidth(item.label);
       doc.setFont("helvetica", "normal");
-      const valWidth = doc.getTextWidth(valStr);
-      const totalWidth = labelWidth + valWidth;
+      const valW = doc.getTextWidth(valStr);
+      const itemW = labelW + valW;
 
-      // Auto-wrap if field would exceed right margin
-      if (currentX + totalWidth > W - margin && currentX > margin + 5) {
-        currentX = margin;
-        currentY += rowGap;
-        y = currentY;
+      // Wrap line if field exceeds right margin
+      if (cx > margin && cx + itemW > W - margin) {
+        cx = margin;
+        y += rowGap;
       }
 
       doc.setFont("helvetica", "bold");
-      doc.text(label, currentX, currentY);
+      doc.setTextColor(0, 0, 0);
+      doc.text(item.label, cx, y);
 
       doc.setFont("helvetica", "normal");
-      doc.text(valStr, currentX + labelWidth, currentY);
+      doc.text(valStr, cx + labelW, y);
 
-      return currentX + totalWidth + minSpacing;
-    };
-
-    // Row 1: Name, MF No., Date
-    let cx = margin;
-    cx = drawInlineField(cx, y, "Name : ", cleanText(customer.name), 10);
-    cx = drawInlineField(cx, y, "MF No. : ", String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0"), 10);
-    drawInlineField(cx, y, "Date : ", formatPdfDate(customer.date), 10);
-
-    y += rowGap;
-
-    // Row 2: Phone, Email, Age, Gender
-    cx = margin;
-    cx = drawInlineField(cx, y, "Contacts No. : ", cleanText(customer.phone), 8);
-    cx = drawInlineField(cx, y, "Email : ", cleanText(customer.email), 8);
-    cx = drawInlineField(cx, y, "Age : ", cleanText(customer.age), 8);
-    drawInlineField(cx, y, "Gender : ", cleanText(customer.gender), 8);
-
-    y += rowGap;
-
-    // Row 3: Weight, Height, BMI, Body Fat
-    const bfStr = getBodyFatStr(customer.bmi, customer.age, customer.gender);
-    cx = margin;
-    cx = drawInlineField(cx, y, "Weight (Kg) : ", customer.weight ? `${cleanText(customer.weight)} kg` : "--", 8);
-    cx = drawInlineField(cx, y, "Height (cms) : ", customer.height ? `${cleanText(customer.height)} cm` : "--", 8);
-    cx = drawInlineField(cx, y, "BMI : ", customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--", 8);
-    if (bfStr !== "--") {
-      drawInlineField(cx, y, "Body Fat (Est.) : ", bfStr, 8);
-    }
-
-    y += rowGap;
-
-    // Row 4: Food Pref, Wake-up Time, Bed Time, Sleep Duration
-    cx = margin;
-    cx = drawInlineField(cx, y, "Food Pref : ", cleanText(customer.foodPref).toUpperCase(), 8);
-    cx = drawInlineField(cx, y, "Wake-up Time : ", clean(customer.wakeTime), 8);
-    cx = drawInlineField(cx, y, "Bed Time : ", clean(customer.bedTime), 8);
-    drawInlineField(cx, y, "Sleep Duration : ", customer.sleepDuration ? `${cleanText(customer.sleepDuration)} hrs` : "--", 8);
-
-    y += rowGap;
-
-    // Row 5: Duty, College Timing, Working Time, Rest Time
-    cx = margin;
-    cx = drawInlineField(cx, y, "Duty : ", cleanText(customer.duty), 8);
-    cx = drawInlineField(cx, y, "College Timing : ", clean(customer.collegeTime), 8);
-    cx = drawInlineField(cx, y, "Working Time : ", clean(customer.workTime), 8);
-    drawInlineField(cx, y, "Rest Time : ", clean(customer.restTime), 8);
-
-    y += rowGap;
-
-    // Row 6: Workout Time, Goals, Medical Conditions
-    cx = margin;
-    cx = drawInlineField(cx, y, "Workout Time : ", clean(customer.workoutTime), 8);
-    cx = drawInlineField(cx, y, "Goals : ", cleanText(customer.goals), 8);
-    drawInlineField(cx, y, "Medical Conditions : ", cleanText(customer.medicalConditions), 8);
-
-    y += rowGap;
-
-    // Row 7: Allergies, Current Supplements, Additional Remarks
-    cx = margin;
-    cx = drawInlineField(cx, y, "Allergies : ", cleanText(customer.allergies), 8);
-    cx = drawInlineField(cx, y, "Supplements : ", cleanText(customer.supplements), 8);
-    drawInlineField(cx, y, "Remark : ", cleanText(customer.remarks), 8);
+      cx += itemW + minGap;
+    });
 
     y += 7;
     doc.setLineWidth(0.6);
@@ -658,7 +621,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
             <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/10">
               <h3 className="text-green-400 font-black uppercase tracking-widest text-sm flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                Diet Plan
+                Diet Plan <span className="text-white/40 font-normal text-xs normal-case ml-2">(Auto-saved ✓)</span>
               </h3>
               <button onClick={addMeal}
                 className="flex items-center gap-1.5 bg-green-500/15 hover:bg-green-500/25 border border-green-400/30 text-green-400 font-black text-xs uppercase tracking-wider px-4 py-2 rounded-lg transition-colors">
@@ -736,25 +699,20 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <button onClick={handleSave} disabled={saving}
-              className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-400 text-black font-black uppercase tracking-wider py-3 rounded-xl text-xs transition-colors disabled:opacity-60">
-              <Save size={14} />
-              {saving ? "Saving..." : saved ? "Saved" : "Save Draft"}
-            </button>
+          {/* Actions (Auto-saved, no manual Save Draft button) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <button onClick={sendPDF}
-              className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-400 text-white font-black uppercase tracking-wider py-3 rounded-xl text-xs transition-colors">
+              className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-400 text-white font-black uppercase tracking-wider py-3.5 rounded-xl text-xs transition-colors shadow-lg shadow-blue-500/20">
               <Download size={14} />
               Send PDF
             </button>
             <button onClick={sendWhatsApp}
-              className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-black uppercase tracking-wider py-3 rounded-xl text-xs transition-colors">
+              className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-black uppercase tracking-wider py-3.5 rounded-xl text-xs transition-colors shadow-lg shadow-green-500/20">
               <MessageCircle size={14} />
               Send WhatsApp
             </button>
             <button onClick={handleMarkComplete} disabled={customer.status === "Completed"}
-              className={"flex items-center justify-center gap-2 font-black uppercase tracking-wider py-3 rounded-xl text-xs transition-colors " + (
+              className={"flex items-center justify-center gap-2 font-black uppercase tracking-wider py-3.5 rounded-xl text-xs transition-colors " + (
                 customer.status === "Completed"
                   ? "bg-green-500/20 text-green-400 border border-green-400/30 cursor-default"
                   : "bg-white/10 hover:bg-green-500 hover:text-black text-white"
