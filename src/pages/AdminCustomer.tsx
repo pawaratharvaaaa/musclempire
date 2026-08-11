@@ -293,32 +293,32 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
 
     // Huge bold condensed uppercase title "MUSCLE EMPIRE NUTRITION" (Black & White Theme)
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(21);
+    doc.setFontSize(24);
     doc.setTextColor(0, 0, 0);
-    doc.text("MUSCLE EMPIRE NUTRITION", margin + 25, y + 10);
+    doc.text("MUSCLE EMPIRE NUTRITION", margin + 25, y + 11);
 
     // Contact Numbers line
-    doc.setFontSize(9.5);
+    doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
-    doc.text("Office : - 9137870108  |  Sagar Kharat : -  9773053632  |  8779682084", margin + 25, y + 18);
+    doc.text("Office : - 9137870108  |  Sagar Kharat : -  9773053632  |  8779682084", margin + 25, y + 19);
 
-    y += 24;
-    doc.setLineWidth(0.6);
+    y += 25;
+    doc.setLineWidth(0.8);
     doc.setDrawColor(0, 0, 0);
     doc.line(margin, y, W - margin, y);
-    y += 5;
+    y += 6;
 
-    // --- DYNAMIC SIDE-BY-SIDE FIELD RENDERING (Larger Font, Increased Spacing, Zero Overflow) ---
-    doc.setFontSize(9.5);
-    const rowGap = 7.5;
+    // --- DYNAMIC SIDE-BY-SIDE FIELD RENDERING (11.5pt Font, 16mm Horizontal Spacing, 9.5mm Vertical Gap) ---
+    doc.setFontSize(11.5);
+    const rowGap = 9.5;
 
     const drawInlineField = (
       currentX: number,
       currentY: number,
       label: string,
       val: string,
-      minSpacing = 8
+      minSpacing = 16
     ): number => {
       const valStr = String(val || "").trim() || "--";
       doc.setFont("helvetica", "bold");
@@ -413,21 +413,21 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     y += 5;
 
     // 4-column Diet table: Time(history) | Foods Items/History | Time(diet) | Suggestion (Black & White Theme)
-    const histTimeW = 18;
-    const histFoodW = 52;
-    const dietTimeW = 22;
+    const histTimeW = 20;
+    const histFoodW = 54;
+    const dietTimeW = 24;
     const suggColW = usableW - histTimeW - histFoodW - dietTimeW;
 
     doc.setFillColor(0, 0, 0);
-    doc.rect(margin, y, usableW, 7, "F");
-    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-    doc.text("Time", margin + 1, y + 5);
-    doc.text("Foods Items / History", margin + histTimeW + 1, y + 5);
-    doc.text("Time", margin + histTimeW + histFoodW + 1, y + 5);
-    doc.text("Suggestion", margin + histTimeW + histFoodW + dietTimeW + 1, y + 5);
-    y += 7;
+    doc.rect(margin, y, usableW, 8, "F");
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+    doc.text("Time", margin + 1.5, y + 5.5);
+    doc.text("Foods Items / History", margin + histTimeW + 1.5, y + 5.5);
+    doc.text("Time", margin + histTimeW + histFoodW + 1.5, y + 5.5);
+    doc.text("Suggestion", margin + histTimeW + histFoodW + dietTimeW + 1.5, y + 5.5);
+    y += 8;
 
-    doc.setTextColor(0, 0, 0); doc.setFontSize(7.5); doc.setDrawColor(0, 0, 0);
+    doc.setTextColor(0, 0, 0); doc.setFontSize(9.5); doc.setDrawColor(0, 0, 0);
 
     const historyLines = (customer.foodHistory || "").split("\n").filter(l => l.trim());
     const dietRows = meals.filter(m => m.meal || m.suggestion);
@@ -525,35 +525,35 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       "7. Completely avoid consuming tea; instead, make it a habit to drink a cup of warm water if needed."
     ];
 
-    if (y + 45 > 278) {
+    if (y + 55 > 278) {
       doc.addPage();
       y = 15;
     } else {
-      y += 5;
+      y += 6;
     }
 
     doc.setFillColor(0, 0, 0);
-    doc.rect(margin, y, usableW, 6, "F");
+    doc.rect(margin, y, usableW, 8, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
-    doc.text("Remarks & Guidelines", margin + 2, y + 4.5);
-    y += 9;
+    doc.setFontSize(11);
+    doc.text("Remarks & Guidelines", margin + 2, y + 5.5);
+    y += 10;
 
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(7.5);
+    doc.setFontSize(9.5);
     doc.setFont("helvetica", "normal");
 
     defaultRemarks.forEach((lineText) => {
       const splitLines = doc.splitTextToSize(lineText, usableW - 4) as string[];
-      const lineH = splitLines.length * 4.2;
+      const lineH = splitLines.length * 5.2;
       if (y + lineH > 278) {
         doc.addPage();
         y = 15;
       }
       splitLines.forEach((l) => {
         doc.text(l, margin + 2, y);
-        y += 4.2;
+        y += 5.2;
       });
     });
 
