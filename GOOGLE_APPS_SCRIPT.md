@@ -17,6 +17,7 @@ const SHEET_NAME = "Assessments";
 const HEADERS = [
   "ID","Date","Name","Phone","Email","Age","Gender","Weight","Height",
   "BMI","BMI Category","Wake Time","Bed Time","Sleep Duration","Workout Time",
+  "Duty","Rest Time",
   "Target Weight","Weight Change","Food Pref","College Time","Work Time",
   "Medical Conditions","Allergies","Supplements","Goals","Remarks","Status",
   "Food History",
@@ -51,8 +52,19 @@ function getConfig() {
 
 var ADMIN_TOKEN = "ME9773GYM";
 
-function doGet(e) {
-  var p = e.parameter;
+function handleRequest(e) {
+  var p = (e && e.parameter) ? e.parameter : {};
+
+  // Parse POST JSON body if sent via POST
+  if (e && e.postData && e.postData.contents) {
+    try {
+      var body = JSON.parse(e.postData.contents);
+      Object.keys(body).forEach(function(k) {
+        p[k] = body[k];
+      });
+    } catch (err) {}
+  }
+
   var action = p.action;
 
   if (action === "getPassword" || action === "setPassword") {
@@ -87,7 +99,7 @@ function doGet(e) {
       eSheet.appendRow(["Date", "Name", "Phone", "Age", "Goal", "Notes"]);
       eSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#FFD000");
     }
-    eSheet.appendRow([p.date, p.name, p.phone, p.age, p.goal, p.notes || ""]);
+    eSheet.appendRow([p.date || "", p.name || "", p.phone || "", p.age || "", p.goal || "", p.notes || ""]);
     return ContentService
       .createTextOutput(JSON.stringify({ success: true }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -98,12 +110,14 @@ function doGet(e) {
     var nextId = sheet.getLastRow();
     sheet.appendRow([
       p.id || String(nextId),
-      p.date, p.name, p.phone, p.email, p.age, p.gender,
-      p.weight, p.height, p.bmi, p.bmiCategory,
-      p.wakeTime, p.bedTime, p.sleepDuration, p.workoutTime,
-      p.targetWeight, p.weightChange, p.foodPref,
-      p.collegeTime, p.workTime, p.medicalConditions,
-      p.allergies, p.supplements, p.goals, p.remarks,
+      p.date || new Date().toLocaleDateString(),
+      p.name || "", p.phone || "", p.email || "", p.age || "", p.gender || "",
+      p.weight || "", p.height || "", p.bmi || "", p.bmiCategory || "",
+      p.wakeTime || "", p.bedTime || "", p.sleepDuration || "", p.workoutTime || "",
+      p.duty || "", p.restTime || "",
+      p.targetWeight || "", p.weightChange || "", p.foodPref || "",
+      p.collegeTime || "", p.workTime || "", p.medicalConditions || "",
+      p.allergies || "", p.supplements || "", p.goals || "", p.remarks || "",
       p.status || "New",
       p.foodHistory || "",
       p.earlyMorning || "", p.breakfast || "", p.midMorning || "",
@@ -136,19 +150,20 @@ function doGet(e) {
         bmi: String(row[9]), bmiCategory: String(row[10]),
         wakeTime: String(d[11]), bedTime: String(d[12]),
         sleepDuration: String(row[13]), workoutTime: String(d[14]),
-        targetWeight: String(row[15]), weightChange: String(row[16]),
-        foodPref: String(row[17]), collegeTime: String(row[18]),
-        workTime: String(row[19]), medicalConditions: String(row[20]),
-        allergies: String(row[21]), supplements: String(row[22]),
-        goals: String(row[23]), remarks: String(row[24]),
-        status: String(row[25]),
-        foodHistory: String(row[26]),
-        earlyMorning: String(row[27]), breakfast: String(row[28]),
-        midMorning: String(row[29]), lunch: String(row[30]),
-        eveningSnack: String(row[31]), preWorkout: String(row[32]),
-        postWorkout: String(row[33]), dinner: String(row[34]),
-        beforeBed: String(row[35]), supplementsPlan: String(row[36]),
-        notes: String(row[37])
+        duty: String(row[15]), restTime: String(d[16]),
+        targetWeight: String(row[17]), weightChange: String(row[18]),
+        foodPref: String(row[19]), collegeTime: String(row[20]),
+        workTime: String(row[21]), medicalConditions: String(row[22]),
+        allergies: String(row[23]), supplements: String(row[24]),
+        goals: String(row[25]), remarks: String(row[26]),
+        status: String(row[27]),
+        foodHistory: String(row[28]),
+        earlyMorning: String(row[29]), breakfast: String(row[30]),
+        midMorning: String(row[31]), lunch: String(row[32]),
+        eveningSnack: String(row[33]), preWorkout: String(row[34]),
+        postWorkout: String(row[35]), dinner: String(row[36]),
+        beforeBed: String(row[37]), supplementsPlan: String(row[38]),
+        notes: String(row[39])
       };
     });
     return ContentService
@@ -160,10 +175,10 @@ function doGet(e) {
     var sheet = getSheet();
     var rowNum = parseInt(p.rowIndex) + 2;
     var colMap = {
-      status: 26, foodHistory: 27,
-      earlyMorning: 28, breakfast: 29, midMorning: 30,
-      lunch: 31, eveningSnack: 32, preWorkout: 33, postWorkout: 34,
-      dinner: 35, beforeBed: 36, supplementsPlan: 37, notes: 38
+      status: 28, foodHistory: 29,
+      earlyMorning: 30, breakfast: 31, midMorning: 32,
+      lunch: 33, eveningSnack: 34, preWorkout: 35, postWorkout: 36,
+      dinner: 37, beforeBed: 38, supplementsPlan: 39, notes: 40
     };
     Object.keys(colMap).forEach(function(key) {
       if (p[key] !== undefined && p[key] !== null) {
@@ -191,7 +206,10 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function doPost(e) {
-  return doGet(e);
+function doGet(e) {
+  return handleRequest(e);
 }
-```
+
+function doPost(e) {
+  return handleRequest(e);
+}
