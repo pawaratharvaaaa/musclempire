@@ -314,7 +314,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     const rowGap = 6.0;
     const bfStr = getBodyFatStr(customer.bmi, customer.age, customer.gender);
 
-    const fieldsToDraw: Array<{ label: string; val: string }> = [
+    const rawFields: Array<{ label: string; val: string }> = [
       { label: "Name : ", val: cleanText(customer.name) },
       { label: "MF No. : ", val: String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0") },
       { label: "Date : ", val: formatPdfDate(customer.date) },
@@ -325,7 +325,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       { label: "Weight (Kg) : ", val: customer.weight ? `${cleanText(customer.weight)} kg` : "--" },
       { label: "Height (cms) : ", val: customer.height ? `${cleanText(customer.height)} cm` : "--" },
       { label: "BMI : ", val: customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--" },
-      ...(bfStr !== "--" ? [{ label: "Body Fat (Est.) : ", val: bfStr }] : []),
+      { label: "Body Fat (Est.) : ", val: bfStr },
       { label: "Food Pref : ", val: cleanText(customer.foodPref).toUpperCase() },
       { label: "Wake-up Time : ", val: clean(customer.wakeTime) },
       { label: "Bed Time : ", val: clean(customer.bedTime) },
@@ -341,6 +341,12 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       { label: "Supplements : ", val: cleanText(customer.supplements) },
       { label: "Remark : ", val: cleanText(customer.remarks) },
     ];
+
+    // Filter out all empty / unfilled fields ("--", "", "0", "undefined", "null", "N/A")
+    const fieldsToDraw = rawFields.filter(item => {
+      const v = String(item.val || "").trim();
+      return v && v !== "--" && v !== "0" && v !== "undefined" && v !== "null" && v !== "N/A";
+    });
 
     let cx = margin;
     const minGap = 7; // Horizontal gap between fields on the same line
