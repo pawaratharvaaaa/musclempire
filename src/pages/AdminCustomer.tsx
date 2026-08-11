@@ -70,9 +70,67 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-// Parse stored meals JSON from plan
-function parseMeals(raw: string): MealEntry[] {
-  try { return JSON.parse(raw) as MealEntry[]; } catch { return []; }
+function bodyFatCategoryLabel(bf: number, gender: string): string {
+  const isMale = String(gender || "").toLowerCase() === "male";
+  if (isMale) {
+    if (bf < 6) return "Essential Fat";
+    if (bf < 14) return "Athletic/Fit";
+    if (bf < 18) return "Fitness";
+    if (bf < 25) return "Average";
+    return "Obese";
+  } else {
+    if (bf < 14) return "Essential Fat";
+    if (bf < 21) return "Athletic/Fit";
+    if (bf < 25) return "Fitness";
+    if (bf < 32) return "Average";
+    return "Obese";
+  }
+}
+
+function getBodyFatStr(bmiStr: string | undefined, ageStr: string | undefined, genderStr: string | undefined): string {
+  const bmiVal = parseFloat(String(bmiStr || "0"));
+  const ageVal = parseFloat(String(ageStr || "0"));
+  const gender = String(genderStr || "");
+  if (!bmiVal || !ageVal || !gender) return "--";
+  const genderVal = gender.toLowerCase() === "male" ? 1 : 0;
+  const bf = (1.20 * bmiVal) + (0.23 * ageVal) - (10.8 * genderVal) - 5.4;
+  if (bf <= 0 || isNaN(bf)) return "--";
+  const cat = bodyFatCategoryLabel(bf, gender);
+  return `${bf.toFixed(1)}% (${cat})`;
+}
+
+function getNormalizedCustomer(c: AssessmentData): AssessmentData {
+  const norm = { ...c };
+
+  const isFoodPref = (val: string) => /^(vegetarian|non-vegetarian|eggetarian)$/i.test(String(val || "").trim());
+  const isTimeVal = (val: string) => /1899|GMT|:\d{2}|AM|PM/i.test(String(val || "").trim());
+
+  // Fix shifted foodPref into workTime
+  if (isFoodPref(norm.workTime) && (!norm.foodPref || norm.foodPref === "--")) {
+    norm.foodPref = norm.workTime;
+    norm.workTime = "--";
+  }
+
+  // Fix shifted workTime into medicalConditions / allergies
+  if (isTimeVal(norm.medicalConditions) && (!norm.workTime || norm.workTime === "--")) {
+    norm.workTime = norm.medicalConditions;
+    norm.medicalConditions = "--";
+  }
+
+  if (isTimeVal(norm.allergies) && (!norm.workTime || norm.workTime === "--")) {
+    norm.workTime = norm.allergies;
+    norm.allergies = "--";
+  }
+
+  // Fix shifted supplements into remarks
+  if (norm.remarks && (!norm.supplements || norm.supplements === "--")) {
+    if (norm.remarks.toLowerCase().includes("protein") || norm.remarks.toLowerCase().includes("creatine") || norm.remarks.toLowerCase().includes("vitamin")) {
+      norm.supplements = norm.remarks;
+      norm.remarks = "--";
+    }
+  }
+
+  return norm;
 }
 
 export default function AdminCustomer({ params }: { params: { id: string } }) {
@@ -89,12 +147,13 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     const stored = getSelectedAssessment();
     if (stored) {
       clearSelectedAssessment();
-      setCustomer(stored);
-      loadPlanFromRecord(stored);
-      const ri = stored._rowIndex;
+      const normStored = getNormalizedCustomer(stored);
+      setCustomer(normStored);
+      loadPlanFromRecord(normStored);
+      const ri = normStored._rowIndex;
       if (ri !== undefined) {
         setRowIdx(ri);
-        if (stored.status === "New") {
+        if (normStored.status === "New") {
           updateRecord(ri, { status: "In Progress" });
           setCustomer(c => c ? { ...c, status: "In Progress" } : c);
         }
@@ -112,19 +171,16 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       if (!found) {
         idx = data.findIndex(d => String(d.id) === paramId);
         found = idx >= 0 ? data[idx] : undefined;
-      }      if (!found && !isNaN(ni) && data[ni]) { idx = ni; found = data[ni]; }
-      if (!found) {
-        idx = data.findIndex(d => String(d.id) === paramId);
-        found = idx >= 0 ? data[idx] : undefined;
       }
       if (!found || idx < 0) return;
       setRowIdx(idx);
-      if (found.status === "New") {
+      let normFound = getNormalizedCustomer(found);
+      if (normFound.status === "New") {
         await updateRecord(idx, { status: "In Progress" });
-        found = { ...found, status: "In Progress" };
+        normFound = { ...normFound, status: "In Progress" };
       }
-      setCustomer(found);
-      loadPlanFromRecord(found);
+      setCustomer(normFound);
+      loadPlanFromRecord(normFound);
     });
   }, [params.id]);
 
@@ -288,12 +344,16 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
 
     y += 5;
 
-    // Row 2: Gender, Weight (Kg), Height (cms), BMI, Food Pref
+    // Row 2: Gender, Weight (Kg), Height (cms), BMI, Body Fat (Est.), Food Pref
+    const bfStr = getBodyFatStr(customer.bmi, customer.age, customer.gender);
     cx = margin;
     cx = drawInlineField(cx, y, "Gender : ", cleanText(customer.gender), 5);
     cx = drawInlineField(cx, y, "Weight (Kg) : ", customer.weight ? `${cleanText(customer.weight)} kg` : "--", 5);
     cx = drawInlineField(cx, y, "Height (cms) : ", customer.height ? `${cleanText(customer.height)} cm` : "--", 5);
     cx = drawInlineField(cx, y, "BMI : ", customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--", 5);
+    if (bfStr !== "--") {
+      cx = drawInlineField(cx, y, "Body Fat (Est.) : ", bfStr, 5);
+    }
     drawInlineField(cx, y, "Food Pref : ", cleanText(customer.foodPref).toUpperCase(), 5);
 
     y += 5;
@@ -547,13 +607,10 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
             <InfoRow label="Height" value={customer.height ? customer.height + " cm" : "--"} />
             <InfoRow label="BMI" value={customer.bmi} />
             <InfoRow label="BMI Category" value={customer.bmiCategory} />
-            {customer.notes && <InfoRow label="Body Fat (Est.)" value={customer.notes} />}
+            <InfoRow label="Body Fat (Est.)" value={getBodyFatStr(customer.bmi, customer.age, customer.gender)} />
           </Section>
 
           <Section title="Lifestyle">
-            <InfoRow label="Wake-up Time" value={customer.wakeTime} />
-            <InfoRow label="Bed Time" value={customer.bedTime} />
-            <InfoRow label="Sleep Duration" value={customer.sleepDuration ? customer.sleepDuration + " hrs" : "--"} />
             <InfoRow label="Duty Type" value={customer.duty || "--"} />
             <InfoRow label="Rest Time" value={customer.restTime || "--"} />
             <InfoRow label="Workout Time" value={customer.workoutTime} />
