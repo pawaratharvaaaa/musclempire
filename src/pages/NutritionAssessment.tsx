@@ -29,6 +29,18 @@ const blockNonNumericKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
   }
 };
 
+const blockNonAlphabetKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (
+    ["Backspace", "Delete", "Tab", "Escape", "Enter", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", " "].includes(e.key) ||
+    (e.ctrlKey || e.metaKey)
+  ) {
+    return;
+  }
+  if (!/^[a-zA-Z]$/.test(e.key)) {
+    e.preventDefault();
+  }
+};
+
 type Form = {
   name: string; phone: string; email: string; age: string; gender: string;
   weight: string; height: string;
@@ -808,7 +820,8 @@ export default function NutritionAssessment() {
                       <input
                         type="text"
                         value={m.name}
-                        onChange={e => updateMeal(idx, "name", e.target.value)}
+                        onKeyDown={blockNonAlphabetKeys}
+                        onChange={e => updateMeal(idx, "name", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
                         className={inp()}
                       />
                     </div>
@@ -820,6 +833,7 @@ export default function NutritionAssessment() {
                         onChange={e => updateMeal(idx, "time", e.target.value)}
                         className={inp()}
                       />
+                      {m.time && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(m.time)}</span>}
                     </div>
                   </div>
                   <div>

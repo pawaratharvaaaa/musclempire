@@ -50,15 +50,27 @@ export async function submitAssessment(data: AssessmentData): Promise<void> {
   existing.unshift({ ...payload, _rowIndex: existing.length });
   saveLocal(existing);
 
+  // Method 1: POST payload
   try {
-    await fetch(APPS_SCRIPT_URL, {
+    fetch(APPS_SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload),
     });
   } catch (err) {
-    console.error("Sheets submission error:", err);
+    console.error("Sheets POST error:", err);
+  }
+
+  // Method 2: Image ping GET (bypasses browser CORS completely)
+  try {
+    const params: Record<string, string> = { action: "submit" };
+    Object.entries(payload).forEach(([k, v]) => { if (k !== "action") params[k] = String(v ?? ""); });
+    const qs = new URLSearchParams(params).toString();
+    const img = new Image();
+    img.src = `${APPS_SCRIPT_URL}?${qs}`;
+  } catch (err) {
+    console.error("Sheets GET ping error:", err);
   }
 }
 
