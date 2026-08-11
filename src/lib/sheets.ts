@@ -1,4 +1,4 @@
-export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKXlerfZE8Hhp2103jdLKfGvcygM92ixS8TWMeDm1OPAhky4rokUUjehS0g-kRhufXdA/exec";
+export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylqcC98hu82JWfiMKBNJ28heqAqphNVlxUtqJAQNP1Ebdg81QQDblw9i1Z6VEHSM-TmA/exec";
 
 export type AssessmentData = {
   id?: string;
