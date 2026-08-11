@@ -108,14 +108,25 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
   }, [params.id]);
 
   function loadPlanFromRecord(rec: AssessmentData) {
-    // Try to load dynamic meals (diet plan) from earlyMorning field as JSON
+    // Meals are stored as JSON in earlyMorning field
     const raw = (rec as Record<string, unknown>)["earlyMorning"] as string || "";
-    const parsed = parseMeals(raw);
-    if (parsed.length > 0) {
-      setMeals(parsed);
-    } else {
-      setMeals([]);
+    let parsed: MealEntry[] = [];
+    // Try JSON parse first (new format)
+    try {
+      const attempt = JSON.parse(raw);
+      if (Array.isArray(attempt)) parsed = attempt;
+    } catch { /* not JSON */ }
+
+    // Fallback: try breakfast field (in case data was saved to wrong column previously)
+    if (parsed.length === 0) {
+      const bfRaw = (rec as Record<string, unknown>)["breakfast"] as string || "";
+      try {
+        const attempt = JSON.parse(bfRaw);
+        if (Array.isArray(attempt)) parsed = attempt;
+      } catch { /* not JSON */ }
     }
+
+    setMeals(parsed);
     const e: Record<string, string> = {};
     EXTRA_FIELDS.forEach(f => { e[f.key] = (rec as Record<string, unknown>)[f.key] as string || ""; });
     setExtras(e);
@@ -324,12 +335,25 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     const dietRows = meals.filter(m => m.meal || m.suggestion);
     const maxRows = Math.max(historyLines.length, dietRows.length, 1);
 
+    // Parse food history line in format: "Meal #1: Breakfast (7:00 AM) - Oats with milk"
+    const parseHistoryLine = (line: string): { time: string; food: string } => {
+      // Format: "Meal #N: MealName (TIME) - FoodDescription"
+      const mealFmt = line.match(/^Meal\s*#\d+:\s*([^(]+)\s*\(([^)]+)\)\s*-\s*(.*)/i);
+      if (mealFmt) {
+        return { time: mealFmt[2].trim(), food: `${mealFmt[1].trim()}: ${mealFmt[3].trim()}` };
+      }
+      // Format: "7am: food" or "7:00am - food"
+      const timeFmt = line.match(/^(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*[:\-]?\s*(.*)/i);
+      if (timeFmt) {
+        return { time: timeFmt[1].trim(), food: timeFmt[2].trim() };
+      }
+      return { time: "", food: line.trim() };
+    };
+
     let altRow = false;
     for (let i = 0; i < maxRows; i++) {
       const histLine = historyLines[i] || "";
-      const histMatch = histLine.match(/^(\S+(?:am|pm))\s*[:-]?\s*(.*)/i);
-      const histTime = (histMatch ? histMatch[1] : "").substring(0, 8);
-      const histFood = histMatch ? histMatch[2].trim() : histLine.trim();
+      const { time: histTime, food: histFood } = parseHistoryLine(histLine);
 
       const dietRow = dietRows[i];
       const dietMeal = (dietRow?.meal || "") + (dietRow?.time ? " (" + dietRow.time + ")" : "");
