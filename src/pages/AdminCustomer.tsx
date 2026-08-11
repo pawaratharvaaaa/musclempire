@@ -18,6 +18,19 @@ const EXTRA_FIELDS = [
 // Dynamic meal entry type
 type MealEntry = { id: string; meal: string; time: string; suggestion: string };
 
+function formatDate(raw: string | undefined): string {
+  if (!raw) return "--";
+  const s = String(raw).trim();
+  if (!s.includes("GMT") && !s.includes("00:00:00") && s.length < 20) return s;
+  try {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    }
+  } catch {}
+  return s;
+}
+
 function clean(val: string | undefined | null): string {
   const s = String(val ?? "").trim();
   if (!s || s === "0" || s === "undefined" || s === "null") return "--";
@@ -416,6 +429,49 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       });
     }
 
+    // --- PRE-WRITTEN REMARKS & GUIDELINES SECTION AT THE VERY BOTTOM ---
+    const defaultRemarks = [
+      "1. Avoid eating oily foods.",
+      "2. Avoid street food, junk food, and salty snacks or chaat.",
+      "3. Do not consume spicy food.",
+      "4. Avoid consuming stale food, water, or other beverages taken directly from the refrigerator.",
+      "5. Avoid ice cream and unnecessary dairy products.",
+      "6. Completely avoid sugary foods, such as sweets and tea.",
+      "7. Completely avoid consuming tea; instead, make it a habit to drink a cup of warm water if needed."
+    ];
+
+    if (y + 45 > 278) {
+      doc.addPage();
+      y = 15;
+    } else {
+      y += 5;
+    }
+
+    doc.setFillColor(0, 0, 0);
+    doc.rect(margin, y, usableW, 6, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text("Remarks & Guidelines", margin + 2, y + 4.5);
+    y += 9;
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "normal");
+
+    defaultRemarks.forEach((lineText) => {
+      const splitLines = doc.splitTextToSize(lineText, usableW - 4) as string[];
+      const lineH = splitLines.length * 4.2;
+      if (y + lineH > 278) {
+        doc.addPage();
+        y = 15;
+      }
+      splitLines.forEach((l) => {
+        doc.text(l, margin + 2, y);
+        y += 4.2;
+      });
+    });
+
     doc.save("Diet_Sheet_" + customer.name.replace(/\s+/g, "_") + ".pdf");
     setTimeout(() => {
       const phone = String(customer.phone).replace(/\D/g, "");
@@ -467,7 +523,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
         <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="text-2xl font-black text-white mb-1">{customer.name}</h1>
-            <p className="text-white/40 text-sm mb-8">{customer.phone} &middot; Submitted {customer.date}</p>
+            <p className="text-white/40 text-sm mb-8">{customer.phone} &middot; Submitted {formatDate(customer.date)}</p>
           </motion.div>
 
           <Section title="Personal Information">
