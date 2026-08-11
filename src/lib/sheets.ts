@@ -45,9 +45,9 @@ export async function submitAssessment(data: AssessmentData): Promise<void> {
   // Use timestamp as unique ID — guarantees every submission is unique
   const id = String(Date.now());
   const payload = {
-    targetWeight: "",
-    weightChange: "",
     ...data,
+    targetWeight: data.targetWeight || "",
+    weightChange: data.weightChange || "",
     id,
     action: "submit"
   };
