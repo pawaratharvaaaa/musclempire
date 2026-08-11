@@ -338,7 +338,7 @@ export default function NutritionAssessment() {
       medicalConditions: form.medicalConditions, allergies: form.allergies,
       supplements: form.supplements, goals: goalsList, remarks: form.remarks,
       foodHistory: foodHistoryStr, status: "New",
-      notes: bfVal ? `Estimated Body Fat: ${bfVal.toFixed(1)}% (${bfCat?.label})` : "",
+      notes: "",
     };
     await submitAssessment(payload);
     const waMsg = [
