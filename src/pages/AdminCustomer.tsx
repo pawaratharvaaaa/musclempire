@@ -483,12 +483,15 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
             <InfoRow label="Height" value={customer.height ? customer.height + " cm" : "--"} />
             <InfoRow label="BMI" value={customer.bmi} />
             <InfoRow label="BMI Category" value={customer.bmiCategory} />
+            {customer.notes && <InfoRow label="Body Fat (Est.)" value={customer.notes} />}
           </Section>
 
           <Section title="Lifestyle">
             <InfoRow label="Wake-up Time" value={customer.wakeTime} />
             <InfoRow label="Bed Time" value={customer.bedTime} />
             <InfoRow label="Sleep Duration" value={customer.sleepDuration ? customer.sleepDuration + " hrs" : "--"} />
+            <InfoRow label="Duty Type" value={customer.duty || "--"} />
+            <InfoRow label="Rest Time" value={customer.restTime || "--"} />
             <InfoRow label="Workout Time" value={customer.workoutTime} />
             <InfoRow label="Food Preference" value={customer.foodPref} />
             <InfoRow label="College Timing" value={customer.collegeTime} />
