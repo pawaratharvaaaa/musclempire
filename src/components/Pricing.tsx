@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import NumberFlow from "@number-flow/react";
-import { Dumbbell, Users, ArrowRight, Check, Award } from "lucide-react";
+import { Dumbbell, Users, ArrowRight, Check, Award, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import unisexBg from "@/assets/images/unisex-bg.png";
@@ -10,69 +10,140 @@ import type { PricingPlan, PricingFeature } from "@/components/ui/pricing-table"
 import { openRazorpay } from "@/lib/razorpay";
 
 /* ── Unisex gym data ──────────────────────────────────────── */
-const unisexPlans: PricingPlan[] = [
+// Gym-only plans (used as base; CrossFit & Gym+CF toggled in GymCard)
+const unisexGymPlans: PricingPlan[] = [
   {
     name: "Monthly",
     level: "basic",
-    price: { monthly: 2500, yearly: 2500 },
-    originalPrice: { monthly: 3500, yearly: 3500 },
+    price: { monthly: 1500, yearly: 1500 },
+    originalPrice: { monthly: 1500, yearly: 1500 },
+    months: 1, monthlyRate: 1500,
     description: "Pay month-to-month",
     priceSuffix: "/mo"
   },
   {
+    name: "Quarterly",
+    level: "standard",
+    price: { monthly: 3500, yearly: 3500 },
+    originalPrice: { monthly: 4500, yearly: 4500 },
+    months: 3, monthlyRate: 1500,
+    description: "₹3,500 billed every 3 months",
+    priceSuffix: "/3mo"
+  },
+  {
     name: "Half Yearly",
     level: "standard",
-    price: { monthly: 12500, yearly: 12500 },
-    originalPrice: { monthly: 18000, yearly: 18000 },
+    price: { monthly: 5500, yearly: 5500 },
+    originalPrice: { monthly: 9000, yearly: 9000 },
+    months: 6, monthlyRate: 1500,
     popular: true,
-    description: "₹12,500 billed every 6 months",
+    description: "₹5,500 billed every 6 months",
     priceSuffix: "/6mo"
   },
   {
     name: "Yearly",
     level: "premium",
-    price: { monthly: 22000, yearly: 22000 },
-    originalPrice: { monthly: 30000, yearly: 30000 },
-    description: "₹22,000 billed annually",
+    price: { monthly: 8500, yearly: 8500 },
+    originalPrice: { monthly: 18000, yearly: 18000 },
+    months: 12, monthlyRate: 1500,
+    description: "₹8,500 billed annually",
     priceSuffix: "/yr"
   },
 ];
 
+// Gym + CrossFit plans
+const unisexGymCFPlans: PricingPlan[] = [
+  {
+    name: "Monthly",
+    level: "basic",
+    price: { monthly: 2500, yearly: 2500 },
+    originalPrice: { monthly: 2500, yearly: 2500 },
+    months: 1, monthlyRate: 2500,
+    description: "Pay month-to-month",
+    priceSuffix: "/mo"
+  },
+  {
+    name: "Quarterly",
+    level: "standard",
+    price: { monthly: 5500, yearly: 5500 },
+    originalPrice: { monthly: 7500, yearly: 7500 },
+    months: 3, monthlyRate: 2500,
+    description: "₹5,500 billed every 3 months",
+    priceSuffix: "/3mo"
+  },
+  {
+    name: "Half Yearly",
+    level: "standard",
+    price: { monthly: 8500, yearly: 8500 },
+    originalPrice: { monthly: 15000, yearly: 15000 },
+    months: 6, monthlyRate: 2500,
+    popular: true,
+    description: "₹8,500 billed every 6 months",
+    priceSuffix: "/6mo"
+  },
+  {
+    name: "Yearly",
+    level: "premium",
+    price: { monthly: 12500, yearly: 12500 },
+    originalPrice: { monthly: 30000, yearly: 30000 },
+    months: 12, monthlyRate: 2500,
+    description: "₹12,500 billed annually",
+    priceSuffix: "/yr"
+  },
+];
+
+// Default shown in modal (gym only; swapped by planType)
+const unisexPlans = unisexGymPlans;
+
 const unisexFeatures: PricingFeature[] = [
   { name: "All gym equipment",                included: "basic"   },
-  { name: "Strength & cardio training",       included: "basic"   },
   { name: "Trainer assistance",               included: "basic"   },
+  { name: "Strength training",                included: "basic"   },
   { name: "Flexible workout timings",         included: "basic"   },
   { name: "Workout guidance",                 included: "basic"   },
-  { name: "Form correction coaching",         included: "premium" },
+
+  { name: "Form correction coaching",         included: "basic"   },
 ];
 
 /* ── Female gym data ──────────────────────────────────────── */
+// Membership registration fee: ₹500 (one-time)
 const femalePlans: PricingPlan[] = [
   {
     name: "Monthly",
     level: "basic",
     price: { monthly: 1500, yearly: 1500 },
-    originalPrice: { monthly: 2000, yearly: 2000 },
+    originalPrice: { monthly: 1500, yearly: 1500 },
+    months: 1, monthlyRate: 1500,
     description: "Pay month-to-month",
     priceSuffix: "/mo"
   },
   {
+    name: "Quarterly",
+    level: "standard",
+    price: { monthly: 3000, yearly: 3000 },
+    originalPrice: { monthly: 4500, yearly: 4500 },
+    months: 3, monthlyRate: 1500,
+    description: "₹3,000 billed every 3 months",
+    priceSuffix: "/3mo"
+  },
+  {
     name: "Half Yearly",
     level: "standard",
-    price: { monthly: 834, yearly: 5000 },
-    originalPrice: { monthly: 1200, yearly: 7200 },
+    price: { monthly: 5500, yearly: 5500 },
+    originalPrice: { monthly: 9000, yearly: 9000 },
+    months: 6, monthlyRate: 1500,
     popular: true,
-    description: "₹5,000 billed every 6 months",
-    priceSuffix: "/mo"
+    description: "₹5,500 billed every 6 months",
+    priceSuffix: "/6mo"
   },
   {
     name: "Yearly",
     level: "premium",
-    price: { monthly: 625, yearly: 7500 },
-    originalPrice: { monthly: 1000, yearly: 12000 },
-    description: "₹7,500 billed annually",
-    priceSuffix: "/mo"
+    price: { monthly: 8000, yearly: 8000 },
+    originalPrice: { monthly: 18000, yearly: 18000 },
+    months: 12, monthlyRate: 1500,
+    description: "₹8,000 billed annually",
+    priceSuffix: "/yr"
   },
 ];
 
@@ -80,10 +151,10 @@ const femaleFeatures: PricingFeature[] = [
   { name: "All gym equipment",                included: "basic"    },
   { name: "Women-only environment",           included: "basic"    },
   { name: "Trainer assistance",               included: "basic"    },
-  { name: "Cardio & strength training",       included: "basic"    },
+  { name: "Strength training",                included: "basic"    },
   { name: "Workout guidance",                 included: "basic"    },
-  { name: "Priority trainer support",         included: "standard" },
-  { name: "Progress check-ins",               included: "premium"  },
+  { name: "Priority trainer support",         included: "basic"    },
+  { name: "Progress check-ins",               included: "basic"    },
 ];
 
 const gyms = [
@@ -93,9 +164,9 @@ const gyms = [
     Icon: Dumbbell,
     tag: "For everyone",
     tagStyle: "bg-[#E8A820] text-[#1C1C1E]",
-    desc: "A complete fitness destination with strength training, cardio, CrossFit, expert trainers, and premium equipment for all fitness levels.",
+    desc: "A complete fitness destination with strength training, CrossFit, expert trainers, and premium equipment for all fitness levels.",
     price: "Starting from ₹1,500/month",
-    features: ["Expert trainers", "Full strength & cardio equipment", "All fitness levels welcome"],
+    features: ["Expert trainers", "Full strength equipment", "All fitness levels welcome"],
     href: "/unisex-gym-plans",
     featured: true,
     bgImg: unisexBg,
@@ -103,6 +174,8 @@ const gyms = [
     glowColor: "rgba(232,168,32,0.15)",
     plans: unisexPlans,
     tableFeatures: unisexFeatures,
+    gymOnlyPlans: unisexGymPlans,
+    gymCFPlans: unisexGymCFPlans,
   },
   {
     title: "Muscle Empire Crossfit Studio",
@@ -110,7 +183,7 @@ const gyms = [
     Icon: Users,
     tag: "Ladies only",
     tagStyle: "bg-pink-500/15 text-pink-400 border border-pink-500/30",
-    desc: "A dedicated women's space offering strength training, CrossFit, weight management, and personal coaching in a comfortable environment.",
+    desc: "A dedicated women's space offering strength training, CrossFit, weight management, and personal coaching in a comfortable environment. New registration: ₹500.",
     price: "Starting from ₹1,500/month",
     features: ["Women-only environment", "Personal coaching", "Weight management", "Strength training"],
     href: "/female-gym-plans",
@@ -123,12 +196,15 @@ const gyms = [
   },
 ];
 
-type PlanType = "gym" | "crossfit" | "crossfit_gym";
+type PlanType = "gym" | "crossfit_gym";
 
 function GymCard({ gym, i, onSelect }: { gym: typeof gyms[0], i: number, onSelect: (g: typeof gyms[0], pt: PlanType) => void }) {
   const [planType, setPlanType] = useState<PlanType>("gym");
 
-  const currentPrice = planType === "gym" ? 1500 : planType === "crossfit" ? 2000 : 3000;
+  // Starting (monthly) price per toggle
+  const currentPrice = gym.featured
+    ? planType === "gym" ? 1500 : 2500
+    : 1500;
 
   return (
     <motion.div
@@ -198,26 +274,28 @@ function GymCard({ gym, i, onSelect }: { gym: typeof gyms[0], i: number, onSelec
         ))}
       </ul>
 
-      {/* Toggles */}
-      <div className="flex items-center justify-center gap-1 mb-5 z-10 relative bg-black/40 p-1.5 rounded-full border border-white/10 w-full mx-auto">
-        {(["gym", "crossfit", "crossfit_gym"] as const).map(type => {
-          const active = planType === type;
-          const label = type === "gym" ? "Gym" : type === "crossfit" ? "CrossFit" : "Gym + CF";
-          return (
-            <button
-              key={type}
-              onClick={() => setPlanType(type)}
-              className="flex-1 px-2 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap"
-              style={{
-                background: active ? gym.accentColor : "transparent",
-                color: active ? (gym.featured ? "#1C1C1E" : "white") : "rgba(255,255,255,0.6)",
-              }}
-            >
-              {label}
-            </button>
-          )
-        })}
-      </div>
+      {/* Toggles — only show for unisex gym (featured); female has no toggle */}
+      {gym.featured && (
+        <div className="flex items-center justify-center gap-1 mb-5 z-10 relative bg-black/40 p-1.5 rounded-full border border-white/10 w-full mx-auto">
+          {(["gym", "crossfit_gym"] as const).map(type => {
+            const active = planType === type;
+            const label = type === "gym" ? "Gym" : "Gym + CF";
+            return (
+              <button
+                key={type}
+                onClick={() => setPlanType(type)}
+                className="flex-1 px-2 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap"
+                style={{
+                  background: active ? gym.accentColor : "transparent",
+                  color: active ? "#1C1C1E" : "rgba(255,255,255,0.6)",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Price */}
       <div className={`mb-5 px-5 py-3.5 rounded-xl border z-10 transition-all duration-300 flex items-baseline gap-1 ${
@@ -256,6 +334,7 @@ function GymCard({ gym, i, onSelect }: { gym: typeof gyms[0], i: number, onSelec
 export default function Pricing() {
   const [, navigate] = useLocation();
   const [modalGym, setModalGym] = useState<{gym: typeof gyms[0], planType: PlanType} | null>(null);
+  const [ptModalOpen, setPtModalOpen] = useState(false);
 
   return (
     <section id="pricing" className="py-28 bg-[#1C1C1E] relative overflow-hidden">
@@ -357,7 +436,7 @@ export default function Pricing() {
               <div className="mt-auto z-10">
                 {/* price pill */}
                 <div className="mb-4 px-4 py-2.5 rounded-xl border text-white font-black text-[0.95rem] z-10 transition-all duration-300 bg-green-500/[0.04] border-green-500/15 group-hover:bg-green-500/[0.08] group-hover:border-green-500/30">
-                  ₹800 <span className="text-[0.75rem] font-medium text-white/45">/ month</span>
+                  ₹800 <span className="text-[0.75rem] font-medium text-white/45">/ session</span>
                 </div>
 
                 {/* CTA */}
@@ -404,23 +483,18 @@ export default function Pricing() {
               <div className="w-8 h-[1.5px] mb-4 rounded-full z-10 transition-all duration-300 group-hover:w-16 bg-blue-500/40" />
 
               {/* description */}
-              <p className="text-[0.825rem] leading-relaxed text-white/45 mb-4 flex-1 z-10">
+              <p className="text-[0.825rem] leading-relaxed text-white/45 mb-3 flex-1 z-10">
                 Accelerate your transformation with one-on-one professional coaching, tailored exercise planning, and real-time form guidance.
               </p>
 
               <div className="mt-auto z-10">
-                {/* price pill */}
-                <div className="mb-4 px-4 py-2.5 rounded-xl border text-white font-black text-[0.95rem] z-10 transition-all duration-300 bg-blue-500/[0.04] border-blue-500/15 group-hover:bg-blue-500/[0.08] group-hover:border-blue-500/30">
-                  ₹4,000 <span className="text-[0.75rem] font-medium text-white/45">/ month</span>
-                </div>
-
                 {/* CTA */}
                 <button 
                   type="button" 
-                  onClick={() => openRazorpay("Personal Training Plan", 4000 * 100)}
+                  onClick={() => setPtModalOpen(true)}
                   className="w-full flex items-center justify-center gap-2 font-bold text-[12px] h-[46px] rounded-xl transition-all duration-300 z-10 text-[#0f1a2a] bg-blue-500 hover:bg-blue-400 shadow-[0_4px_20px_rgba(59,130,246,0.25)] group-hover:shadow-[0_10px_25px_rgba(59,130,246,0.35)] hover:-translate-y-0.5 group"
                 >
-                  Get a Trainer <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
+                  View plans <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
                 </button>
               </div>
             </motion.div>
@@ -433,25 +507,126 @@ export default function Pricing() {
         <PricingModal
           open={!!modalGym}
           onClose={() => setModalGym(null)}
-          title={`${modalGym.gym.title} (${modalGym.planType === 'gym' ? 'Gym Only' : modalGym.planType === 'crossfit' ? 'CrossFit Only' : 'Gym + CrossFit'})`}
+          title={`${modalGym.gym.title} (${modalGym.planType === 'gym' ? 'Gym Only' : 'Gym + CrossFit'})`}
           subtitle={modalGym.gym.subtitle}
           accentColor={modalGym.gym.accentColor}
           features={modalGym.gym.tableFeatures}
-          plans={modalGym.gym.plans.map(p => ({
-            ...p,
-            price: {
-              monthly: modalGym.planType === 'gym' ? p.price.monthly : modalGym.planType === 'crossfit' ? p.price.monthly + 500 : p.price.monthly + 1000,
-              yearly: modalGym.planType === 'gym' ? p.price.yearly : modalGym.planType === 'crossfit' ? p.price.yearly + 500 : p.price.yearly + 1000,
-            }
-          }))}
+          plans={
+            modalGym.gym.featured
+              ? (modalGym.planType === 'crossfit_gym'
+                  ? (modalGym.gym.gymCFPlans ?? modalGym.gym.plans)
+                  : (modalGym.gym.gymOnlyPlans ?? modalGym.gym.plans))
+              : modalGym.gym.plans
+          }
           onGetStarted={(plan) => {
             const amount = plan.price.monthly;
-            const planName = `${modalGym.gym.title} [${modalGym.planType}] - ${plan.name}`;
+            const planName = `${modalGym.gym.title} [${modalGym.planType === 'gym' ? 'Gym Only' : 'Gym + CrossFit'}] - ${plan.name}`;
             openRazorpay(planName, amount * 100);
             setModalGym(null);
           }}
         />
       )}
+      {/* PT Modal */}
+      <AnimatePresence>
+        {ptModalOpen && (
+          <motion.div
+            className="fixed inset-0 z-[1100] flex items-end sm:items-center justify-center p-0 sm:p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-black/75 backdrop-blur-md"
+              onClick={() => setPtModalOpen(false)}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            />
+            <motion.div
+              className="relative w-full sm:max-w-md rounded-t-[28px] sm:rounded-[24px] z-10 overflow-hidden"
+              style={{ background: "#18181a", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 40px 100px rgba(0,0,0,0.8)" }}
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 34 }}
+            >
+              {/* Drag handle */}
+              <div className="flex justify-center pt-3 pb-1 sm:hidden">
+                <div className="w-10 h-1 rounded-full bg-white/15" />
+              </div>
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-0.5">1-on-1 PT</p>
+                  <h3 className="font-black text-white text-[1rem]">Personal Training Plan</h3>
+                </div>
+                <button
+                  onClick={() => setPtModalOpen(false)}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-white/40 hover:text-white transition-colors bg-white/[0.06]"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-6 flex flex-col gap-4">
+                {/* 12 Sessions */}
+                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/[0.06] p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-black text-white text-[1rem]">12 Sessions</p>
+                      <p className="text-[11px] text-blue-400 uppercase tracking-widest font-bold mt-0.5">Per month</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[2rem] font-black text-white leading-none">₹5,000</p>
+                      <p className="text-[11px] text-white/35 mt-0.5">≈ ₹417 / session</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-1.5 mb-4">
+                    {["12 sessions with a dedicated trainer", "Custom workout program", "Form correction & guidance", "Progress tracking"].map(f => (
+                      <li key={f} className="flex items-center gap-2 text-[12px] text-white/60">
+                        <Check size={12} className="text-blue-400 shrink-0" strokeWidth={3} />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => { openRazorpay("Personal Training – 12 Sessions/month", 5000 * 100); setPtModalOpen(false); }}
+                    className="w-full h-[42px] rounded-xl font-bold text-[12px] bg-blue-500 hover:bg-blue-400 text-[#0f1a2a] transition-all flex items-center justify-center gap-2 group"
+                  >
+                    Get started <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+
+                {/* Every Day */}
+                <div className="rounded-2xl border border-blue-400/40 bg-blue-500/[0.10] p-5 relative">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-blue-500 text-[#0f1a2a]">Best Results</span>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-black text-white text-[1rem]">Every Day</p>
+                      <p className="text-[11px] text-blue-400 uppercase tracking-widest font-bold mt-0.5">Per month</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[2rem] font-black text-white leading-none">₹8,000</p>
+                      <p className="text-[11px] text-white/35 mt-0.5">Daily coaching</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-1.5 mb-4">
+                    {["Daily sessions with a dedicated trainer", "Custom workout program", "Form correction & guidance", "Progress tracking", "Nutrition tips included"].map(f => (
+                      <li key={f} className="flex items-center gap-2 text-[12px] text-white/60">
+                        <Check size={12} className="text-blue-400 shrink-0" strokeWidth={3} />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => { openRazorpay("Personal Training – Every Day/month", 8000 * 100); setPtModalOpen(false); }}
+                    className="w-full h-[42px] rounded-xl font-bold text-[12px] bg-blue-500 hover:bg-blue-400 text-[#0f1a2a] transition-all flex items-center justify-center gap-2 group"
+                  >
+                    Get started <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

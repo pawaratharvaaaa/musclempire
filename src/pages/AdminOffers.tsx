@@ -1,18 +1,63 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { getOffers, addOffer, removeOffer, updateOffer } from "@/lib/offersStore";
+import { getCoupons, addCoupon, updateCoupon, removeCoupon } from "@/lib/couponStore";
+import type { Coupon } from "@/lib/couponStore";
 import type { Offer } from "@/data/offers";
-import { Plus, Trash2, Edit, LogOut, Users, Tag, Upload, X, Check, Eye } from "lucide-react";
+import { Plus, Trash2, Edit, LogOut, Users, Tag, Upload, X, Check, Ticket, ToggleLeft, ToggleRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
 
 export default function AdminOffers() {
   const [, navigate] = useLocation();
+  const [activeTab, setActiveTab] = useState<"offers" | "coupons">("offers");
+
+  // ── Offers state ──────────────────────────────────────────
   const [offers, setOffers] = useState<Offer[]>([]);
   const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // ── Coupons state ─────────────────────────────────────────
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [showAddCoupon, setShowAddCoupon] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
+  const [cpCode, setCpCode] = useState("");
+  const [cpDiscount, setCpDiscount] = useState("");
+  const [cpPlans, setCpPlans] = useState<string[]>([]);
+  const [cpDesc, setCpDesc] = useState("");
+  const [cpEnabled, setCpEnabled] = useState(true);
+
+  const ALL_PLANS = ["Monthly", "Quarterly", "Half Yearly", "Yearly"];
+
+  function resetCouponForm() {
+    setCpCode(""); setCpDiscount(""); setCpPlans([]); setCpDesc(""); setCpEnabled(true);
+  }
+
+  function handleAddCoupon() {
+    if (!cpCode.trim() || !cpDiscount.trim()) { alert("Code and discount are required"); return; }
+    addCoupon({ code: cpCode.trim().toUpperCase(), discount: Number(cpDiscount), plans: cpPlans, description: cpDesc.trim(), enabled: cpEnabled });
+    setCoupons(getCoupons());
+    resetCouponForm();
+    setShowAddCoupon(false);
+  }
+
+  function handleUpdateCoupon() {
+    if (!editingCoupon) return;
+    updateCoupon(editingCoupon.id, editingCoupon);
+    setCoupons(getCoupons());
+    setEditingCoupon(null);
+  }
+
+  function handleRemoveCoupon(id: string) {
+    if (confirm("Delete this coupon?")) { removeCoupon(id); setCoupons(getCoupons()); }
+  }
+
+  function toggleCoupon(id: string, enabled: boolean) {
+    updateCoupon(id, { enabled });
+    setCoupons(getCoupons());
+  }
 
   // Form states
   const [title, setTitle] = useState("");
@@ -28,9 +73,15 @@ export default function AdminOffers() {
 
   useEffect(() => {
     setOffers(getOffers());
+    setCoupons(getCoupons());
     const handler = () => setOffers(getOffers());
+    const couponHandler = () => setCoupons(getCoupons());
     window.addEventListener("offersUpdated", handler);
-    return () => window.removeEventListener("offersUpdated", handler);
+    window.addEventListener("couponsUpdated", couponHandler);
+    return () => {
+      window.removeEventListener("offersUpdated", handler);
+      window.removeEventListener("couponsUpdated", couponHandler);
+    };
   }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
@@ -148,67 +199,254 @@ export default function AdminOffers() {
 
         {/* Main Section */}
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-lg font-bold uppercase tracking-wider">Active Deals ({offers.length})</h2>
+
+          {/* Tabs */}
+          <div className="flex gap-2 mb-8 border-b border-white/10">
             <button
-              onClick={() => { resetForm(); setShowAdd(true); }}
-              className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black font-black uppercase tracking-widest text-xs px-5 py-3 rounded-xl transition-all cursor-pointer shadow-lg hover:shadow-green-500/20"
+              onClick={() => setActiveTab("offers")}
+              className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-colors -mb-px ${activeTab === "offers" ? "border-green-400 text-green-400" : "border-transparent text-white/40 hover:text-white/70"}`}
             >
-              <Plus size={15} />
-              Add New Offer
+              <Tag size={14} /> Offers
+            </button>
+            <button
+              onClick={() => setActiveTab("coupons")}
+              className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-colors -mb-px ${activeTab === "coupons" ? "border-yellow-400 text-yellow-400" : "border-transparent text-white/40 hover:text-white/70"}`}
+            >
+              <Ticket size={14} /> Coupons
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {offers.map((offer) => (
-              <div key={offer.id} className="bg-[#161b22] border border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-white/20 transition-all">
-                {/* Banner Image */}
-                <div className="h-40 bg-white/5 relative flex items-center justify-center overflow-hidden">
-                  {offer.image ? (
-                    <img src={offer.image} alt={offer.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <Tag size={40} className="text-white/20" />
-                  )}
-                  <span className="absolute top-3 right-3 bg-green-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded-full z-10">
-                    {offer.discount}
-                  </span>
-                  <span className="absolute top-3 left-3 bg-white/10 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/10">
-                    {offer.badge}
-                  </span>
-                </div>
-
-                {/* Details */}
-                <div className="p-5 flex flex-col flex-1 gap-3">
-                  <div>
-                    <h3 className="font-black uppercase tracking-tight text-white text-base leading-tight mb-1">{offer.title}</h3>
-                    <p className="text-white/40 text-xs font-semibold uppercase">{offer.subtitle || "Exclusive Deal"}</p>
-                  </div>
-                  <p className="text-white/60 text-xs leading-relaxed flex-1">{offer.description}</p>
-                  <p className="text-[11px] text-white/45">Valid till: <strong className="text-white/80">{offer.validTill}</strong></p>
-
-                  <div className="flex gap-2.5 pt-3 border-t border-white/10">
-                    <button
-                      onClick={() => setEditingOffer(offer)}
-                      className="flex-1 flex items-center justify-center gap-1.5 h-9 bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer border border-white/5"
-                    >
-                      <Edit size={13} />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleRemove(offer.id)}
-                      className="h-9 w-9 flex items-center justify-center bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-colors border border-red-500/15 cursor-pointer"
-                      title="Delete Offer"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
+          {/* ── OFFERS TAB ── */}
+          {activeTab === "offers" && (
+            <>
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-lg font-bold uppercase tracking-wider">Active Deals ({offers.length})</h2>
+                <button
+                  onClick={() => { resetForm(); setShowAdd(true); }}
+                  className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black font-black uppercase tracking-widest text-xs px-5 py-3 rounded-xl transition-all cursor-pointer shadow-lg hover:shadow-green-500/20"
+                >
+                  <Plus size={15} />
+                  Add New Offer
+                </button>
               </div>
-            ))}
-          </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {offers.map((offer) => (
+                  <div key={offer.id} className="bg-[#161b22] border border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-white/20 transition-all">
+                    <div className="h-40 bg-white/5 relative flex items-center justify-center overflow-hidden">
+                      {offer.image ? (
+                        <img src={offer.image} alt={offer.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <Tag size={40} className="text-white/20" />
+                      )}
+                      <span className="absolute top-3 right-3 bg-green-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded-full z-10">{offer.discount}</span>
+                      <span className="absolute top-3 left-3 bg-white/10 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/10">{offer.badge}</span>
+                    </div>
+                    <div className="p-5 flex flex-col flex-1 gap-3">
+                      <div>
+                        <h3 className="font-black uppercase tracking-tight text-white text-base leading-tight mb-1">{offer.title}</h3>
+                        <p className="text-white/40 text-xs font-semibold uppercase">{offer.subtitle || "Exclusive Deal"}</p>
+                      </div>
+                      <p className="text-white/60 text-xs leading-relaxed flex-1">{offer.description}</p>
+                      <p className="text-[11px] text-white/45">Valid till: <strong className="text-white/80">{offer.validTill}</strong></p>
+                      <div className="flex gap-2.5 pt-3 border-t border-white/10">
+                        <button onClick={() => setEditingOffer(offer)} className="flex-1 flex items-center justify-center gap-1.5 h-9 bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer border border-white/5">
+                          <Edit size={13} /> Edit
+                        </button>
+                        <button onClick={() => handleRemove(offer.id)} className="h-9 w-9 flex items-center justify-center bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-colors border border-red-500/15 cursor-pointer" title="Delete Offer">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── COUPONS TAB ── */}
+          {activeTab === "coupons" && (
+            <>
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-lg font-bold uppercase tracking-wider">Coupon Codes ({coupons.length})</h2>
+                <button
+                  onClick={() => { resetCouponForm(); setShowAddCoupon(true); }}
+                  className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-black uppercase tracking-widest text-xs px-5 py-3 rounded-xl transition-all cursor-pointer shadow-lg hover:shadow-yellow-400/20"
+                >
+                  <Plus size={15} /> Add Coupon
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {coupons.map(coupon => (
+                  <div key={coupon.id} className={`bg-[#161b22] border rounded-2xl p-5 flex items-center gap-5 transition-all ${coupon.enabled ? "border-yellow-400/25 hover:border-yellow-400/50" : "border-white/10 opacity-60"}`}>
+                    {/* Code */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="font-black text-white text-base tracking-widest uppercase">{coupon.code}</span>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-yellow-400/15 text-yellow-400 border border-yellow-400/30">
+                          {coupon.discount}% OFF
+                        </span>
+                        {coupon.enabled ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/20">Active</span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-white/30 border border-white/10">Disabled</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-white/40 truncate">{coupon.description || "—"}</p>
+                      <p className="text-[11px] text-white/30 mt-1">
+                        Valid on: {coupon.plans.length === 0 ? "All plans" : coupon.plans.join(", ")}
+                      </p>
+                    </div>
+
+                    {/* Toggle */}
+                    <button
+                      onClick={() => toggleCoupon(coupon.id, !coupon.enabled)}
+                      className="shrink-0 transition-colors"
+                      title={coupon.enabled ? "Disable coupon" : "Enable coupon"}
+                    >
+                      {coupon.enabled
+                        ? <ToggleRight size={32} className="text-green-400" />
+                        : <ToggleLeft size={32} className="text-white/20" />}
+                    </button>
+
+                    {/* Edit */}
+                    <button
+                      onClick={() => setEditingCoupon(coupon)}
+                      className="shrink-0 w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/5 transition-colors cursor-pointer"
+                    >
+                      <Edit size={14} />
+                    </button>
+
+                    {/* Delete */}
+                    <button
+                      onClick={() => handleRemoveCoupon(coupon.id)}
+                      className="shrink-0 w-9 h-9 flex items-center justify-center bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg border border-red-500/15 transition-colors cursor-pointer"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+                {coupons.length === 0 && (
+                  <div className="text-center py-16 text-white/20 text-sm">No coupons yet. Add one above.</div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Modal: Add Offer */}
+        {/* Modal: Add Coupon */}
+        <AnimatePresence>
+          {showAddCoupon && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-[#161b22] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl"
+              >
+                <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                  <h3 className="font-black uppercase tracking-wider text-sm flex items-center gap-2"><Ticket size={15} className="text-yellow-400" /> Add Coupon</h3>
+                  <button onClick={() => setShowAddCoupon(false)} className="text-white/40 hover:text-white cursor-pointer"><X size={18} /></button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Code</label>
+                      <input value={cpCode} onChange={e => setCpCode(e.target.value.toUpperCase())} placeholder="e.g. SAVE25" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm font-bold tracking-widest outline-none focus:border-yellow-400/50 transition-colors" />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Discount %</label>
+                      <input value={cpDiscount} onChange={e => setCpDiscount(e.target.value)} type="number" min="1" max="100" placeholder="e.g. 25" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-yellow-400/50 transition-colors" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Description (optional)</label>
+                    <input value={cpDesc} onChange={e => setCpDesc(e.target.value)} placeholder="e.g. 25% off for new members" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-yellow-400/50 transition-colors" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Valid on Plans (leave empty = all plans)</label>
+                    <div className="flex flex-wrap gap-2">
+                      {ALL_PLANS.map(plan => (
+                        <button key={plan} type="button"
+                          onClick={() => setCpPlans(prev => prev.includes(plan) ? prev.filter(p => p !== plan) : [...prev, plan])}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border transition-colors ${cpPlans.includes(plan) ? "bg-yellow-400 text-black border-yellow-400" : "bg-white/5 text-white/50 border-white/10 hover:border-yellow-400/40"}`}
+                        >{plan}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl border border-white/10">
+                    <span className="text-sm font-bold text-white/70">Enable immediately</span>
+                    <button type="button" onClick={() => setCpEnabled(p => !p)}>
+                      {cpEnabled ? <ToggleRight size={28} className="text-green-400" /> : <ToggleLeft size={28} className="text-white/20" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="px-6 py-4 border-t border-white/10 flex gap-3">
+                  <button onClick={handleAddCoupon} className="flex-1 h-11 bg-yellow-400 hover:bg-yellow-300 text-black font-black uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer">
+                    <Check size={15} /> Add Coupon
+                  </button>
+                  <button onClick={() => setShowAddCoupon(false)} className="px-6 h-11 bg-white/5 hover:bg-white/10 text-white font-bold uppercase text-xs rounded-xl border border-white/5 cursor-pointer">Cancel</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Modal: Edit Coupon */}
+        <AnimatePresence>
+          {editingCoupon && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-[#161b22] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl"
+              >
+                <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                  <h3 className="font-black uppercase tracking-wider text-sm flex items-center gap-2"><Edit size={15} className="text-yellow-400" /> Edit Coupon</h3>
+                  <button onClick={() => setEditingCoupon(null)} className="text-white/40 hover:text-white cursor-pointer"><X size={18} /></button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Code</label>
+                      <input value={editingCoupon.code} onChange={e => setEditingCoupon({...editingCoupon, code: e.target.value.toUpperCase()})} className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm font-bold tracking-widest outline-none focus:border-yellow-400/50 transition-colors" />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Discount %</label>
+                      <input value={editingCoupon.discount} onChange={e => setEditingCoupon({...editingCoupon, discount: Number(e.target.value)})} type="number" min="1" max="100" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-yellow-400/50 transition-colors" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Description</label>
+                    <input value={editingCoupon.description || ""} onChange={e => setEditingCoupon({...editingCoupon, description: e.target.value})} className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-yellow-400/50 transition-colors" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Valid on Plans</label>
+                    <div className="flex flex-wrap gap-2">
+                      {ALL_PLANS.map(plan => (
+                        <button key={plan} type="button"
+                          onClick={() => setEditingCoupon({...editingCoupon, plans: editingCoupon.plans.includes(plan) ? editingCoupon.plans.filter(p => p !== plan) : [...editingCoupon.plans, plan]})}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border transition-colors ${editingCoupon.plans.includes(plan) ? "bg-yellow-400 text-black border-yellow-400" : "bg-white/5 text-white/50 border-white/10 hover:border-yellow-400/40"}`}
+                        >{plan}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl border border-white/10">
+                    <span className="text-sm font-bold text-white/70">Enabled</span>
+                    <button type="button" onClick={() => setEditingCoupon({...editingCoupon, enabled: !editingCoupon.enabled})}>
+                      {editingCoupon.enabled ? <ToggleRight size={28} className="text-green-400" /> : <ToggleLeft size={28} className="text-white/20" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="px-6 py-4 border-t border-white/10 flex gap-3">
+                  <button onClick={handleUpdateCoupon} className="flex-1 h-11 bg-yellow-400 hover:bg-yellow-300 text-black font-black uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer">
+                    <Check size={15} /> Save Changes
+                  </button>
+                  <button onClick={() => setEditingCoupon(null)} className="px-6 h-11 bg-white/5 hover:bg-white/10 text-white font-bold uppercase text-xs rounded-xl border border-white/5 cursor-pointer">Cancel</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence>
           {showAdd && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">

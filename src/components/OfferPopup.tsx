@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, Clock, ArrowRight, MessageSquare, Flame } from "lucide-react";
+import { X, Sparkles, Clock, ArrowRight, MessageSquare, Flame, Info, CheckCircle2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { getOffers } from "@/lib/offersStore";
 import type { Offer } from "@/data/offers";
@@ -27,6 +27,7 @@ const slideVariants = {
 
 export default function OfferPopup() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -61,8 +62,7 @@ export default function OfferPopup() {
   };
 
   const handleViewAllOffers = () => {
-    handleClose();
-    navigate("/offers");
+    setShowHelp(true);
   };
 
   const paginate = (newDirection: number) => {
@@ -230,6 +230,104 @@ export default function OfferPopup() {
                 >
                   All Offers
                   <ArrowRight size={13} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Help Modal - How to Apply Coupon */}
+      {showHelp && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowHelp(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl z-10 overflow-hidden"
+          >
+            <div className="h-1 w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+            <div className="p-8">
+              <button
+                onClick={() => setShowHelp(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Info size={24} className="text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tight text-gray-900">How to Apply Coupon</h3>
+                  <p className="text-sm text-gray-500">Follow these simple steps</p>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <div className="flex gap-4">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-black">1</div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-900 mb-1">Select Your Plan</h4>
+                    <p className="text-sm text-gray-600">Go to the pricing section and choose a gym membership plan (Monthly, Quarterly, Half Yearly, or Yearly).</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-black">2</div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-900 mb-1">Click "View all plans"</h4>
+                    <p className="text-sm text-gray-600">This opens the pricing modal with detailed plan information and features.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-black">3</div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-900 mb-1">Click "Have a coupon code?"</h4>
+                    <p className="text-sm text-gray-600">Below the price display, you'll see this link. Click it to reveal the coupon input field.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-black">4</div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-900 mb-1">Enter Your Coupon Code</h4>
+                    <p className="text-sm text-gray-600">Type or paste your coupon code (e.g., <code className="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono">MUSCLEMPIRE25</code>) and click "Apply".</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">
+                    <CheckCircle2 size={16} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-900 mb-1">See Your Discount!</h4>
+                    <p className="text-sm text-gray-600">If valid, the price updates instantly showing your savings. Some coupons only work on specific plans.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowHelp(false); handleClose(); navigate("/#pricing"); }}
+                  className="flex-1 h-11 bg-gray-900 hover:bg-gray-700 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition-colors cursor-pointer"
+                >
+                  Go to Pricing
+                </button>
+                <button
+                  onClick={() => setShowHelp(false)}
+                  className="px-6 h-11 bg-white hover:bg-gray-50 text-gray-700 font-bold uppercase text-xs rounded-xl border border-gray-200 transition-colors cursor-pointer"
+                >
+                  Close
                 </button>
               </div>
             </div>

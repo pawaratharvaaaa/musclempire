@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { cn } from "@/lib/utils"
 import { CheckIcon } from "@radix-ui/react-icons"
 import NumberFlow from "@number-flow/react"
 import { X, ArrowRight } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
+import { validateCoupon, getCoupons } from "@/lib/couponStore"
 
 /* ── Types ─────────────────────────────────────────────────── */
 
@@ -27,6 +27,8 @@ export interface PricingPlan {
     monthly: number
     yearly: number
   }
+  monthlyRate?: number   // base per-month rate used to show "N × ₹rate" calculation
+  months?: number        // number of months in this plan
   popular?: boolean
   description?: string
   priceSuffix?: string
@@ -59,21 +61,68 @@ export function PricingTable({
   onGetStarted,
   defaultPlan,
 }: PricingTableProps) {
-  const [selectedPlan, setSelectedPlan] = React.useState<PlanLevel>(
-    defaultPlan ?? plans.find(p => p.popular)?.level ?? plans[0]?.level
+  const [selectedPlan, setSelectedPlan] = React.useState<string>(
+    defaultPlan ?? plans.find(p => p.popular)?.name ?? plans[0]?.name
   )
+  const [showCoupon, setShowCoupon]     = React.useState(false)
+  const [couponInput, setCouponInput]   = React.useState("")
+  const [couponStatus, setCouponStatus] = React.useState<"idle" | "valid" | "invalid" | "not_applicable">("idle")
+  const [appliedCoupon, setAppliedCoupon] = React.useState<string | null>(null)
+  const [discount, setDiscount]         = React.useState(0)
+
+  function applyCoupon() {
+    const code = couponInput.trim().toUpperCase()
+    const result = validateCoupon(code, selectedPlan)
+    if (result) {
+      setDiscount(result.discount)
+      setAppliedCoupon(code)
+      setCouponStatus("valid")
+      return
+    }
+    setDiscount(0)
+    setAppliedCoupon(null)
+    // Check if code exists but is restricted to other plans (or disabled)
+    const allCoupons = getCoupons()
+    const exists = allCoupons.find(c => c.code === code)
+    if (exists && exists.enabled && exists.plans.length > 0 && !exists.plans.includes(selectedPlan)) {
+      setCouponStatus("not_applicable")
+    } else {
+      setCouponStatus("invalid")
+    }
+  }
+
+  // Re-validate when plan changes
+  React.useEffect(() => {
+    if (!appliedCoupon) return
+    const result = validateCoupon(appliedCoupon, selectedPlan)
+    if (!result) {
+      setDiscount(0)
+      setCouponStatus("not_applicable")
+    } else {
+      setDiscount(result.discount)
+      setCouponStatus("valid")
+    }
+  }, [selectedPlan, appliedCoupon])
+
+  function removeCoupon() {
+    setCouponInput("")
+    setDiscount(0)
+    setAppliedCoupon(null)
+    setCouponStatus("idle")
+    setShowCoupon(false)
+  }
 
   return (
     <div className="w-full">
       {/* Plan Pills */}
       <div className="flex items-center justify-center gap-2 mb-8 bg-black/40 p-1.5 rounded-full border border-white/10 w-fit mx-auto">
         {plans.map((plan) => {
-          const active = selectedPlan === plan.level
+          const active = selectedPlan === plan.name
           return (
             <button
-              key={plan.level}
+              key={plan.name}
               type="button"
-              onClick={() => setSelectedPlan(plan.level)}
+              onClick={() => setSelectedPlan(plan.name)}
               className="relative px-5 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300"
               style={{
                 background: active ? accentColor : "transparent",
@@ -82,92 +131,161 @@ export function PricingTable({
             >
               {plan.name}
               {plan.popular && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full" style={{ background: accentColor, boxShadow: `0 0 10px ${accentColor}` }} />
+                <span
+                  className="absolute -top-2 -right-2 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full"
+                  style={{ background: accentColor, color: "#1C1C1E", boxShadow: `0 0 8px ${accentColor}80` }}
+                >
+                  Popular
+                </span>
               )}
             </button>
           )
         })}
       </div>
 
-      {/* Feature table */}
-      <div
-        className="rounded-xl overflow-hidden mb-6"
-        style={{ border: "1px solid rgba(255,255,255,0.07)" }}
-      >
-        {/* Table header */}
-        <div
-          className="flex items-center px-4 py-3"
-          style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          <div className="flex-1 text-[10px] uppercase tracking-widest text-white/30 font-bold">Feature</div>
-          <div className="flex items-center gap-6">
-            {plans.map((plan) => (
-              <div
-                key={plan.level}
-                className="w-16 text-center text-[10px] uppercase tracking-widest font-bold"
-                style={{ color: selectedPlan === plan.level ? accentColor : "rgba(255,255,255,0.3)" }}
-              >
-                {plan.name}
+      {/* Features included in selected plan */}
+      {(() => {
+        const activePlan = plans.find(p => p.name === selectedPlan);
+        const included = features.filter(f => activePlan && shouldShowCheck(f.included, activePlan.level));
+        const excluded = features.filter(f => activePlan && !shouldShowCheck(f.included, activePlan.level));
+        return (
+          <div className="rounded-xl overflow-hidden mb-6" style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
+            {included.map((f, i) => (
+              <div key={f.name} className="flex items-center gap-3 px-4 py-3"
+                style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: i % 2 === 0 ? "rgba(255,255,255,0.015)" : "transparent" }}>
+                <CheckIcon className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                <span className="text-[13px] text-white/70">{f.name}</span>
+              </div>
+            ))}
+            {excluded.map((f, i) => (
+              <div key={f.name} className="flex items-center gap-3 px-4 py-3"
+                style={{ borderBottom: i < excluded.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", background: "transparent" }}>
+                <X className="w-4 h-4 shrink-0 text-white/15" />
+                <span className="text-[13px] text-white/30 line-through">{f.name}</span>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Rows */}
-        {features.map((feature, i) => (
-          <div
-            key={feature.name}
-            className="flex items-center px-4 py-3 transition-colors duration-150"
-            style={{
-              background: i % 2 === 0 ? "rgba(255,255,255,0.015)" : "transparent",
-              borderBottom: i < features.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-            }}
-          >
-            <div className="flex-1 text-[13px] text-white/60">{feature.name}</div>
-            <div className="flex items-center gap-6">
-              {plans.map((plan) => (
-                <div key={plan.level} className="w-16 flex justify-center">
-                  {shouldShowCheck(feature.included, plan.level) ? (
-                    <CheckIcon
-                      className="w-4 h-4"
-                      style={{ color: plan.level === selectedPlan ? accentColor : "rgba(255,255,255,0.25)" }}
-                    />
-                  ) : (
-                    <span className="text-white/15 text-sm">—</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+        );
+      })()}
 
       {/* CTA */}
       <div className="p-6 md:px-8 bg-[#1a1a1a]/50 border-t border-white/5 rounded-b-[24px]">
         {/* Dynamic Price Display */}
         {(() => {
-          const activePlan = plans.find((p) => p.level === selectedPlan);
+          const activePlan = plans.find((p) => p.name === selectedPlan);
           if (!activePlan) return null;
+          const hasDiscount = activePlan.originalPrice &&
+            activePlan.originalPrice.monthly !== activePlan.price.monthly;
+          const finalPrice = Math.round(activePlan.price.monthly * (1 - discount / 100));
           return (
             <div className="flex flex-col items-center justify-center mb-6">
-              {activePlan.originalPrice && (
-                <span className="text-sm font-medium text-white/30 line-through decoration-white/30 mb-1">
-                  ₹{activePlan.originalPrice.monthly.toLocaleString()}
-                </span>
+              {hasDiscount && activePlan.months && activePlan.monthlyRate && (
+                <>
+                  <span className="text-[12px] text-white/30 mb-0.5">
+                    {activePlan.months} × ₹{activePlan.monthlyRate.toLocaleString()}
+                  </span>
+                  <span className="text-[18px] font-bold text-white/25 line-through decoration-white/30 mb-1">
+                    = ₹{activePlan.originalPrice!.monthly.toLocaleString()}
+                  </span>
+                </>
               )}
-              <div className="flex items-baseline gap-1">
-                <span className="text-lg text-white/40 mr-0.5">₹</span>
-                <NumberFlow
-                  value={activePlan.price.monthly}
-                  className="text-4xl font-black text-white"
-                />
-                <span className="text-sm text-white/40 ml-1">
-                  {activePlan.priceSuffix || "/mo"}
-                </span>
+              {/* Actual price + effective per-month inline */}
+              <div className="flex items-baseline gap-3">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg text-white/40 mr-0.5">₹</span>
+                  <NumberFlow
+                    value={finalPrice}
+                    className="text-4xl font-black text-white"
+                  />
+                  <span className="text-sm text-white/40 ml-1">
+                    {activePlan.priceSuffix || "/mo"}
+                  </span>
+                </div>
+                {activePlan.months && activePlan.months > 1 && (
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-[18px] font-black text-white">
+                      ₹{Math.round(finalPrice / activePlan.months).toLocaleString()}
+                      <span className="text-[11px] font-medium text-white/40 ml-1">/mo</span>
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/10 text-white/50">
+                      effective
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap justify-center">
+                {hasDiscount && activePlan.originalPrice && (
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
+                    style={{ background: `${accentColor}22`, color: accentColor }}>
+                    Save ₹{(activePlan.originalPrice.monthly - activePlan.price.monthly).toLocaleString()}
+                  </span>
+                )}
+                {discount > 0 && (
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-green-500/20 text-green-400">
+                    Coupon: −{discount}% applied
+                  </span>
+                )}
               </div>
             </div>
           );
         })()}
+
+        {/* Coupon code */}
+        <div className="mb-4">
+          {!showCoupon ? (
+            <button
+              type="button"
+              onClick={() => setShowCoupon(true)}
+              className="w-full text-[12px] text-white/40 hover:text-white/70 transition-colors py-2 border border-dashed border-white/10 hover:border-white/25 rounded-xl"
+            >
+              Have a coupon code?
+            </button>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex gap-2"
+            >
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={couponInput}
+                  onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponStatus("idle"); setDiscount(0); setAppliedCoupon(null); }}
+                  onKeyDown={e => e.key === "Enter" && applyCoupon()}
+                  placeholder="Enter coupon code"
+                  className="w-full h-11 px-4 rounded-xl text-[13px] font-bold uppercase tracking-widest bg-white/[0.06] border text-white placeholder-white/25 outline-none transition-all"
+                  style={{
+                    borderColor: couponStatus === "valid" ? "#22c55e" : couponStatus === "invalid" ? "#ef4444" : "rgba(255,255,255,0.12)",
+                  }}
+                />
+                {couponStatus === "valid" && (
+                  <button type="button" onClick={removeCoupon} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60">
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={applyCoupon}
+                disabled={!couponInput.trim()}
+                className="h-11 px-4 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all disabled:opacity-40"
+                style={{ background: accentColor, color: "#1C1C1E" }}
+              >
+                Apply
+              </button>
+            </motion.div>
+          )}
+          {couponStatus === "invalid" && (
+            <p className="text-[11px] text-red-400 mt-1.5 px-1">Invalid coupon code. Please try again.</p>
+          )}
+          {couponStatus === "not_applicable" && (
+            <p className="text-[11px] text-orange-400 mt-1.5 px-1">This coupon isn't valid for the selected plan.</p>
+          )}
+          {couponStatus === "valid" && (
+            <p className="text-[11px] text-green-400 mt-1.5 px-1">Coupon applied — {discount}% off!</p>
+          )}
+        </div>
+
         <button
           className="w-full flex items-center justify-center gap-2 font-bold text-sm h-12 rounded-xl transition-all duration-300 group hover:-translate-y-0.5"
           style={{
@@ -176,11 +294,11 @@ export function PricingTable({
             boxShadow: `0 8px 25px ${accentColor}40`,
           }}
           onClick={() => {
-            const plan = plans.find(p => p.level === selectedPlan)
-            if (onGetStarted && plan) onGetStarted(plan, isYearly)
+            const plan = plans.find(p => p.name === selectedPlan)
+            if (onGetStarted && plan) onGetStarted(plan)
           }}
         >
-          Get started — {plans.find((p) => p.level === selectedPlan)?.name}
+          Get started — {plans.find((p) => p.name === selectedPlan)?.name}
           <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
         </button>
       </div>
@@ -198,7 +316,7 @@ interface PricingModalProps {
   accentColor: string
   features: PricingFeature[]
   plans: PricingPlan[]
-  onGetStarted?: (plan: PlanLevel) => void
+  onGetStarted?: (plan: PricingPlan) => void
 }
 
 export function PricingModal({
