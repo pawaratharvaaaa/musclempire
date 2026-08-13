@@ -18,6 +18,30 @@ const DEFAULT_COUPONS: Coupon[] = [
     enabled: true,
     description: "25% off on Half Yearly & Yearly plans",
   },
+  {
+    id: "coupon_default_2",
+    code: "TRANSFORM25",
+    discount: 25,
+    plans: [],
+    enabled: true,
+    description: "25% off New Member Transformation Special",
+  },
+  {
+    id: "coupon_default_3",
+    code: "DUOBANK50",
+    discount: 50,
+    plans: [],
+    enabled: true,
+    description: "50% off second membership for Duo Fitness Challenge",
+  },
+  {
+    id: "coupon_default_4",
+    code: "FEMALEVIP",
+    discount: 30,
+    plans: [],
+    enabled: true,
+    description: "Female Gym VIP Special Pass",
+  },
 ];
 
 export function getCoupons(): Coupon[] {
@@ -55,4 +79,21 @@ export function validateCoupon(code: string, planName: string): { discount: numb
   if (!coupon) return null;
   if (coupon.plans.length > 0 && !coupon.plans.includes(planName)) return null;
   return { discount: coupon.discount, coupon };
+}
+
+/** Ensures that a coupon code for an offer is registered in the store */
+export function ensureCouponExists(code: string, discount: number = 25, description?: string): void {
+  const cleanCode = code.toUpperCase().trim();
+  if (!cleanCode) return;
+  const coupons = getCoupons();
+  const existing = coupons.find(c => c.code === cleanCode);
+  if (!existing) {
+    addCoupon({
+      code: cleanCode,
+      discount: discount || 20,
+      plans: [],
+      enabled: true,
+      description: description || `Coupon code for offer ${cleanCode}`,
+    });
+  }
 }

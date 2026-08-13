@@ -1,13 +1,13 @@
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Tag, Clock, Calendar, Zap, MessageSquare } from "lucide-react";
+import { Tag, Clock, Calendar, Zap, Sparkles, AlertCircle } from "lucide-react";
 import PlanNavbar from "@/components/PlanNavbar";
 import Footer from "@/components/Footer";
 import { GradientBackground } from "@/components/ui/desert-horizon";
+import CouponClaimModal from "@/components/CouponClaimModal";
 
-import { getOffers } from "@/lib/offersStore";
+import { getOffers, getExpiredOffers } from "@/lib/offersStore";
 import chalkboardBg from "@/assets/images/chalkboard-bg.png";
-
 
 const upcomingOffers: Offer[] = [
   {
@@ -29,16 +29,29 @@ type Offer = {
   cta?: string;
   image?: string;
   whatsappMessage?: string;
+  couponCode?: string;
 };
 
-function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boolean }) {
+function OfferCard({
+  offer,
+  upcoming = false,
+  expired = false,
+  onClaim,
+}: {
+  offer: Offer;
+  upcoming?: boolean;
+  expired?: boolean;
+  onClaim?: (offer: Offer) => void;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col hover:shadow-lg hover:border-gray-300 transition-all shadow-sm"
+      className={`bg-white border rounded-2xl overflow-hidden flex flex-col transition-all shadow-sm ${
+        expired ? "border-gray-200 opacity-75 grayscale-[0.3]" : "border-gray-200 hover:shadow-lg hover:border-gray-300"
+      }`}
     >
       {/* Banner */}
       <div className="relative h-44 bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
@@ -48,7 +61,11 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
           <Zap size={48} className="text-gray-300" />
         )}
         {/* Badge */}
-        {upcoming ? (
+        {expired ? (
+          <span className="absolute top-3 right-3 bg-red-600 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
+            Expired
+          </span>
+        ) : upcoming ? (
           <span className="absolute top-3 right-3 bg-blue-500 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
             Coming Soon
           </span>
@@ -82,7 +99,7 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
             <>
               <Clock size={13} />
               <span>
-                Valid till:{" "}
+                {expired ? "Expired on: " : "Valid till: "}
                 <span className="text-gray-700 font-bold">{offer.validTill}</span>
               </span>
             </>
@@ -90,19 +107,20 @@ function OfferCard({ offer, upcoming = false }: { offer: Offer; upcoming?: boole
         </div>
 
         {/* CTA */}
-        {!upcoming && (
-          <a
-            href={`https://wa.me/919773053632?text=${encodeURIComponent(
-              offer.whatsappMessage || `Hi Muscle Empire! I would like to claim the ${offer.title} offer.`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-700 text-white font-black uppercase tracking-widest py-3 rounded-xl text-sm transition-colors mt-1"
+        {expired ? (
+          <div className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-400 font-bold uppercase tracking-wider py-3 rounded-xl text-xs mt-1 select-none">
+            <AlertCircle size={14} />
+            Offer Expired
+          </div>
+        ) : !upcoming ? (
+          <button
+            onClick={() => onClaim?.(offer)}
+            className="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-700 text-white font-black uppercase tracking-widest py-3 rounded-xl text-sm transition-colors mt-1 cursor-pointer"
           >
-            <MessageSquare size={15} />
+            <Sparkles size={15} />
             {offer.cta || "Claim Offer"}
-          </a>
-        )}
+          </button>
+        ) : null}
       </div>
     </motion.div>
   );
@@ -123,7 +141,10 @@ function EmptyState({ title, desc }: { title: string; desc: string }) {
 export default function Offers() {
   const ongoingRef = useRef<HTMLDivElement>(null);
   const upcomingRef = useRef<HTMLDivElement>(null);
+  const expiredRef = useRef<HTMLDivElement>(null);
   const [ongoingOffers, setOngoingOffers] = useState<Offer[]>([]);
+  const [expiredOffers, setExpiredOffers] = useState<Offer[]>([]);
+  const [selectedClaimOffer, setSelectedClaimOffer] = useState<Offer | null>(null);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -131,7 +152,7 @@ export default function Offers() {
 
   useEffect(() => {
     const fetchOffers = () => {
-      const list = getOffers().map(o => ({
+      const activeList = getOffers().filter(o => o.status !== "expired").map(o => ({
         title: o.title,
         description: o.description,
         discount: o.discount,
@@ -139,8 +160,21 @@ export default function Offers() {
         cta: o.ctaText,
         whatsappMessage: o.whatsappMessage,
         image: o.image,
+        couponCode: o.couponCode,
       }));
-      setOngoingOffers(list);
+      setOngoingOffers(activeList);
+
+      const expList = getExpiredOffers().map(o => ({
+        title: o.title,
+        description: o.description,
+        discount: o.discount,
+        validTill: o.validTill,
+        cta: o.ctaText,
+        whatsappMessage: o.whatsappMessage,
+        image: o.image,
+        couponCode: o.couponCode,
+      }));
+      setExpiredOffers(expList);
     };
     fetchOffers();
     window.addEventListener("offersUpdated", fetchOffers);
@@ -179,7 +213,6 @@ export default function Offers() {
 
         <div className="container mx-auto px-4 md:px-6 max-w-6xl pt-10">
 
-
           {/* Ongoing Offers */}
           <div id="ongoing" ref={ongoingRef} className="mb-20 scroll-mt-36">
             <h2 className="text-gray-900 font-black uppercase tracking-wider text-2xl mb-8 flex items-center gap-3">
@@ -189,7 +222,11 @@ export default function Offers() {
             {ongoingOffers.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {ongoingOffers.map((offer, i) => (
-                  <OfferCard key={i} offer={offer} />
+                  <OfferCard
+                    key={i}
+                    offer={offer}
+                    onClaim={(off) => setSelectedClaimOffer(off)}
+                  />
                 ))}
               </div>
             ) : (
@@ -201,7 +238,7 @@ export default function Offers() {
           </div>
 
           {/* Upcoming Offers */}
-          <div id="upcoming" ref={upcomingRef} className="scroll-mt-36">
+          <div id="upcoming" ref={upcomingRef} className="mb-20 scroll-mt-36">
             <h2 className="text-gray-900 font-black uppercase tracking-wider text-2xl mb-8 flex items-center gap-3">
               <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
               Upcoming Offers
@@ -220,10 +257,36 @@ export default function Offers() {
             )}
           </div>
 
+          {/* Expired Offers */}
+          <div id="expired" ref={expiredRef} className="scroll-mt-36">
+            <h2 className="text-gray-900 font-black uppercase tracking-wider text-2xl mb-8 flex items-center gap-3">
+              <span className="w-2 h-2 bg-red-500 rounded-full" />
+              Expired Offers
+            </h2>
+            {expiredOffers.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {expiredOffers.map((offer, i) => (
+                  <OfferCard key={i} offer={offer} expired />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="No Expired Offers"
+                desc="Past promotional offers will be listed here."
+              />
+            )}
+          </div>
+
         </div>
       </main>
 
       <Footer />
+
+      <CouponClaimModal
+        isOpen={!!selectedClaimOffer}
+        onClose={() => setSelectedClaimOffer(null)}
+        offer={selectedClaimOffer}
+      />
     </div>
   );
 }

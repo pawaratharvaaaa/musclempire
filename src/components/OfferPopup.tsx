@@ -4,7 +4,7 @@ import { X, Sparkles, Clock, ArrowRight, MessageSquare, Flame, Info, CheckCircle
 import { useLocation } from "wouter";
 import { getOffers } from "@/lib/offersStore";
 import type { Offer } from "@/data/offers";
-
+import CouponClaimModal from "@/components/CouponClaimModal";
 
 const OWNER_PHONE = "919773053632";
 
@@ -31,6 +31,7 @@ export default function OfferPopup() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [claimModalOffer, setClaimModalOffer] = useState<Offer | null>(null);
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -41,28 +42,28 @@ export default function OfferPopup() {
   }, []);
 
   useEffect(() => {
-    const isDismissed = sessionStorage.getItem("muscle_empire_offer_modal_dismissed");
-    if (!isDismissed) {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 1400);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 1400);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleClose = () => {
     setIsOpen(false);
-    sessionStorage.setItem("muscle_empire_offer_modal_dismissed", "true");
   };
 
-  const handleClaimWhatsApp = (offer: Offer) => {
-    const text = encodeURIComponent(offer.whatsappMessage);
-    window.open(`https://wa.me/${OWNER_PHONE}?text=${text}`, "_blank");
-    handleClose();
+  const handleClaimDiscount = () => {
+    setIsOpen(false);
+    if (currentOffer) {
+      setClaimModalOffer(currentOffer);
+    } else {
+      navigate("/offers");
+    }
   };
 
   const handleViewAllOffers = () => {
-    setShowHelp(true);
+    handleClose();
+    navigate("/offers");
   };
 
   const paginate = (newDirection: number) => {
@@ -217,10 +218,10 @@ export default function OfferPopup() {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => handleClaimWhatsApp(currentOffer)}
+                  onClick={handleClaimDiscount}
                   className="flex-1 h-11 bg-gray-900 hover:bg-gray-700 text-white font-bold uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
                 >
-                  <MessageSquare size={15} />
+                  <Sparkles size={15} />
                   {currentOffer.ctaText}
                 </button>
 
@@ -334,6 +335,12 @@ export default function OfferPopup() {
           </motion.div>
         </div>
       )}
+
+      <CouponClaimModal
+        isOpen={!!claimModalOffer}
+        onClose={() => setClaimModalOffer(null)}
+        offer={claimModalOffer}
+      />
     </AnimatePresence>
   );
 }

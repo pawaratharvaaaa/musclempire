@@ -38,7 +38,7 @@ export interface PricingTableProps {
   features: PricingFeature[]
   plans: PricingPlan[]
   accentColor?: string
-  onGetStarted?: (plan: PricingPlan) => void
+  onGetStarted?: (plan: PricingPlan, finalPrice?: number, couponCode?: string | null) => void
   defaultPlan?: PlanLevel
 }
 
@@ -103,6 +103,25 @@ export function PricingTable({
       setCouponStatus("valid")
     }
   }, [selectedPlan, appliedCoupon])
+
+  // Check for auto_apply_coupon in sessionStorage on mount
+  React.useEffect(() => {
+    const code = sessionStorage.getItem("auto_apply_coupon")
+    if (code) {
+      sessionStorage.removeItem("auto_apply_coupon")
+      const cleanCode = code.trim().toUpperCase()
+      setShowCoupon(true)
+      setCouponInput(cleanCode)
+      const result = validateCoupon(cleanCode, selectedPlan)
+      if (result) {
+        setDiscount(result.discount)
+        setAppliedCoupon(cleanCode)
+        setCouponStatus("valid")
+      } else {
+        setCouponStatus("invalid")
+      }
+    }
+  }, [selectedPlan])
 
   function removeCoupon() {
     setCouponInput("")
@@ -295,7 +314,10 @@ export function PricingTable({
           }}
           onClick={() => {
             const plan = plans.find(p => p.name === selectedPlan)
-            if (onGetStarted && plan) onGetStarted(plan)
+            if (onGetStarted && plan) {
+              const finalPrice = Math.round(plan.price.monthly * (1 - discount / 100))
+              onGetStarted(plan, finalPrice, appliedCoupon)
+            }
           }}
         >
           Get started — {plans.find((p) => p.name === selectedPlan)?.name}
@@ -316,7 +338,7 @@ interface PricingModalProps {
   accentColor: string
   features: PricingFeature[]
   plans: PricingPlan[]
-  onGetStarted?: (plan: PricingPlan) => void
+  onGetStarted?: (plan: PricingPlan, finalPrice?: number, couponCode?: string | null) => void
 }
 
 export function PricingModal({

@@ -68,6 +68,8 @@ export default function AdminOffers() {
   const [validTill, setValidTill] = useState("");
   const [ctaText, setCtaText] = useState("");
   const [whatsappMessage, setWhatsappMessage] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [offerStatus, setOfferStatus] = useState<"active" | "upcoming" | "expired">("active");
   const [image, setImage] = useState("");
   const [isFeatured, setIsFeatured] = useState(true);
 
@@ -83,6 +85,21 @@ export default function AdminOffers() {
       window.removeEventListener("couponsUpdated", couponHandler);
     };
   }, []);
+
+  const resetForm = () => {
+    setTitle("");
+    setSubtitle("");
+    setDescription("");
+    setDiscount("");
+    setBadge("");
+    setValidTill("");
+    setCtaText("");
+    setWhatsappMessage("");
+    setCouponCode("");
+    setOfferStatus("active");
+    setImage("");
+    setIsFeatured(true);
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
     const file = e.target.files?.[0];
@@ -114,6 +131,7 @@ export default function AdminOffers() {
       alert("Title and Description are required");
       return;
     }
+    const cleanCoupon = couponCode.trim().toUpperCase();
     addOffer({
       title: title.trim(),
       subtitle: subtitle.trim(),
@@ -124,14 +142,26 @@ export default function AdminOffers() {
       ctaText: ctaText.trim() || "Claim Offer",
       whatsappMessage: whatsappMessage.trim() || `Hi Muscle Empire! I would like to claim the ${title}.`,
       isFeatured,
-      image
+      image,
+      couponCode: cleanCoupon || undefined,
+      status: offerStatus,
     });
+    if (cleanCoupon) {
+      const discNum = parseInt(discount.replace(/\D/g, ""), 10) || 25;
+      ensureCouponExists(cleanCoupon, discNum, `${title} Offer Coupon`);
+      setCoupons(getCoupons());
+    }
     resetForm();
     setShowAdd(false);
   };
 
   const handleUpdate = () => {
     if (!editingOffer) return;
+    if (editingOffer.couponCode) {
+      const discNum = parseInt((editingOffer.discount || "").replace(/\D/g, ""), 10) || 25;
+      ensureCouponExists(editingOffer.couponCode, discNum, `${editingOffer.title} Offer Coupon`);
+      setCoupons(getCoupons());
+    }
     updateOffer(editingOffer.id, editingOffer);
     setEditingOffer(null);
   };
@@ -140,19 +170,6 @@ export default function AdminOffers() {
     if (confirm("Are you sure you want to delete this offer?")) {
       removeOffer(id);
     }
-  };
-
-  const resetForm = () => {
-    setTitle("");
-    setSubtitle("");
-    setDescription("");
-    setDiscount("");
-    setBadge("");
-    setValidTill("");
-    setCtaText("");
-    setWhatsappMessage("");
-    setImage("");
-    setIsFeatured(true);
   };
 
   return (
@@ -172,14 +189,14 @@ export default function AdminOffers() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => navigate("/pronectar-admin-2026/dashboard")}
+                    onClick={() => navigate("/adminpage/dashboard")}
                     className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-white border border-white/10 hover:border-white/30 rounded-lg text-xs uppercase tracking-widest transition-colors cursor-pointer"
                   >
                     <Users size={14} />
                     Assessments
                   </button>
                   <button
-                    onClick={() => navigate("/pronectar-admin-2026/gallery")}
+                    onClick={() => navigate("/adminpage/gallery")}
                     className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-white border border-white/10 hover:border-white/30 rounded-lg text-xs uppercase tracking-widest transition-colors cursor-pointer"
                   >
                     Gallery
@@ -187,7 +204,7 @@ export default function AdminOffers() {
                 </div>
               </div>
               <button
-                onClick={() => { logout(); navigate("/pronectar-admin-2026"); }}
+                onClick={() => { logout(); navigate("/adminpage"); }}
                 className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-red-400 border border-white/10 hover:border-red-400/30 rounded-lg text-xs uppercase tracking-widest transition-colors cursor-pointer"
               >
                 <LogOut size={14} />
@@ -239,8 +256,26 @@ export default function AdminOffers() {
                       ) : (
                         <Tag size={40} className="text-white/20" />
                       )}
+                      <select
+                        value={offer.status || "active"}
+                        onChange={(e) => {
+                          const newStatus = e.target.value as "active" | "upcoming" | "expired";
+                          updateOffer(offer.id, { status: newStatus });
+                          setOffers(getOffers());
+                        }}
+                        className={`absolute top-3 left-3 backdrop-blur-md text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border outline-none cursor-pointer z-10 ${
+                          (offer.status || "active") === "active"
+                            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                            : offer.status === "upcoming"
+                            ? "bg-blue-500/20 text-blue-300 border-blue-500/40"
+                            : "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                        }`}
+                      >
+                        <option value="active" className="bg-[#161b22] text-emerald-400">● Active (Ongoing)</option>
+                        <option value="upcoming" className="bg-[#161b22] text-blue-400">● Upcoming (Soon)</option>
+                        <option value="expired" className="bg-[#161b22] text-rose-400">● Expired (Archived)</option>
+                      </select>
                       <span className="absolute top-3 right-3 bg-green-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded-full z-10">{offer.discount}</span>
-                      <span className="absolute top-3 left-3 bg-white/10 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/10">{offer.badge}</span>
                     </div>
                     <div className="p-5 flex flex-col flex-1 gap-3">
                       <div>
@@ -491,6 +526,16 @@ export default function AdminOffers() {
                     </div>
                   </div>
 
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                    <label className="text-xs text-amber-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                      <Ticket size={14} /> Coupon Code for this Offer
+                    </label>
+                    <input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} type="text" placeholder="e.g. TRANSFORM25" className="h-10 bg-black/40 border border-amber-500/40 text-amber-300 placeholder:text-amber-500/40 rounded-xl px-3 text-sm font-mono tracking-widest font-black uppercase outline-none focus:border-amber-400 transition-colors" />
+                    <p className="text-[10px] text-amber-300/70">
+                      Creates a matching coupon code automatically usable by customers at checkout!
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Valid Until</label>
@@ -500,6 +545,19 @@ export default function AdminOffers() {
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">CTA Text</label>
                       <input value={ctaText} onChange={(e) => setCtaText(e.target.value)} type="text" placeholder="e.g. Claim Discount" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors" />
                     </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Status</label>
+                    <select
+                      value={offerStatus}
+                      onChange={(e) => setOfferStatus(e.target.value as "active" | "upcoming" | "expired")}
+                      className="h-10 bg-[#161b22] border border-white/10 text-white rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors cursor-pointer"
+                    >
+                      <option value="active">Active (Ongoing Offers section)</option>
+                      <option value="upcoming">Upcoming (Coming Soon section)</option>
+                      <option value="expired">Expired (Archived section)</option>
+                    </select>
                   </div>
 
                   <div className="flex flex-col gap-1.5">
@@ -587,6 +645,16 @@ export default function AdminOffers() {
                     </div>
                   </div>
 
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                    <label className="text-xs text-amber-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                      <Ticket size={14} /> Coupon Code for this Offer
+                    </label>
+                    <input value={editingOffer.couponCode || ""} onChange={(e) => setEditingOffer({ ...editingOffer, couponCode: e.target.value.toUpperCase() })} type="text" placeholder="e.g. TRANSFORM25" className="h-10 bg-black/40 border border-amber-500/40 text-amber-300 placeholder:text-amber-500/40 rounded-xl px-3 text-sm font-mono tracking-widest font-black uppercase outline-none focus:border-amber-400 transition-colors" />
+                    <p className="text-[10px] text-amber-300/70">
+                      Creates/updates matching coupon code automatically usable by customers at checkout!
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Valid Until</label>
@@ -596,6 +664,19 @@ export default function AdminOffers() {
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">CTA Text</label>
                       <input value={editingOffer.ctaText} onChange={(e) => setEditingOffer({ ...editingOffer, ctaText: e.target.value })} type="text" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors" />
                     </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Status</label>
+                    <select
+                      value={editingOffer.status || "active"}
+                      onChange={(e) => setEditingOffer({ ...editingOffer, status: e.target.value as "active" | "upcoming" | "expired" })}
+                      className="h-10 bg-[#161b22] border border-white/10 text-white rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors cursor-pointer"
+                    >
+                      <option value="active">Active (Ongoing Offers section)</option>
+                      <option value="upcoming">Upcoming (Coming Soon section)</option>
+                      <option value="expired">Expired (Archived section)</option>
+                    </select>
                   </div>
 
                   <div className="flex flex-col gap-1.5">

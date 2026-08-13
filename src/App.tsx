@@ -32,7 +32,7 @@ function AdminShortcut() {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")) {
         e.preventDefault();
-        window.location.href = "/pronectar-admin-2026";
+        window.open("/adminpage", "_blank");
       }
     };
     window.addEventListener("keydown", handler);
@@ -43,7 +43,7 @@ function AdminShortcut() {
 
 function PublicWidgets() {
   const [location] = useLocation();
-  if (location.startsWith("/pronectar-admin-2026")) return null;
+  if (location.startsWith("/adminpage")) return null;
   return (
     <>
       <FloatingContact />
@@ -66,13 +66,13 @@ function Router() {
         <Route path="/terms" component={TermsPage} />
         <Route path="/gallery" component={GalleryPage} />
         <Route path="/branches" component={BranchesPage} />
-        <Route path="/pronectar-admin-2026/gallery" component={AdminGallery} />
-        <Route path="/pronectar-admin-2026/offers" component={AdminOffers} />
+        <Route path="/adminpage/gallery" component={AdminGallery} />
+        <Route path="/adminpage/offers" component={AdminOffers} />
         {/* Private admin routes */}
-        <Route path="/pronectar-admin-2026" component={AdminLogin} />
-        <Route path="/pronectar-admin-2026/dashboard" component={AdminDashboard} />
-        <Route path="/pronectar-admin-2026/customer/:id" component={AdminCustomer} />
-        <Route path="/pronectar-admin-2026/track/:phone" component={AdminTrackRecord} />
+        <Route path="/adminpage" component={AdminLogin} />
+        <Route path="/adminpage/dashboard" component={AdminDashboard} />
+        <Route path="/adminpage/customer/:id" component={AdminCustomer} />
+        <Route path="/adminpage/track/:phone" component={AdminTrackRecord} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

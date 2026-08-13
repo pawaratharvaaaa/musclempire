@@ -22,7 +22,7 @@ export async function openRazorpay(name: string, amountInPaise: number) {
     currency: "INR",
     name: "Muscle Empire Gymnasium",
     description: name,
-    image: "/favicon.svg",
+    image: "/favicon.png",
     theme: { color: "#FFD000" },
     handler: (response: { razorpay_payment_id: string }) => {
       alert(`✅ Payment successful!\nID: ${response.razorpay_payment_id}\nWelcome to the Empire!`);

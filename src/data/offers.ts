@@ -14,6 +14,8 @@ export interface Offer {
   whatsappMessage: string;
   isFeatured?: boolean;
   image?: string;
+  couponCode?: string;
+  status?: "active" | "upcoming" | "expired";
 }
 
 export const activeOffers: Offer[] = [
@@ -26,9 +28,11 @@ export const activeOffers: Offer[] = [
     badge: "Limited Time Special",
     validTill: "31 August 2026",
     ctaText: "Claim 25% Discount",
-    whatsappMessage: "Hi Muscle Empire! I would like to claim the 25% OFF New Member Transformation Special.",
+    whatsappMessage: "Hi Muscle Empire! I would like to claim the 25% OFF New Member Transformation Special with Coupon TRANSFORM25.",
     isFeatured: true,
-    image: newMemberOffer
+    image: newMemberOffer,
+    couponCode: "TRANSFORM25",
+    status: "active"
   },
   {
     id: "duo-membership",
@@ -39,9 +43,11 @@ export const activeOffers: Offer[] = [
     badge: "Duo Offer",
     validTill: "Limited Slots",
     ctaText: "Claim Duo Offer",
-    whatsappMessage: "Hi Muscle Empire! I would like to claim the Duo Membership 50% Off Offer for me and my gym partner.",
+    whatsappMessage: "Hi Muscle Empire! I would like to claim the Duo Membership 50% Off Offer with Coupon DUOBANK50.",
     isFeatured: true,
-    image: duoOffer
+    image: duoOffer,
+    couponCode: "DUOBANK50",
+    status: "active"
   },
   {
     id: "female-exclusive-pass",
@@ -52,8 +58,39 @@ export const activeOffers: Offer[] = [
     badge: "Female Gym Exclusive",
     validTill: "Valid This Month",
     ctaText: "Claim Female Pass",
-    whatsappMessage: "Hi Muscle Empire! I would like to claim the 3 Free PT Sessions offer at the Female Gym Branch.",
+    whatsappMessage: "Hi Muscle Empire! I would like to claim the Female Gym Pass offer with Coupon FEMALEVIP.",
     isFeatured: true,
-    image: femaleOffer
+    image: femaleOffer,
+    couponCode: "FEMALEVIP",
+    status: "active"
+  }
+];
+
+export const defaultExpiredOffers: Offer[] = [
+  {
+    id: "monsoon-madness-2026",
+    title: "Monsoon Fitness Blowout",
+    subtitle: "Heavy Rain, Heavy Gain",
+    description: "Flat 40% OFF on 6-Month Unisex Pass + Free Gym Duffle Bag & Shaker.",
+    discount: "40% OFF",
+    badge: "Expired Offer",
+    validTill: "31 July 2026",
+    ctaText: "Offer Expired",
+    whatsappMessage: "Hi Muscle Empire!",
+    couponCode: "MONSOON40",
+    status: "expired"
+  },
+  {
+    id: "summer-shred-2026",
+    title: "Summer Shred 90-Day Challenge",
+    subtitle: "Beach Body Transformation",
+    description: "Enroll in the 90-Day Fat Loss BootCamp with Dedicated Personal Trainer.",
+    discount: "35% OFF",
+    badge: "Expired Offer",
+    validTill: "30 June 2026",
+    ctaText: "Offer Expired",
+    whatsappMessage: "Hi Muscle Empire!",
+    couponCode: "SHRED35",
+    status: "expired"
   }
 ];

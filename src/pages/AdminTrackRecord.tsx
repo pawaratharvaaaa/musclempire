@@ -86,7 +86,7 @@ export default function AdminTrackRecord({ params }: { params: { phone: string }
     <AdminGuard>
       <div className="min-h-screen bg-[#0d1117] text-white">
         <div className="bg-[#161b22] border-b border-white/10 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-          <button onClick={() => navigate("/pronectar-admin-2026/dashboard")}
+          <button onClick={() => navigate("/adminpage/dashboard")}
             className="flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors">
             <ArrowLeft size={16} /> Dashboard
           </button>
@@ -94,7 +94,7 @@ export default function AdminTrackRecord({ params }: { params: { phone: string }
             <Activity size={16} className="text-green-400" />
             <span className="text-green-400 font-black uppercase tracking-widest text-sm">Track Record</span>
           </div>
-          <button onClick={() => { logout(); navigate("/pronectar-admin-2026"); }}
+          <button onClick={() => { logout(); navigate("/adminpage"); }}
             className="flex items-center gap-1.5 text-red-400/60 hover:text-red-400 text-xs transition-colors">
             <LogOut size={13} /> Logout
           </button>
@@ -181,7 +181,7 @@ export default function AdminTrackRecord({ params }: { params: { phone: string }
                           <span className="text-white/40 text-xs uppercase tracking-widest">Diet Plan:</span>
                           <span className={"text-xs font-bold " + dp.color}>{dp.label}</span>
                         </div>
-                        <button onClick={() => navigate("/pronectar-admin-2026/customer/" + (record.id ?? record._arrayIndex))}
+                        <button onClick={() => navigate("/adminpage/customer/" + (record.id ?? record._arrayIndex))}
                           className="flex items-center gap-1.5 bg-green-500/15 hover:bg-green-500/25 border border-green-400/30 text-green-400 font-bold text-xs uppercase tracking-wider px-4 py-2 rounded-lg transition-colors">
                           View Assessment
                         </button>

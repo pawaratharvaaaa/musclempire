@@ -518,9 +518,10 @@ export default function Pricing() {
                   : (modalGym.gym.gymOnlyPlans ?? modalGym.gym.plans))
               : modalGym.gym.plans
           }
-          onGetStarted={(plan) => {
-            const amount = plan.price.monthly;
-            const planName = `${modalGym.gym.title} [${modalGym.planType === 'gym' ? 'Gym Only' : 'Gym + CrossFit'}] - ${plan.name}`;
+          onGetStarted={(plan, finalPrice, couponCode) => {
+            const amount = finalPrice ?? plan.price.monthly;
+            const couponNote = couponCode ? ` [Coupon: ${couponCode}]` : "";
+            const planName = `${modalGym.gym.title} [${modalGym.planType === 'gym' ? 'Gym Only' : 'Gym + CrossFit'}] - ${plan.name}${couponNote}`;
             openRazorpay(planName, amount * 100);
             setModalGym(null);
           }}

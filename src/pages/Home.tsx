@@ -9,20 +9,24 @@ import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import Preloader from "@/components/Preloader";
-import OfferPopup from "@/components/OfferPopup";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
 
-  // Restore scroll before first paint — no flash at position 0
+  // Restore scroll before first paint if returning from sub-page
   useLayoutEffect(() => {
     const saved = sessionStorage.getItem("scroll_before_plans");
     if (saved !== null) {
       window.scrollTo(0, parseInt(saved, 10));
       sessionStorage.removeItem("scroll_before_plans");
     }
-    // Always show the offer popup on every home page load/reload
-    sessionStorage.removeItem("muscle_empire_offer_modal_dismissed");
+  }, []);
+
+  // Reset scroll to top if not restoring scroll or scrolling to hash
+  useEffect(() => {
+    if (!sessionStorage.getItem("scroll_before_plans") && !sessionStorage.getItem("scroll_to_hash")) {
+      window.scrollTo(0, 0);
+    }
   }, []);
 
   useEffect(() => {
@@ -32,7 +36,10 @@ export default function Home() {
         sessionStorage.removeItem("scroll_to_hash");
         setTimeout(() => {
           const el = document.querySelector(hash);
-          if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 76, behavior: "smooth" });
+          if (el) {
+            const top = el.getBoundingClientRect().top + window.scrollY - 76;
+            window.scrollTo({ top, behavior: "smooth" });
+          }
         }, 300);
       }
     }
@@ -55,7 +62,6 @@ export default function Home() {
             <Contact />
           </main>
           <Footer />
-          <OfferPopup />
         </div>
       )}
     </>

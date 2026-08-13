@@ -27,7 +27,7 @@ export default function AdminLogin() {
     setLoginError("");
     const ok = await login(username.trim(), password);
     if (ok) {
-      navigate("/pronectar-admin-2026/dashboard");
+      navigate("/adminpage/dashboard");
     } else {
       setLoginError("Invalid username or password.");
       setLoading(false);

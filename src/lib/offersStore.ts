@@ -1,6 +1,7 @@
-import { activeOffers as defaultOffers, Offer } from "@/data/offers";
+import { activeOffers as defaultOffers, defaultExpiredOffers, Offer } from "@/data/offers";
 
 const OFFERS_KEY = "me_offers_data";
+const EXPIRED_OFFERS_KEY = "me_expired_offers_data";
 
 export function getOffers(): Offer[] {
   try {
@@ -8,6 +9,16 @@ export function getOffers(): Offer[] {
     if (stored) return JSON.parse(stored);
   } catch {}
   return defaultOffers;
+}
+
+export function getExpiredOffers(): Offer[] {
+  try {
+    const stored = localStorage.getItem(EXPIRED_OFFERS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  const allStored = getOffers().filter(o => o.status === "expired");
+  if (allStored.length > 0) return [...defaultExpiredOffers, ...allStored];
+  return defaultExpiredOffers;
 }
 
 export function saveOffers(offers: Offer[]): void {
