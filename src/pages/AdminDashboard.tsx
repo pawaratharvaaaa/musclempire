@@ -112,18 +112,18 @@ export default function AdminDashboard() {
             <p className="text-xs text-white/40 uppercase tracking-widest">Nutrition Admin Dashboard</p>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate("/adminpage/gallery")}
+            <button onClick={() => navigate("/sagarkharat/gallery")}
               className="flex items-center gap-2 text-white/50 hover:text-green-400 text-sm transition-colors cursor-pointer">
               <ImageIcon size={14} /> Gallery
             </button>
-            <button onClick={() => navigate("/adminpage/offers")}
+            <button onClick={() => navigate("/sagarkharat/offers")}
               className="flex items-center gap-2 text-white/50 hover:text-green-400 text-sm transition-colors cursor-pointer">
               <Tag size={14} /> Offers
             </button>
             <button onClick={handleRefresh} className="flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors">
               <RefreshCw size={14} /> Refresh
             </button>
-            <button onClick={() => { logout(); navigate("/adminpage"); }}
+            <button onClick={() => { logout(); navigate("/sagarkharat"); }}
               className="flex items-center gap-2 text-red-400/60 hover:text-red-400 text-sm transition-colors">
               <LogOut size={14} /> Logout
             </button>
@@ -189,7 +189,7 @@ export default function AdminDashboard() {
                         className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
                         onClick={() => {
                           setSelectedAssessment(row);
-                          navigate(`/adminpage/customer/${row._rowIndex ?? row._arrayIndex}`);
+                          navigate(`/sagarkharat/customer/${row._rowIndex ?? row._arrayIndex}`);
                         }}>                        <td className="px-4 py-3 font-bold text-white">{row.name}</td>
                         <td className="px-4 py-3 text-white/60">{row.phone}</td>
                         <td className="px-4 py-3 text-white/60">{formatDate(row.date)}</td>
@@ -201,12 +201,12 @@ export default function AdminDashboard() {
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <button onClick={() => {
                               setSelectedAssessment(row);
-                              navigate(`/adminpage/customer/${row._rowIndex ?? row._arrayIndex}`);
+                              navigate(`/sagarkharat/customer/${row._rowIndex ?? row._arrayIndex}`);
                             }}
                               className="text-green-400 hover:text-green-300 text-xs font-bold uppercase tracking-wider transition-colors">
                               Open
                             </button>
-                            <button onClick={() => navigate(`/adminpage/track/${row.phone}`)}
+                            <button onClick={() => navigate(`/sagarkharat/track/${row.phone}`)}
                               className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-bold uppercase tracking-wider transition-colors">
                               <Activity size={13} /> Track
                             </button>

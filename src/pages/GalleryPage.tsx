@@ -1,10 +1,12 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useState } from "react";
 import PlanNavbar from "@/components/PlanNavbar";
 import Footer from "@/components/Footer";
 import { ImageGallery } from "@/components/ui/image-gallery";
+import { VideoGallery } from "@/components/ui/video-gallery";
 
 export default function GalleryPage() {
   useLayoutEffect(() => { window.scrollTo(0, 0); }, []);
+  const [activeTab, setActiveTab] = useState<"photos" | "videos">("photos");
 
   return (
     <div className="min-h-screen bg-[#111] text-white">
@@ -29,8 +31,32 @@ export default function GalleryPage() {
           </p>
         </div>
 
-        {/* Full-width gallery */}
-        <ImageGallery />
+        {/* Tab selection */}
+        <div className="flex justify-center gap-4 mb-10">
+          <button
+            onClick={() => setActiveTab("photos")}
+            className={`px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 border cursor-pointer ${
+              activeTab === "photos"
+                ? "bg-[#E8A820] text-black border-[#E8A820]"
+                : "bg-white/5 text-white/60 border-white/10 hover:text-white hover:border-white/20"
+            }`}
+          >
+            Photos
+          </button>
+          <button
+            onClick={() => setActiveTab("videos")}
+            className={`px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 border cursor-pointer ${
+              activeTab === "videos"
+                ? "bg-[#E8A820] text-black border-[#E8A820]"
+                : "bg-white/5 text-white/60 border-white/10 hover:text-white hover:border-white/20"
+            }`}
+          >
+            Videos
+          </button>
+        </div>
+
+        {/* Content */}
+        {activeTab === "photos" ? <ImageGallery /> : <VideoGallery />}
 
       </main>
       <Footer />

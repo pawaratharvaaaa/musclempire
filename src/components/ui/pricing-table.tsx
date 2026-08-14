@@ -134,7 +134,7 @@ export function PricingTable({
   return (
     <div className="w-full">
       {/* Plan Pills */}
-      <div className="flex items-center justify-center gap-2 mb-8 bg-black/40 p-1.5 rounded-full border border-white/10 w-fit mx-auto">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-center sm:gap-2 mb-8 w-full max-w-[340px] sm:w-fit mx-auto">
         {plans.map((plan) => {
           const active = selectedPlan === plan.name
           return (
@@ -142,10 +142,11 @@ export function PricingTable({
               key={plan.name}
               type="button"
               onClick={() => setSelectedPlan(plan.name)}
-              className="relative px-5 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300"
+              className="relative w-full sm:w-auto px-3.5 sm:px-5 py-2.5 rounded-xl sm:rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-widest transition-all duration-300 border cursor-pointer hover:border-white/20"
               style={{
-                background: active ? accentColor : "transparent",
+                background: active ? accentColor : "rgba(255,255,255,0.03)",
                 color: active ? "#1C1C1E" : "rgba(255,255,255,0.6)",
+                borderColor: active ? accentColor : "rgba(255,255,255,0.08)",
               }}
             >
               {plan.name}
@@ -188,7 +189,7 @@ export function PricingTable({
       })()}
 
       {/* CTA */}
-      <div className="p-6 md:px-8 bg-[#1a1a1a]/50 border-t border-white/5 rounded-b-[24px]">
+      <div className="p-4 sm:p-6 md:px-8 bg-[#1a1a1a]/50 border-t border-white/5 rounded-b-[24px]">
         {/* Dynamic Price Display */}
         {(() => {
           const activePlan = plans.find((p) => p.name === selectedPlan);
@@ -209,24 +210,24 @@ export function PricingTable({
                 </>
               )}
               {/* Actual price + effective per-month inline */}
-              <div className="flex items-baseline gap-3">
+              <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-2.5 sm:gap-4">
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg text-white/40 mr-0.5">₹</span>
                   <NumberFlow
                     value={finalPrice}
-                    className="text-4xl font-black text-white"
+                    className="text-3xl sm:text-4xl font-black text-white"
                   />
                   <span className="text-sm text-white/40 ml-1">
                     {activePlan.priceSuffix || "/mo"}
                   </span>
                 </div>
                 {activePlan.months && activePlan.months > 1 && (
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-[18px] font-black text-white">
+                  <div className="flex items-center sm:items-baseline gap-1.5 sm:flex-col sm:items-center sm:gap-0.5 bg-white/[0.03] sm:bg-transparent px-3 py-1 sm:p-0 rounded-full border border-white/[0.05] sm:border-0">
+                    <span className="text-sm sm:text-[18px] font-black text-white">
                       ₹{Math.round(finalPrice / activePlan.months).toLocaleString()}
-                      <span className="text-[11px] font-medium text-white/40 ml-1">/mo</span>
+                      <span className="text-[10px] sm:text-[11px] font-medium text-white/40 ml-0.5 sm:ml-1">/mo</span>
                     </span>
-                    <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/10 text-white/50">
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/10 text-white/50">
                       effective
                     </span>
                   </div>
@@ -369,7 +370,7 @@ export function PricingModal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[1100] flex items-end sm:items-center justify-center p-0 sm:p-4"
+          className="fixed inset-0 z-[1100] flex items-center justify-center p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -386,21 +387,17 @@ export function PricingModal({
 
           {/* Sheet */}
           <motion.div
-            className="relative w-full sm:max-w-2xl max-h-[92dvh] overflow-y-auto rounded-t-[28px] sm:rounded-[24px] z-10"
+            className="relative w-full sm:max-w-2xl max-h-[90dvh] overflow-y-auto rounded-[24px] z-10"
             style={{
               background: "#18181a",
               border: "1px solid rgba(255,255,255,0.08)",
               boxShadow: "0 40px 100px rgba(0,0,0,0.8)",
             }}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ type: "spring", stiffness: 320, damping: 34 }}
           >
-            {/* Drag handle (mobile) */}
-            <div className="flex justify-center pt-3 pb-1 sm:hidden">
-              <div className="w-10 h-1 rounded-full bg-white/15" />
-            </div>
 
             {/* Header */}
             <div
@@ -426,7 +423,7 @@ export function PricingModal({
             </div>
 
             {/* Body */}
-            <div className="px-5 sm:px-6 py-6">
+            <div className="px-4 sm:px-6 py-6">
               <PricingTable
                 features={features}
                 plans={plans}

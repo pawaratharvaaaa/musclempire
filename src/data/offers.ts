@@ -13,6 +13,7 @@ export interface Offer {
   ctaText: string;
   whatsappMessage: string;
   isFeatured?: boolean;
+  showInPopup?: boolean;
   image?: string;
   couponCode?: string;
   status?: "active" | "upcoming" | "expired";

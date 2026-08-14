@@ -27,7 +27,7 @@ export default function AdminLogin() {
     setLoginError("");
     const ok = await login(username.trim(), password);
     if (ok) {
-      navigate("/adminpage/dashboard");
+      navigate("/sagarkharat/dashboard");
     } else {
       setLoginError("Invalid username or password.");
       setLoading(false);

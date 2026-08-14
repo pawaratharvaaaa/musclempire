@@ -26,24 +26,50 @@ const AdminOffers = lazy(() => import("@/pages/AdminOffers"));
 
 const queryClient = new QueryClient();
 
-// Ctrl+Shift+A opens admin login
+// Ctrl+Shift+S+K opens admin login (SAGAR KHARAT)
 function AdminShortcut() {
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")) {
+    const activeKeys = new Set<string>();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      activeKeys.add(e.key.toLowerCase());
+      
+      const ctrl = e.ctrlKey || activeKeys.has("control");
+      const shift = e.shiftKey || activeKeys.has("shift");
+      const hasS = activeKeys.has("s");
+      const hasK = activeKeys.has("k");
+
+      if (ctrl && shift && hasS && hasK) {
         e.preventDefault();
-        window.open("/adminpage", "_blank");
+        activeKeys.clear();
+        window.open("/sagarkharat", "_blank");
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      activeKeys.delete(e.key.toLowerCase());
+    };
+
+    const handleBlur = () => {
+      activeKeys.clear();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
+    };
   }, []);
   return null;
 }
 
 function PublicWidgets() {
   const [location] = useLocation();
-  if (location.startsWith("/adminpage")) return null;
+  if (location.startsWith("/sagarkharat")) return null;
   return (
     <>
       <FloatingContact />
@@ -66,13 +92,13 @@ function Router() {
         <Route path="/terms" component={TermsPage} />
         <Route path="/gallery" component={GalleryPage} />
         <Route path="/branches" component={BranchesPage} />
-        <Route path="/adminpage/gallery" component={AdminGallery} />
-        <Route path="/adminpage/offers" component={AdminOffers} />
+        <Route path="/sagarkharat/gallery" component={AdminGallery} />
+        <Route path="/sagarkharat/offers" component={AdminOffers} />
         {/* Private admin routes */}
-        <Route path="/adminpage" component={AdminLogin} />
-        <Route path="/adminpage/dashboard" component={AdminDashboard} />
-        <Route path="/adminpage/customer/:id" component={AdminCustomer} />
-        <Route path="/adminpage/track/:phone" component={AdminTrackRecord} />
+        <Route path="/sagarkharat" component={AdminLogin} />
+        <Route path="/sagarkharat/dashboard" component={AdminDashboard} />
+        <Route path="/sagarkharat/customer/:id" component={AdminCustomer} />
+        <Route path="/sagarkharat/track/:phone" component={AdminTrackRecord} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

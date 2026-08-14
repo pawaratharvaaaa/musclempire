@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { getOffers, addOffer, removeOffer, updateOffer } from "@/lib/offersStore";
-import { getCoupons, addCoupon, updateCoupon, removeCoupon } from "@/lib/couponStore";
+import { getCoupons, addCoupon, updateCoupon, removeCoupon, ensureCouponExists } from "@/lib/couponStore";
 import type { Coupon } from "@/lib/couponStore";
 import type { Offer } from "@/data/offers";
 import { Plus, Trash2, Edit, LogOut, Users, Tag, Upload, X, Check, Ticket, ToggleLeft, ToggleRight } from "lucide-react";
@@ -72,6 +72,7 @@ export default function AdminOffers() {
   const [offerStatus, setOfferStatus] = useState<"active" | "upcoming" | "expired">("active");
   const [image, setImage] = useState("");
   const [isFeatured, setIsFeatured] = useState(true);
+  const [showInPopup, setShowInPopup] = useState(true);
 
   useEffect(() => {
     setOffers(getOffers());
@@ -99,6 +100,7 @@ export default function AdminOffers() {
     setOfferStatus("active");
     setImage("");
     setIsFeatured(true);
+    setShowInPopup(true);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
@@ -142,6 +144,7 @@ export default function AdminOffers() {
       ctaText: ctaText.trim() || "Claim Offer",
       whatsappMessage: whatsappMessage.trim() || `Hi Muscle Empire! I would like to claim the ${title}.`,
       isFeatured,
+      showInPopup,
       image,
       couponCode: cleanCoupon || undefined,
       status: offerStatus,
@@ -189,14 +192,14 @@ export default function AdminOffers() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => navigate("/adminpage/dashboard")}
+                    onClick={() => navigate("/sagarkharat/dashboard")}
                     className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-white border border-white/10 hover:border-white/30 rounded-lg text-xs uppercase tracking-widest transition-colors cursor-pointer"
                   >
                     <Users size={14} />
                     Assessments
                   </button>
                   <button
-                    onClick={() => navigate("/adminpage/gallery")}
+                    onClick={() => navigate("/sagarkharat/gallery")}
                     className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-white border border-white/10 hover:border-white/30 rounded-lg text-xs uppercase tracking-widest transition-colors cursor-pointer"
                   >
                     Gallery
@@ -204,7 +207,7 @@ export default function AdminOffers() {
                 </div>
               </div>
               <button
-                onClick={() => { logout(); navigate("/adminpage"); }}
+                onClick={() => { logout(); navigate("/sagarkharat"); }}
                 className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-red-400 border border-white/10 hover:border-red-400/30 rounded-lg text-xs uppercase tracking-widest transition-colors cursor-pointer"
               >
                 <LogOut size={14} />
@@ -565,6 +568,16 @@ export default function AdminOffers() {
                     <input value={whatsappMessage} onChange={(e) => setWhatsappMessage(e.target.value)} type="text" placeholder="Enter predefined WhatsApp message..." className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors" />
                   </div>
 
+                  <div className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl border border-white/10">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-white/70">Show in Public Popup</span>
+                      <span className="text-[10px] text-white/40">If enabled, this offer will show in the main entry popup</span>
+                    </div>
+                    <button type="button" onClick={() => setShowInPopup(p => !p)}>
+                      {showInPopup ? <ToggleRight size={28} className="text-green-400" /> : <ToggleLeft size={28} className="text-white/20" />}
+                    </button>
+                  </div>
+
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Banner Image</label>
                     <div className="flex items-center gap-4">
@@ -682,6 +695,16 @@ export default function AdminOffers() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs text-white/50 uppercase tracking-wider font-bold">WhatsApp Message</label>
                     <input value={editingOffer.whatsappMessage} onChange={(e) => setEditingOffer({ ...editingOffer, whatsappMessage: e.target.value })} type="text" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors" />
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl border border-white/10">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-white/70">Show in Public Popup</span>
+                      <span className="text-[10px] text-white/40">If enabled, this offer will show in the main entry popup</span>
+                    </div>
+                    <button type="button" onClick={() => setEditingOffer({ ...editingOffer, showInPopup: !editingOffer.showInPopup })}>
+                      {editingOffer.showInPopup !== false ? <ToggleRight size={28} className="text-green-400" /> : <ToggleLeft size={28} className="text-white/20" />}
+                    </button>
                   </div>
 
                   <div className="flex flex-col gap-1.5">

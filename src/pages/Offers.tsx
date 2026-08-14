@@ -50,7 +50,7 @@ function OfferCard({
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       className={`bg-white border rounded-2xl overflow-hidden flex flex-col transition-all shadow-sm ${
-        expired ? "border-gray-200 opacity-75 grayscale-[0.3]" : "border-gray-200 hover:shadow-lg hover:border-gray-300"
+        expired ? "border-black opacity-75 grayscale-[0.3]" : "border-black hover:shadow-lg"
       }`}
     >
       {/* Banner */}

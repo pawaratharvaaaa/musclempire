@@ -76,6 +76,25 @@ function bmi(w: string, h: string) {
   if (!wn || !hn || hn <= 0) return null;
   return wn / (hn * hn);
 }
+function calculateSleepDuration(bedTime: string, wakeTime: string): string {
+  if (!bedTime || !wakeTime) return "";
+  const [bedH, bedM] = bedTime.split(":").map(Number);
+  const [wakeH, wakeM] = wakeTime.split(":").map(Number);
+  if (isNaN(bedH) || isNaN(bedM) || isNaN(wakeH) || isNaN(wakeM)) return "";
+
+  const bedMinutes = bedH * 60 + bedM;
+  const wakeMinutes = wakeH * 60 + wakeM;
+
+  let diffMinutes = 0;
+  if (wakeMinutes >= bedMinutes) {
+    diffMinutes = wakeMinutes - bedMinutes;
+  } else {
+    diffMinutes = (24 * 60 - bedMinutes) + wakeMinutes;
+  }
+
+  const hours = diffMinutes / 60;
+  return Number(hours.toFixed(1)).toString();
+}
 function bmiCategory(b: number) {
   if (b < 18.5) return { label: "Underweight", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/25" };
   if (b < 25)   return { label: "Normal weight", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/25" };
@@ -199,6 +218,22 @@ export default function NutritionAssessment() {
     }
   }, [meals]);
 
+  useEffect(() => {
+    if (form.wakeTime && form.bedTime) {
+      const calculated = calculateSleepDuration(form.bedTime, form.wakeTime);
+      setForm(f => ({ ...f, sleepDuration: calculated }));
+      if (errors.sleepDuration) {
+        setErrors(prev => {
+          const next = { ...prev };
+          delete next.sleepDuration;
+          return next;
+        });
+      }
+    } else {
+      setForm(f => ({ ...f, sleepDuration: "" }));
+    }
+  }, [form.wakeTime, form.bedTime]);
+
   const addMeal = () => {
     setMeals([...meals, { name: "", time: "", food: "" }]);
   };
@@ -278,9 +313,7 @@ export default function NutritionAssessment() {
       if (form.goals.includes("Other") && !form.otherGoal.trim()) e.otherGoal = "Goal specification is required";
     }
     if (s === 6) {
-      if (meals.length === 0) {
-        e.foodHistory = "Please add at least one meal.";
-      } else {
+      if (meals.length > 0) {
         const missing = meals.some(m => !m.name.trim() || !m.time.trim() || !m.food.trim());
         if (missing) {
           e.foodHistory = "Please fill in all fields (Meal Name, Time, and Food) for each added meal.";
@@ -341,34 +374,6 @@ export default function NutritionAssessment() {
       notes: "",
     };
     await submitAssessment(payload);
-    const waMsg = [
-      `🏋️ *Muscle Empire – Nutrition Assessment*`, ``,
-      `*👤 Personal Details*`,
-      `Name: ${form.name}`, `Phone: +91 ${form.phone}`, `Email: ${form.email}`,
-      `Age: ${form.age}`, form.gender ? `Gender: ${form.gender}` : null, ``,
-      `*📏 Body Measurements*`,
-      `Weight: ${form.weight} kg`, `Height: ${form.height} cm`,
-      bmiVal ? `BMI: ${bmiVal.toFixed(1)} (${bmiCat?.label})` : null,
-      bfVal ? `Body Fat: ${bfVal.toFixed(1)}% (${bfCat?.label})` : null, ``,
-      `*🌙 Lifestyle*`,
-      form.wakeTime ? `Wake-up: ${formatTime12h(form.wakeTime)}` : null,
-      form.bedTime ? `Bed: ${formatTime12h(form.bedTime)}` : null,
-      form.sleepDuration ? `Sleep: ${form.sleepDuration} hrs` : null,
-      form.duty ? `Duty: ${form.duty}` : null,
-      form.restTime ? `Rest time: ${formatTime12h(form.restTime)}` : null,
-      form.doesWorkout ? `Workout: ${form.doesWorkout === "Yes" ? `Yes (${form.workoutType}) — ${formatTime12h(form.workoutTimeFrom)} - ${formatTime12h(form.workoutTimeTo)}` : "No"}` : null, ``,
-      `*🥗 Food Preference*`, `Food Pref: ${form.foodPref}`,
-      form.collegeTime ? `College: ${formatTime12h(form.collegeTime)}` : null,
-      form.workTime ? `Work: ${formatTime12h(form.workTime)}` : null, ``,
-      `*🎯 Goals*`, `Goals: ${goalsList}`, ``,
-      form.medicalConditions ? `*⚕️ Medical:*\n${form.medicalConditions}` : null,
-      form.allergies ? `*⚠️ Allergies:*\n${form.allergies}` : null,
-      form.supplements ? `*💊 Supplements:*\n${form.supplements}` : null,
-      form.remarks ? `*📝 Remarks:*\n${form.remarks}` : null,
-      foodHistoryStr ? `*🍽️ Food History (7 Days):*\n${foodHistoryStr}` : null,
-      ``, `_Submitted on ${today}_`,
-    ].filter(Boolean).join("\n");
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMsg)}`, "_blank");
     setSubmitted(true);
     window.scrollTo(0, 0);
   };
@@ -586,7 +591,7 @@ export default function NutritionAssessment() {
             </div>
             <div>
               <Label>Sleep duration (hours) <span className="text-red-400">*</span></Label>
-              <input type="text" inputMode="numeric" maxLength={2} value={form.sleepDuration} onKeyDown={blockNonNumericKeys} onChange={e=>set("sleepDuration",e.target.value.replace(/[^0-9]/g,""))} className={inp(errors.sleepDuration)} />
+              <input type="text" readOnly placeholder="Calculated automatically" value={form.sleepDuration ? `${form.sleepDuration} hrs` : ""} className={`${inp(errors.sleepDuration)} cursor-not-allowed opacity-80`} />
               <Err msg={errors.sleepDuration} />
             </div>
             <div>
@@ -943,19 +948,12 @@ export default function NutritionAssessment() {
                   key={i}
                   onClick={() => {
                     if (i === step) return;
-                    if (i > step) {
-                      const errs = validateStep(step);
-                      if (Object.keys(errs).length > 0) {
-                        setErrors(errs);
-                        return;
-                      }
-                    }
                     setErrors({});
                     setDir(i > step ? 1 : -1);
                     setStep(i);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wide whitespace-nowrap shrink-0 transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wide whitespace-nowrap shrink-0 transition-all backdrop-blur-md ${
                     active ? "bg-[#E8A820] text-black hover:bg-[#d49518]" :
                     done   ? "bg-[#E8A820]/15 text-[#E8A820] hover:bg-[#E8A820]/25" :
                              "bg-white/[0.04] text-[#F2EFE9]/30 hover:text-[#F2EFE9]/60 hover:bg-white/[0.08]"

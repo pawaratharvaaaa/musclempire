@@ -291,11 +291,10 @@ export default function Branches() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-[#1C1C1E] border border-white/[0.08] shadow-2xl mb-14"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-6 rounded-3xl bg-[#1C1C1E] border border-white/[0.08] shadow-2xl mb-14"
           >
             {[
               { label: "Active Centers", value: "2 Centers", sub: "Ghatkopar West", icon: Building2 },
-              { label: "Total Floor Space", value: "10,000+ sq.ft", sub: "Premium Equipment", icon: Dumbbell },
               { label: "Certified Trainers", value: "15+ Coaches", sub: "Male & Female Staff", icon: Award },
               { label: "Happy Athletes", value: "2,500+ Members", sub: "Strong Community", icon: Users },
             ].map((stat, i) => (

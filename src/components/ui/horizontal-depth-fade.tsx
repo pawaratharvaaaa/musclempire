@@ -125,11 +125,7 @@ export function HorizontalDepthFade({
           {images.map((img, i) => (
             <div
               key={i}
-              className="group relative shrink-0 overflow-hidden rounded-[24px] snap-start transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:shadow-black/10 pointer-events-none"
-              style={{
-                width: `${itemWidth}px`,
-                height: `${itemHeight}px`,
-              }}
+              className="group relative shrink-0 overflow-hidden rounded-[20px] sm:rounded-[24px] snap-start transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:shadow-black/10 pointer-events-none w-[280px] h-[400px] sm:w-[320px] sm:h-[460px]"
             >
               {/* Background Image with Zoom effect */}
               <div
@@ -139,17 +135,17 @@ export function HorizontalDepthFade({
                 aria-label={img.alt ?? `Image ${i + 1}`}
               />
               {/* Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-8 text-white transition-opacity duration-300 group-hover:via-black/45" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-6 sm:p-8 text-white transition-opacity duration-300 group-hover:via-black/45" />
               
               {/* Content */}
-              <div className="absolute inset-0 flex flex-col justify-end p-8 text-white z-10 pointer-events-none">
+              <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 text-white z-10 pointer-events-none">
                 {img.title && (
-                  <h3 className="font-display font-black text-2xl tracking-tight mb-2 transform transition-transform duration-500 group-hover:-translate-y-1">
+                  <h3 className="font-display font-black text-xl sm:text-2xl tracking-tight mb-2 transform transition-transform duration-500 group-hover:-translate-y-1">
                     {img.title}
                   </h3>
                 )}
                 {img.description && (
-                  <p className="text-white/70 text-sm font-medium leading-relaxed opacity-90 transition-all duration-500 group-hover:text-white group-hover:-translate-y-1">
+                  <p className="text-white/70 text-xs sm:text-sm font-medium leading-relaxed opacity-90 transition-all duration-500 group-hover:text-white group-hover:-translate-y-1">
                     {img.description}
                   </p>
                 )}

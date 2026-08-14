@@ -168,8 +168,10 @@ export function ImageGallery() {
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   useEffect(() => {
-    setStoreImages(getGalleryImages());
-    const handler = () => setStoreImages(getGalleryImages());
+    getGalleryImages().then(setStoreImages);
+    const handler = () => {
+      getGalleryImages().then(setStoreImages);
+    };
     window.addEventListener("galleryUpdated", handler);
     return () => window.removeEventListener("galleryUpdated", handler);
   }, []);

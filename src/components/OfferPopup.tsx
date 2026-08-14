@@ -35,10 +35,13 @@ export default function OfferPopup() {
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    setOffers(getOffers());
-    const handler = () => setOffers(getOffers());
-    window.addEventListener("offersUpdated", handler);
-    return () => window.removeEventListener("offersUpdated", handler);
+    const loadPopupOffers = () => {
+      const active = getOffers().filter(o => o.status !== "expired" && o.showInPopup !== false);
+      setOffers(active);
+    };
+    loadPopupOffers();
+    window.addEventListener("offersUpdated", loadPopupOffers);
+    return () => window.removeEventListener("offersUpdated", loadPopupOffers);
   }, []);
 
   useEffect(() => {
@@ -106,7 +109,7 @@ export default function OfferPopup() {
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && offers.length > 0 && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop */}
           <motion.div
@@ -219,18 +222,18 @@ export default function OfferPopup() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleClaimDiscount}
-                  className="flex-1 h-11 bg-gray-900 hover:bg-gray-700 text-white font-bold uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+                  className="w-full sm:flex-1 h-14 bg-gray-900 hover:bg-gray-700 text-white font-black uppercase tracking-wider text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-md"
                 >
-                  <Sparkles size={15} />
+                  <Sparkles size={16} />
                   {currentOffer.ctaText}
                 </button>
 
                 <button
                   onClick={handleViewAllOffers}
-                  className="h-11 px-5 bg-white hover:bg-gray-50 text-gray-700 font-bold uppercase tracking-wider text-xs rounded-xl border border-gray-200 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="h-14 px-6 bg-white hover:bg-gray-50 text-gray-700 font-black uppercase tracking-wider text-xs sm:text-sm rounded-xl border border-gray-200 flex items-center justify-center gap-2.5 transition-colors cursor-pointer"
                 >
                   All Offers
-                  <ArrowRight size={13} />
+                  <ArrowRight size={14} />
                 </button>
               </div>
             </div>
@@ -320,13 +323,13 @@ export default function OfferPopup() {
               <div className="flex gap-3">
                 <button
                   onClick={() => { setShowHelp(false); handleClose(); navigate("/#pricing"); }}
-                  className="flex-1 h-11 bg-gray-900 hover:bg-gray-700 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition-colors cursor-pointer"
+                  className="flex-1 h-14 bg-gray-900 hover:bg-gray-700 text-white font-black uppercase tracking-wider text-xs sm:text-sm rounded-xl transition-colors cursor-pointer shadow-md"
                 >
                   Go to Pricing
                 </button>
                 <button
                   onClick={() => setShowHelp(false)}
-                  className="px-6 h-11 bg-white hover:bg-gray-50 text-gray-700 font-bold uppercase text-xs rounded-xl border border-gray-200 transition-colors cursor-pointer"
+                  className="px-6 h-14 bg-white hover:bg-gray-50 text-gray-700 font-black uppercase tracking-wider text-xs sm:text-sm rounded-xl border border-gray-200 transition-colors cursor-pointer"
                 >
                   Close
                 </button>

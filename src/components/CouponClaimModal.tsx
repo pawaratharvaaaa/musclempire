@@ -189,7 +189,7 @@ export default function CouponClaimModal({ isOpen, onClose, offer }: CouponClaim
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleGoToPricing}
-                className="flex-1 h-12 bg-amber-500 hover:bg-amber-600 text-black font-black uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
+                className="w-full sm:flex-1 h-14 bg-amber-500 hover:bg-amber-600 text-black font-black uppercase tracking-wider text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
               >
                 Go to Pricing & Apply
                 <ArrowRight size={14} />
@@ -197,7 +197,7 @@ export default function CouponClaimModal({ isOpen, onClose, offer }: CouponClaim
 
               <button
                 onClick={handleClaimWhatsApp}
-                className="h-12 px-4 bg-gray-900 hover:bg-gray-800 text-white font-bold uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                className="w-full sm:w-auto h-14 px-6 bg-gray-900 hover:bg-gray-800 text-white font-black uppercase tracking-wider text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2.5 transition-colors cursor-pointer"
               >
                 <MessageSquare size={14} />
                 Claim via WhatsApp

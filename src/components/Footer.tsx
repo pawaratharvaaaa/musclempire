@@ -108,6 +108,10 @@ export default function Footer() {
                   musclempire616@gmail.com
                 </a>
               </p>
+              <div className="flex flex-col gap-2.5 mt-4 md:hidden">
+                <a href="#" className="text-[11px] text-black hover:text-[#C8900A] transition-colors uppercase tracking-widest w-fit">Privacy policy</a>
+                <a href="/terms" className="text-[11px] text-black hover:text-[#C8900A] transition-colors uppercase tracking-widest w-fit">Terms & Conditions</a>
+              </div>
             </address>
           </div>
         </div>
@@ -117,7 +121,7 @@ export default function Footer() {
           <p className="text-[11px] text-black uppercase tracking-widest text-center md:text-left">
             &copy; {year} Muscle Empire Gymnasium. All rights reserved.
           </p>
-          <div className="flex gap-4 md:gap-6 flex-wrap justify-center">
+          <div className="hidden md:flex gap-4 md:gap-6 flex-wrap justify-center">
             <a href="#" className="text-[11px] text-black hover:text-[#C8900A] transition-colors uppercase tracking-widest">Privacy policy</a>
             <a href="/terms" className="text-[11px] text-black hover:text-[#C8900A] transition-colors uppercase tracking-widest">Terms & Conditions</a>
           </div>
