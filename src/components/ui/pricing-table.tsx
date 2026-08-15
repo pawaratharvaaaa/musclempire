@@ -5,7 +5,7 @@ import { CheckIcon } from "@radix-ui/react-icons"
 import NumberFlow from "@number-flow/react"
 import { X, ArrowRight } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
-import { validateCoupon, getCoupons } from "@/lib/couponStore"
+import { validateCoupon, getCoupons, syncCouponsFromSheets } from "@/lib/couponStore"
 
 /* ── Types ─────────────────────────────────────────────────── */
 
@@ -69,6 +69,9 @@ export function PricingTable({
   const [couponStatus, setCouponStatus] = React.useState<"idle" | "valid" | "invalid" | "not_applicable">("idle")
   const [appliedCoupon, setAppliedCoupon] = React.useState<string | null>(null)
   const [discount, setDiscount]         = React.useState(0)
+
+  // Sync coupons from Sheets on mount (background, non-blocking)
+  React.useEffect(() => { syncCouponsFromSheets(); }, [])
 
   function applyCoupon() {
     const code = couponInput.trim().toUpperCase()

@@ -201,6 +201,40 @@ function handleRequest(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  if (action === "getCoupons") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var cSheet = ss.getSheetByName("Coupons");
+    if (!cSheet || cSheet.getLastRow() < 1) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ coupons: [] }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    var val = cSheet.getRange(1, 1).getValue();
+    try {
+      var parsed = JSON.parse(String(val));
+      return ContentService
+        .createTextOutput(JSON.stringify({ coupons: parsed }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ coupons: [] }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  if (action === "saveCoupons") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var cSheet = ss.getSheetByName("Coupons");
+    if (!cSheet) {
+      cSheet = ss.insertSheet("Coupons");
+    }
+    cSheet.clearContents();
+    cSheet.getRange(1, 1).setValue(p.data || "[]");
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   return ContentService
     .createTextOutput(JSON.stringify({ error: "Unknown action" }))
     .setMimeType(ContentService.MimeType.JSON);
