@@ -60,6 +60,13 @@ async function fetchCouponsFromSheets(): Promise<Coupon[] | null> {
 }
 
 function saveCouponsToSheets(coupons: Coupon[]): void {
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action: "saveCoupons", data: JSON.stringify(coupons) }),
+  }).catch(() => {});
+  // Also fire as GET in case POST body isn't parsed
   const qs = new URLSearchParams({ action: "saveCoupons", data: JSON.stringify(coupons) }).toString();
   fetch(`${APPS_SCRIPT_URL}?${qs}`, { method: "GET", mode: "no-cors" }).catch(() => {});
 }
