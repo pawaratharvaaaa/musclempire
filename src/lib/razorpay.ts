@@ -1,5 +1,5 @@
 // Replace with your actual Razorpay Key ID from dashboard.razorpay.com
-export const RAZORPAY_KEY = "rzp_test_SynqIBDguhSpda";
+export const RAZORPAY_KEY = "rzp_live_TQ79jJCu8KnJAB";
 
 function loadScript(): Promise<boolean> {
   return new Promise((resolve) => {
