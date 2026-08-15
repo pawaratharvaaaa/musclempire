@@ -47,7 +47,17 @@ const DEFAULT_COUPONS: Coupon[] = [
 export function getCoupons(): Coupon[] {
   try {
     const stored = localStorage.getItem(COUPONS_KEY);
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      const parsed: Coupon[] = JSON.parse(stored);
+      // Always merge default coupons so they work on every device/browser
+      const merged = [...parsed];
+      DEFAULT_COUPONS.forEach(def => {
+        if (!merged.find(c => c.code === def.code)) {
+          merged.push(def);
+        }
+      });
+      return merged;
+    }
   } catch {}
   return DEFAULT_COUPONS;
 }

@@ -272,7 +272,13 @@ export function PricingTable({
                   value={couponInput}
                   onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponStatus("idle"); setDiscount(0); setAppliedCoupon(null); }}
                   onKeyDown={e => e.key === "Enter" && applyCoupon()}
+                  onKeyUp={e => e.key === "Enter" && applyCoupon()}
                   placeholder="Enter coupon code"
+                  autoCapitalize="characters"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  spellCheck={false}
+                  inputMode="text"
                   className="w-full h-11 px-4 rounded-xl text-[13px] font-bold uppercase tracking-widest bg-white/[0.06] border text-white placeholder-white/25 outline-none transition-all"
                   style={{
                     borderColor: couponStatus === "valid" ? "#22c55e" : couponStatus === "invalid" ? "#ef4444" : "rgba(255,255,255,0.12)",
