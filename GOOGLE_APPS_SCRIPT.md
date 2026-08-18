@@ -204,22 +204,25 @@ function handleRequest(e) {
   if (action === "getCoupons") {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var cSheet = ss.getSheetByName("Coupons");
-    if (!cSheet || cSheet.getLastRow() < 1) {
+    if (!cSheet || cSheet.getLastRow() < 2) {
       return ContentService
         .createTextOutput(JSON.stringify({ coupons: [] }))
         .setMimeType(ContentService.MimeType.JSON);
     }
-    var val = cSheet.getRange(1, 1).getValue();
-    try {
-      var parsed = JSON.parse(String(val));
-      return ContentService
-        .createTextOutput(JSON.stringify({ coupons: parsed }))
-        .setMimeType(ContentService.MimeType.JSON);
-    } catch (err) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ coupons: [] }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
+    var rows = cSheet.getRange(2, 1, cSheet.getLastRow() - 1, 6).getValues();
+    var coupons = rows.filter(function(r) { return r[0]; }).map(function(r) {
+      return {
+        id: String(r[0]),
+        code: String(r[1]),
+        discount: Number(r[2]),
+        plans: r[3] ? String(r[3]).split(",").map(function(s) { return s.trim(); }).filter(Boolean) : [],
+        enabled: String(r[4]).toLowerCase() === "true" || r[4] === true,
+        description: String(r[5] || "")
+      };
+    });
+    return ContentService
+      .createTextOutput(JSON.stringify({ coupons: coupons }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 
   if (action === "saveCoupons") {
@@ -229,7 +232,19 @@ function handleRequest(e) {
       cSheet = ss.insertSheet("Coupons");
     }
     cSheet.clearContents();
-    cSheet.getRange(1, 1).setValue(p.data || "[]");
+    cSheet.appendRow(["ID", "Code", "Discount %", "Plans", "Enabled", "Description"]);
+    cSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#FFD000");
+    try {
+      var coupons = JSON.parse(p.data || "[]");
+      coupons.forEach(function(c) {
+        cSheet.appendRow([
+          c.id || "", c.code || "", c.discount || 0,
+          Array.isArray(c.plans) ? c.plans.join(", ") : "",
+          c.enabled === true ? "true" : "false",
+          c.description || ""
+        ]);
+      });
+    } catch (err) {}
     return ContentService
       .createTextOutput(JSON.stringify({ success: true }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -238,21 +253,18 @@ function handleRequest(e) {
   if (action === "getVideos") {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var vSheet = ss.getSheetByName("Videos");
-    if (!vSheet || vSheet.getLastRow() < 1) {
+    if (!vSheet || vSheet.getLastRow() < 2) {
       return ContentService
         .createTextOutput(JSON.stringify({ videos: [] }))
         .setMimeType(ContentService.MimeType.JSON);
     }
-    try {
-      var val = vSheet.getRange(1, 1).getValue();
-      return ContentService
-        .createTextOutput(JSON.stringify({ videos: JSON.parse(String(val)) }))
-        .setMimeType(ContentService.MimeType.JSON);
-    } catch (err) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ videos: [] }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
+    var rows = vSheet.getRange(2, 1, vSheet.getLastRow() - 1, 3).getValues();
+    var videos = rows.filter(function(r) { return r[0]; }).map(function(r) {
+      return { id: String(r[0]), src: String(r[1]), alt: String(r[2] || "") };
+    });
+    return ContentService
+      .createTextOutput(JSON.stringify({ videos: videos }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 
   if (action === "saveVideos") {
@@ -260,7 +272,14 @@ function handleRequest(e) {
     var vSheet = ss.getSheetByName("Videos");
     if (!vSheet) vSheet = ss.insertSheet("Videos");
     vSheet.clearContents();
-    vSheet.getRange(1, 1).setValue(p.data || "[]");
+    vSheet.appendRow(["ID", "URL / Source", "Caption"]);
+    vSheet.getRange(1, 1, 1, 3).setFontWeight("bold").setBackground("#FFD000");
+    try {
+      var videos = JSON.parse(p.data || "[]");
+      videos.forEach(function(v) {
+        vSheet.appendRow([v.id || "", v.src || "", v.alt || ""]);
+      });
+    } catch (err) {}
     return ContentService
       .createTextOutput(JSON.stringify({ success: true }))
       .setMimeType(ContentService.MimeType.JSON);
