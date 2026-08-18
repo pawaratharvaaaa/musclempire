@@ -41,6 +41,7 @@ export default function AdminGallery() {
   const [activeTab, setActiveTab] = useState<"photos" | "videos">("photos");
   const [newSrc, setNewSrc] = useState("");
   const [newAlt, setNewAlt] = useState("");
+  const [newThumb, setNewThumb] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -116,12 +117,13 @@ export default function AdminGallery() {
       const list = await getGalleryImages();
       setImages(list);
     } else {
-      await addGalleryVideo(newSrc.trim(), newAlt.trim() || "Gallery video");
+      await addGalleryVideo(newSrc.trim(), newAlt.trim() || "Gallery video", newThumb.trim() || undefined);
       const list = await getGalleryVideos();
       setVideos(list);
     }
     setNewSrc("");
     setNewAlt("");
+    setNewThumb("");
     setShowAdd(false);
   };
 
@@ -292,16 +294,33 @@ export default function AdminGallery() {
                   {/* URL input */}
                   <div>
                     <label className="block text-xs text-white/40 uppercase tracking-widest mb-1.5">
-                      {activeTab === "photos" ? "Image URL" : "Video URL / YouTube Link"}
+                      {activeTab === "photos" ? "Image URL" : "Video URL / YouTube Link / Google Drive Link"}
                     </label>
                     <input
                       type="text"
                       value={newSrc}
                       onChange={e => setNewSrc(e.target.value)}
-                      placeholder={activeTab === "photos" ? "https://example.com/image.jpg" : "https://example.com/video.mp4 or YouTube URL"}
+                      placeholder={activeTab === "photos" ? "https://example.com/image.jpg" : "https://youtube.com/... or Google Drive link"}
                       className="w-full bg-[#0d1117] border border-white/10 focus:border-green-400 focus:outline-none h-11 px-3 text-white placeholder:text-white/20 text-sm rounded-lg transition-colors"
                     />
                   </div>
+
+                  {/* Thumbnail URL — videos only */}
+                  {activeTab === "videos" && (
+                    <div>
+                      <label className="block text-xs text-white/40 uppercase tracking-widest mb-1.5">
+                        Thumbnail Image URL <span className="text-white/20 normal-case">(optional — for Drive videos)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newThumb}
+                        onChange={e => setNewThumb(e.target.value)}
+                        placeholder="https://example.com/thumbnail.jpg"
+                        className="w-full bg-[#0d1117] border border-white/10 focus:border-green-400 focus:outline-none h-11 px-3 text-white placeholder:text-white/20 text-sm rounded-lg transition-colors"
+                      />
+                      <p className="text-[10px] text-white/25 mt-1.5">Upload a thumbnail to Google Drive or any image host and paste the URL here.</p>
+                    </div>
+                  )}
 
                   <div className="flex gap-3">
                     <button
@@ -346,6 +365,7 @@ export default function AdminGallery() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {videos.map((vid) => {
                   const ytThumb = getThumb(vid.src);
+                  const thumb = vid.thumbnail || ytThumb;
                   const embedUrl = getEmbedUrl(vid.src);
                   return (
                     <div
@@ -354,8 +374,8 @@ export default function AdminGallery() {
                       className="group relative bg-[#161b22] border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:border-green-500/30 transition-colors"
                     >
                       <div className="aspect-[4/3] bg-black flex items-center justify-center relative">
-                        {ytThumb ? (
-                          <img src={ytThumb} alt={vid.alt} className="w-full h-full object-cover" loading="lazy" />
+                        {thumb ? (
+                          <img src={thumb} alt={vid.alt} className="w-full h-full object-cover" loading="lazy" />
                         ) : embedUrl ? (
                           <div className="w-full h-full bg-[#0d1117] flex flex-col items-center justify-center gap-2">
                             <Play size={28} className="text-[#E8A820]" fill="currentColor" />

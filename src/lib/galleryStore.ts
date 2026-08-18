@@ -21,6 +21,7 @@ export interface GalleryVideo {
   id: string;
   src: string;
   alt: string;
+  thumbnail?: string;
 }
 
 const DEFAULT_IMAGES: GalleryImage[] = [
@@ -159,13 +160,13 @@ export async function getGalleryVideos(): Promise<GalleryVideo[]> {
   return local;
 }
 
-export async function addGalleryVideo(src: string, alt: string): Promise<void> {
+export async function addGalleryVideo(src: string, alt: string, thumbnail?: string): Promise<void> {
   // Only allow URLs, not base64
   if (src.startsWith("data:")) {
     throw new Error("Please use a URL (YouTube, direct link) instead of uploading a file. File uploads are device-specific.");
   }
   const videos = getLocalVideos();
-  videos.push({ id: Date.now().toString(), src, alt });
+  videos.push({ id: Date.now().toString(), src, alt, thumbnail });
   saveLocalVideos(videos);
   saveVideosToSheets(videos);
   window.dispatchEvent(new CustomEvent("galleryUpdated"));

@@ -43,6 +43,7 @@ function VideoCard({ video, onClick }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const ytThumb = getThumbnail(video.src);
+  const thumb = video.thumbnail || ytThumb;
   const embedUrl = getEmbedUrl(video.src);
   const isDrive = !!getDriveFileId(video.src);
 
@@ -71,10 +72,10 @@ function VideoCard({ video, onClick }: VideoCardProps) {
       onMouseLeave={handleMouseLeave}
       className="group relative cursor-pointer overflow-hidden rounded-xl border border-white/5 bg-white/5 transition-all duration-300 hover:shadow-lg hover:shadow-[#E8A820]/5 hover:border-[#E8A820]/30 w-full"
     >
-      {ytThumb ? (
+      {thumb ? (
         <div className="relative w-full bg-[#111] overflow-hidden">
           <img
-            src={ytThumb}
+            src={thumb}
             alt={video.alt}
             className="w-full h-auto block object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
             loading="lazy"
