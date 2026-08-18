@@ -184,8 +184,8 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map((row) => (
-                      <tr key={row.id ?? row._arrayIndex}
+                    {filtered.map((row, idx) => (
+                      <tr key={`${row._arrayIndex}-${idx}`}
                         className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
                         onClick={() => {
                           setSelectedAssessment(row);
