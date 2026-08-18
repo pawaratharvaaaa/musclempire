@@ -27,14 +27,12 @@ function getDriveEmbedUrl(url: string): string | null {
 }
 
 function getEmbedUrl(url: string): string | null {
-  return getYoutubeEmbedUrl(url) || getDriveEmbedUrl(url);
+  return getYoutubeEmbedUrl(url);
 }
 
 function getThumb(url: string): string | null {
   return getYoutubeThumbnail(url);
-}
-
-export default function AdminGallery() {
+}export default function AdminGallery() {
   const [, navigate] = useLocation();
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [videos, setVideos] = useState<GalleryVideo[]>([]);
@@ -364,8 +362,7 @@ export default function AdminGallery() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {videos.map((vid) => {
-                  const ytThumb = getThumb(vid.src);
-                  const thumb = vid.thumbnail || ytThumb;
+                  const thumb = vid.thumbnail || getThumb(vid.src);
                   const embedUrl = getEmbedUrl(vid.src);
                   return (
                     <div
@@ -381,12 +378,10 @@ export default function AdminGallery() {
                             <Play size={28} className="text-[#E8A820]" fill="currentColor" />
                             <span className="text-[10px] text-white/40 uppercase tracking-widest">Click to play</span>
                           </div>
-                        ) : vid.src.startsWith("http") && !vid.src.includes("base64") ? (
+                        ) : (
                           <div className="w-full h-full bg-[#0d1117] flex items-center justify-center">
                             <Video size={32} className="text-white/20" />
                           </div>
-                        ) : (
-                          <video src={vid.src} className="w-full h-full object-cover" preload="metadata" />
                         )}
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                           <Play size={20} className="text-white/60 group-hover:text-white transition-colors" />
@@ -443,8 +438,7 @@ export default function AdminGallery() {
                     className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl"
                     onClick={e => e.stopPropagation()}
                   >
-                    {getEmbedUrl(activeVideo.src) ? (
-                      <iframe
+                    {getEmbedUrl(activeVideo.src) ? (                      <iframe
                         src={getEmbedUrl(activeVideo.src)!}
                         title={activeVideo.alt}
                         frameBorder="0"

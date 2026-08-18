@@ -16,18 +16,8 @@ function getYoutubeThumbnail(url: string): string | null {
   return match && match[2].length === 11 ? `https://img.youtube.com/vi/${match[2]}/hqdefault.jpg` : null;
 }
 
-function getDriveFileId(url: string): string | null {
-  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  return match ? match[1] : null;
-}
-
-function getDriveEmbedUrl(url: string): string | null {
-  const id = getDriveFileId(url);
-  return id ? `https://drive.google.com/file/d/${id}/preview` : null;
-}
-
 function getEmbedUrl(url: string): string | null {
-  return getYoutubeEmbedUrl(url) || getDriveEmbedUrl(url);
+  return getYoutubeEmbedUrl(url);
 }
 
 function getThumbnail(url: string): string | null {
@@ -42,10 +32,8 @@ interface VideoCardProps {
 function VideoCard({ video, onClick }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const ytThumb = getThumbnail(video.src);
-  const thumb = video.thumbnail || ytThumb;
+  const thumb = video.thumbnail || getThumbnail(video.src);
   const embedUrl = getEmbedUrl(video.src);
-  const isDrive = !!getDriveFileId(video.src);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -85,14 +73,6 @@ function VideoCard({ video, onClick }: VideoCardProps) {
               <Play size={20} fill="currentColor" className="ml-0.5" />
             </div>
           </div>
-        </div>
-      ) : isDrive || embedUrl ? (
-        <div className="relative w-full aspect-video bg-[#111] flex items-center justify-center overflow-hidden">
-          <div className="flex flex-col items-center gap-2 text-white/40">
-            <Play size={32} className="text-[#E8A820]" fill="currentColor" />
-            <span className="text-xs uppercase tracking-widest">Click to play</span>
-          </div>
-          <div className="absolute inset-0 bg-transparent group-hover:bg-[#E8A820]/5 transition-colors duration-300" />
         </div>
       ) : (
         <div className="relative w-full bg-black overflow-hidden">

@@ -108,16 +108,13 @@ async function fetchVideosFromSheets(): Promise<GalleryVideo[] | null> {
 }
 
 function saveVideosToSheets(videos: GalleryVideo[]): void {
-  // POST
+  // Single POST only — prevents duplicate galleryUpdated events
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ action: "saveVideos", data: JSON.stringify(videos) }),
   }).catch(() => {});
-  // GET fallback
-  const qs = new URLSearchParams({ action: "saveVideos", data: JSON.stringify(videos) }).toString();
-  fetch(`${APPS_SCRIPT_URL}?${qs}`, { method: "GET", mode: "no-cors" }).catch(() => {});
 }
 
 // ── Public API — Images ──────────────────────────────────────────────────────
