@@ -241,45 +241,35 @@ export default function AdminGallery() {
                   {/* Upload from device */}
                   <div>
                     <label className="block text-xs text-white/40 uppercase tracking-widest mb-1.5">Upload from Device</label>
-                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 hover:border-green-400/50 rounded-xl cursor-pointer transition-colors ${uploading ? "pointer-events-none border-green-500/30" : ""}`}>
-                      {uploading ? (
-                        <div className="w-full px-8 text-center space-y-3">
-                          <div className="flex justify-between text-xs text-white/60 uppercase tracking-widest font-bold">
-                            <span>Processing {activeTab === "photos" ? "Photo" : "Video"}...</span>
-                            <span>{uploadProgress}%</span>
+                    {activeTab === "videos" ? (
+                      <div className="w-full h-20 border border-dashed border-orange-400/30 rounded-xl flex items-center justify-center bg-orange-400/5 px-4">
+                        <p className="text-orange-400/80 text-xs text-center leading-relaxed">
+                          ⚠️ File upload is device-specific. Use a <strong>YouTube or direct video URL</strong> below so it shows on all devices.
+                        </p>
+                      </div>
+                    ) : (
+                      <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 hover:border-green-400/50 rounded-xl cursor-pointer transition-colors ${uploading ? "pointer-events-none border-green-500/30" : ""}`}>
+                        {uploading ? (
+                          <div className="w-full px-8 text-center space-y-3">
+                            <div className="flex justify-between text-xs text-white/60 uppercase tracking-widest font-bold">
+                              <span>Processing Photo...</span>
+                              <span>{uploadProgress}%</span>
+                            </div>
+                            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-green-400 transition-all duration-150 rounded-full" style={{ width: `${uploadProgress}%` }} />
+                            </div>
                           </div>
-                          <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-green-400 transition-all duration-150 rounded-full"
-                              style={{ width: `${uploadProgress}%` }}
-                            />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 text-white/30">
+                            <Upload size={24} />
+                            <span className="text-xs uppercase tracking-widest">Click to choose file</span>
+                            <span className="text-[10px] text-white/20">JPG, PNG, WEBP, GIF</span>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center gap-2 text-white/30">
-                          <Upload size={24} />
-                          <span className="text-xs uppercase tracking-widest">Click to choose file</span>
-                          <span className="text-[10px] text-white/20">
-                            {activeTab === "photos" ? "JPG, PNG, WEBP, GIF" : "MP4, WebM, OGG"}
-                          </span>
-                        </div>
-                      )}
-                      <input
-                        type="file"
-                        accept={activeTab === "photos" ? "image/*" : "video/*"}
-                        className="hidden"
-                        onChange={handleFileUpload}
-                        disabled={uploading}
-                      />
-                    </label>
-                    {activeTab === "videos" && (
-                      <p className="text-[10px] text-white/30 mt-1.5 italic">
-                        Note: Videos uploaded directly from your device are stored locally. Direct URL or YouTube link input is recommended to save browser space.
-                      </p>
+                        )}
+                        <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+                      </label>
                     )}
                   </div>
-
-                  {/* Divider */}
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-white/10" />
                     <span className="text-white/20 text-xs uppercase tracking-widest">or use URL / Link</span>
@@ -352,6 +342,10 @@ export default function AdminGallery() {
                       <div className="aspect-[4/3] bg-black flex items-center justify-center relative">
                         {ytThumb ? (
                           <img src={ytThumb} alt={vid.alt} className="w-full h-full object-cover" loading="lazy" />
+                        ) : vid.src.startsWith("http") && !vid.src.includes("base64") ? (
+                          <div className="w-full h-full bg-[#0d1117] flex items-center justify-center">
+                            <Video size={32} className="text-white/20" />
+                          </div>
                         ) : (
                           <video src={vid.src} className="w-full h-full object-cover" preload="metadata" />
                         )}

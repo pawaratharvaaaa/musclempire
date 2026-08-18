@@ -235,6 +235,37 @@ function handleRequest(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  if (action === "getVideos") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var vSheet = ss.getSheetByName("Videos");
+    if (!vSheet || vSheet.getLastRow() < 1) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ videos: [] }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    try {
+      var val = vSheet.getRange(1, 1).getValue();
+      return ContentService
+        .createTextOutput(JSON.stringify({ videos: JSON.parse(String(val)) }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ videos: [] }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  if (action === "saveVideos") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var vSheet = ss.getSheetByName("Videos");
+    if (!vSheet) vSheet = ss.insertSheet("Videos");
+    vSheet.clearContents();
+    vSheet.getRange(1, 1).setValue(p.data || "[]");
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   return ContentService
     .createTextOutput(JSON.stringify({ error: "Unknown action" }))
     .setMimeType(ContentService.MimeType.JSON);
