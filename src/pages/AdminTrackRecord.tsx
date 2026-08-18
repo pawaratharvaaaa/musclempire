@@ -59,7 +59,14 @@ export default function AdminTrackRecord({ params }: { params: { phone: string }
     fetchFresh().then((data) => {
       const matched = data
         .map((d, i) => ({ ...d, _arrayIndex: i }))
-        .filter((d) => String(d.phone).replace(/\D/g, "") === String(phone).replace(/\D/g, ""))
+        .filter((d) => {
+          const normalize = (p: string) => {
+            const digits = String(p).replace(/\D/g, "");
+            // Strip leading country code (91) if present and number is 12 digits
+            return digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : digits.slice(-10);
+          };
+          return normalize(String(d.phone)) === normalize(String(phone));
+        })
         .sort((a, b) => {
           const da = new Date(a.date).getTime() || 0;
           const db = new Date(b.date).getTime() || 0;
