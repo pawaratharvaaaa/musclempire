@@ -9,16 +9,29 @@ import { motion, AnimatePresence } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
 
+function getYoutubeEmbedUrl(url: string): string | null {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}?autoplay=1` : null;
+}
+
 function getYoutubeThumbnail(url: string): string | null {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   const match = url.match(regExp);
   return match && match[2].length === 11 ? `https://img.youtube.com/vi/${match[2]}/hqdefault.jpg` : null;
 }
 
-function getYoutubeEmbedUrl(url: string): string | null {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}?autoplay=1` : null;
+function getDriveEmbedUrl(url: string): string | null {
+  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  return match ? `https://drive.google.com/file/d/${match[1]}/preview` : null;
+}
+
+function getEmbedUrl(url: string): string | null {
+  return getYoutubeEmbedUrl(url) || getDriveEmbedUrl(url);
+}
+
+function getThumb(url: string): string | null {
+  return getYoutubeThumbnail(url);
 }
 
 export default function AdminGallery() {
@@ -332,7 +345,8 @@ export default function AdminGallery() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {videos.map((vid) => {
-                  const ytThumb = getYoutubeThumbnail(vid.src);
+                  const ytThumb = getThumb(vid.src);
+                  const embedUrl = getEmbedUrl(vid.src);
                   return (
                     <div
                       key={vid.id}
@@ -342,6 +356,11 @@ export default function AdminGallery() {
                       <div className="aspect-[4/3] bg-black flex items-center justify-center relative">
                         {ytThumb ? (
                           <img src={ytThumb} alt={vid.alt} className="w-full h-full object-cover" loading="lazy" />
+                        ) : embedUrl ? (
+                          <div className="w-full h-full bg-[#0d1117] flex flex-col items-center justify-center gap-2">
+                            <Play size={28} className="text-[#E8A820]" fill="currentColor" />
+                            <span className="text-[10px] text-white/40 uppercase tracking-widest">Click to play</span>
+                          </div>
                         ) : vid.src.startsWith("http") && !vid.src.includes("base64") ? (
                           <div className="w-full h-full bg-[#0d1117] flex items-center justify-center">
                             <Video size={32} className="text-white/20" />
@@ -404,9 +423,9 @@ export default function AdminGallery() {
                     className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl"
                     onClick={e => e.stopPropagation()}
                   >
-                    {getYoutubeEmbedUrl(activeVideo.src) ? (
+                    {getEmbedUrl(activeVideo.src) ? (
                       <iframe
-                        src={getYoutubeEmbedUrl(activeVideo.src)!}
+                        src={getEmbedUrl(activeVideo.src)!}
                         title={activeVideo.alt}
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

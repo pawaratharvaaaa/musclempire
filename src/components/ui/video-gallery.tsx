@@ -16,6 +16,24 @@ function getYoutubeThumbnail(url: string): string | null {
   return match && match[2].length === 11 ? `https://img.youtube.com/vi/${match[2]}/hqdefault.jpg` : null;
 }
 
+function getDriveFileId(url: string): string | null {
+  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : null;
+}
+
+function getDriveEmbedUrl(url: string): string | null {
+  const id = getDriveFileId(url);
+  return id ? `https://drive.google.com/file/d/${id}/preview` : null;
+}
+
+function getEmbedUrl(url: string): string | null {
+  return getYoutubeEmbedUrl(url) || getDriveEmbedUrl(url);
+}
+
+function getThumbnail(url: string): string | null {
+  return getYoutubeThumbnail(url);
+}
+
 interface VideoCardProps {
   video: GalleryVideo;
   onClick: () => void;
@@ -24,7 +42,9 @@ interface VideoCardProps {
 function VideoCard({ video, onClick }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const ytThumb = getYoutubeThumbnail(video.src);
+  const ytThumb = getThumbnail(video.src);
+  const embedUrl = getEmbedUrl(video.src);
+  const isDrive = !!getDriveFileId(video.src);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -65,6 +85,14 @@ function VideoCard({ video, onClick }: VideoCardProps) {
             </div>
           </div>
         </div>
+      ) : isDrive || embedUrl ? (
+        <div className="relative w-full aspect-video bg-[#111] flex items-center justify-center overflow-hidden">
+          <div className="flex flex-col items-center gap-2 text-white/40">
+            <Play size={32} className="text-[#E8A820]" fill="currentColor" />
+            <span className="text-xs uppercase tracking-widest">Click to play</span>
+          </div>
+          <div className="absolute inset-0 bg-transparent group-hover:bg-[#E8A820]/5 transition-colors duration-300" />
+        </div>
       ) : (
         <div className="relative w-full bg-black overflow-hidden">
           <video
@@ -76,7 +104,6 @@ function VideoCard({ video, onClick }: VideoCardProps) {
             preload="auto"
             className="w-full h-auto block object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
           />
-          {/* play overlay */}
           <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
             <div className={cn(
               "w-12 h-12 rounded-full bg-black/50 text-white border border-white/10 flex items-center justify-center transition-all duration-300 group-hover:bg-[#E8A820]/90 group-hover:text-black group-hover:border-transparent group-hover:scale-110",
@@ -95,7 +122,7 @@ function VideoCard({ video, onClick }: VideoCardProps) {
 }
 
 function VideoLightbox({ video, onClose }: { video: GalleryVideo; onClose: () => void }) {
-  const ytEmbed = getYoutubeEmbedUrl(video.src);
+  const embedUrl = getEmbedUrl(video.src);
   const [muted, setMuted] = useState(false);
 
   useEffect(() => {
@@ -125,9 +152,9 @@ function VideoLightbox({ video, onClose }: { video: GalleryVideo; onClose: () =>
         className="relative max-w-4xl max-h-[85vh] rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        {ytEmbed ? (
+        {embedUrl ? (
           <iframe
-            src={ytEmbed}
+            src={embedUrl}
             title={video.alt}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
