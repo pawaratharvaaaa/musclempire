@@ -1,7 +1,7 @@
 // Videos are synced via Google Sheets so they work on all devices.
 // Images remain in IndexedDB (base64 uploads are device-local by nature).
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjdgZihcd7nO9gkA2zFsPmF40gmmjTqRxWzKAqfZAVjCbVffV0bl-8bpBK5yzfOcsjtQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw06TogGaQrRyBdRGHuvEYqBKPfT9f0AFYcB36t-XwJweaLkuT3-wi55un3ckiPMPZOYQ/exec";
 
 const DB_NAME = "MuscleEmpireGalleryDB";
 const DB_VERSION = 1;

@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjdgZihcd7nO9gkA2zFsPmF40gmmjTqRxWzKAqfZAVjCbVffV0bl-8bpBK5yzfOcsjtQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw06TogGaQrRyBdRGHuvEYqBKPfT9f0AFYcB36t-XwJweaLkuT3-wi55un3ckiPMPZOYQ/exec";
 
 const COUPONS_KEY = "me_coupons_data";
 const COUPONS_TS_KEY = "me_coupons_ts";
