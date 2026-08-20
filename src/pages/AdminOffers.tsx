@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { getOffers, addOffer, removeOffer, updateOffer } from "@/lib/offersStore";
-import { getCoupons, addCoupon, updateCoupon, removeCoupon, ensureCouponExists } from "@/lib/couponStore";
+import { getOffers, addOffer, removeOffer, updateOffer, pullOffersFromSheets } from "@/lib/offersStore";
+import { getCoupons, addCoupon, updateCoupon, removeCoupon, ensureCouponExists, pullFromSheets } from "@/lib/couponStore";
 import type { Coupon } from "@/lib/couponStore";
 import type { Offer } from "@/data/offers";
 import { Plus, Trash2, Edit, LogOut, Users, Tag, Upload, X, Check, Ticket, ToggleLeft, ToggleRight } from "lucide-react";
@@ -37,34 +37,35 @@ export default function AdminOffers() {
 
   const [savingCoupon, setSavingCoupon] = useState(false);
 
-  async function handleAddCoupon() {
-    if (!cpCode.trim() || !cpDiscount.trim()) { alert("Code and discount are required"); return; }
-    if (savingCoupon) return;
-    setSavingCoupon(true);
-    await addCoupon({ code: cpCode.trim().toUpperCase(), discount: Number(cpDiscount), plans: cpPlans, description: cpDesc.trim(), enabled: cpEnabled });
-    setCoupons(await getCoupons());
-    resetCouponForm();
-    setShowAddCoupon(false);
-    setSavingCoupon(false);
+  function resetCouponForm() {
+    setCpCode(""); setCpDiscount(""); setCpPlans([]); setCpDesc(""); setCpEnabled(true);
   }
 
-  async function handleUpdateCoupon() {
+  function handleAddCoupon() {
+    if (!cpCode.trim() || !cpDiscount.trim()) { alert("Code and discount are required"); return; }
+    addCoupon({ code: cpCode.trim().toUpperCase(), discount: Number(cpDiscount), plans: cpPlans, description: cpDesc.trim(), enabled: cpEnabled });
+    setCoupons(getCoupons());
+    resetCouponForm();
+    setShowAddCoupon(false);
+  }
+
+  function handleUpdateCoupon() {
     if (!editingCoupon) return;
-    await updateCoupon(editingCoupon.id, editingCoupon);
-    setCoupons(await getCoupons());
+    updateCoupon(editingCoupon.id, editingCoupon);
+    setCoupons(getCoupons());
     setEditingCoupon(null);
   }
 
-  async function handleRemoveCoupon(id: string) {
+  function handleRemoveCoupon(id: string) {
     if (confirm("Delete this coupon?")) {
-      await removeCoupon(id);
-      setCoupons(await getCoupons());
+      removeCoupon(id);
+      setCoupons(getCoupons());
     }
   }
 
-  async function toggleCoupon(id: string, enabled: boolean) {
-    await updateCoupon(id, { enabled });
-    setCoupons(await getCoupons());
+  function toggleCoupon(id: string, enabled: boolean) {
+    updateCoupon(id, { enabled });
+    setCoupons(getCoupons());
   }
 
   // Form states
@@ -83,11 +84,13 @@ export default function AdminOffers() {
   const [showInPopup, setShowInPopup] = useState(true);
 
   useEffect(() => {
-    // Fetch fresh from Sheets on mount
-    getOffers().then(setOffers);
-    getCoupons().then(setCoupons);
-    const handler = () => getOffers().then(setOffers);
-    const couponHandler = () => getCoupons().then(setCoupons);
+    // Show cached data instantly, then pull fresh from Sheets in background
+    setOffers(getOffers());
+    setCoupons(getCoupons());
+    pullOffersFromSheets();
+    pullFromSheets();
+    const handler = () => setOffers(getOffers());
+    const couponHandler = () => setCoupons(getCoupons());
     window.addEventListener("offersUpdated", handler);
     window.addEventListener("couponsUpdated", couponHandler);
     return () => {
@@ -137,53 +140,42 @@ export default function AdminOffers() {
     reader.readAsDataURL(file);
   };
 
-  const handleAdd = async () => {
-    if (!title.trim() || !description.trim()) {
-      alert("Title and Description are required");
-      return;
-    }
+  const handleAdd = () => {
+    if (!title.trim() || !description.trim()) { alert("Title and Description are required"); return; }
     const cleanCoupon = couponCode.trim().toUpperCase();
-    await addOffer({
-      title: title.trim(),
-      subtitle: subtitle.trim(),
-      description: description.trim(),
-      discount: discount.trim() || "SPECIAL OFFER",
-      badge: badge.trim() || "Limited Time",
-      validTill: validTill.trim() || "Limited Slots",
-      ctaText: ctaText.trim() || "Claim Offer",
+    addOffer({
+      title: title.trim(), subtitle: subtitle.trim(), description: description.trim(),
+      discount: discount.trim() || "SPECIAL OFFER", badge: badge.trim() || "Limited Time",
+      validTill: validTill.trim() || "Limited Slots", ctaText: ctaText.trim() || "Claim Offer",
       whatsappMessage: whatsappMessage.trim() || `Hi Muscle Empire! I would like to claim the ${title}.`,
-      isFeatured,
-      showInPopup,
-      image,
-      couponCode: cleanCoupon || undefined,
-      status: offerStatus,
+      isFeatured, showInPopup, image, couponCode: cleanCoupon || undefined, status: offerStatus,
     });
     if (cleanCoupon) {
       const discNum = parseInt(discount.replace(/\D/g, ""), 10) || 25;
-      await ensureCouponExists(cleanCoupon, discNum, `${title} Offer Coupon`);
-      setCoupons(await getCoupons());
+      ensureCouponExists(cleanCoupon, discNum, `${title} Offer Coupon`);
+      setCoupons(getCoupons());
     }
-    setOffers(await getOffers());
+    setOffers(getOffers());
     resetForm();
     setShowAdd(false);
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = () => {
     if (!editingOffer) return;
     if (editingOffer.couponCode) {
       const discNum = parseInt((editingOffer.discount || "").replace(/\D/g, ""), 10) || 25;
-      await ensureCouponExists(editingOffer.couponCode, discNum, `${editingOffer.title} Offer Coupon`);
-      setCoupons(await getCoupons());
+      ensureCouponExists(editingOffer.couponCode, discNum, `${editingOffer.title} Offer Coupon`);
+      setCoupons(getCoupons());
     }
-    await updateOffer(editingOffer.id, editingOffer);
-    setOffers(await getOffers());
+    updateOffer(editingOffer.id, editingOffer);
+    setOffers(getOffers());
     setEditingOffer(null);
   };
 
-  const handleRemove = async (id: string) => {
+  const handleRemove = (id: string) => {
     if (confirm("Are you sure you want to delete this offer?")) {
-      await removeOffer(id);
-      setOffers(await getOffers());
+      removeOffer(id);
+      setOffers(getOffers());
     }
   };
 
@@ -273,10 +265,10 @@ export default function AdminOffers() {
                       )}
                       <select
                         value={offer.status || "active"}
-                        onChange={async (e) => {
+                        onChange={(e) => {
                           const newStatus = e.target.value as "active" | "upcoming" | "expired";
-                          await updateOffer(offer.id, { status: newStatus });
-                          setOffers(await getOffers());
+                          updateOffer(offer.id, { status: newStatus });
+                          setOffers(getOffers());
                         }}
                         className={`absolute top-3 left-3 backdrop-blur-md text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border outline-none cursor-pointer z-10 ${
                           (offer.status || "active") === "active"

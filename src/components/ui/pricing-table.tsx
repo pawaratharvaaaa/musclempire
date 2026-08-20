@@ -75,7 +75,7 @@ export function PricingTable({
 
   async function applyCoupon() {
     const code = couponInput.trim().toUpperCase()
-    const result = await validateCoupon(code, selectedPlan)
+    const result = validateCoupon(code, selectedPlan)
     if (result) {
       setDiscount(result.discount)
       setAppliedCoupon(code)
@@ -84,8 +84,7 @@ export function PricingTable({
     }
     setDiscount(0)
     setAppliedCoupon(null)
-    // Check if code exists but is restricted to other plans
-    const allCoupons = await getCoupons()
+    const allCoupons = getCoupons()
     const exists = allCoupons.find(c => c.code === code)
     if (exists && exists.enabled && exists.plans.length > 0 && !exists.plans.includes(selectedPlan)) {
       setCouponStatus("not_applicable")
@@ -97,15 +96,14 @@ export function PricingTable({
   // Re-validate when plan changes
   React.useEffect(() => {
     if (!appliedCoupon) return
-    validateCoupon(appliedCoupon, selectedPlan).then(result => {
-      if (!result) {
-        setDiscount(0)
-        setCouponStatus("not_applicable")
-      } else {
-        setDiscount(result.discount)
-        setCouponStatus("valid")
-      }
-    })
+    const result = validateCoupon(appliedCoupon, selectedPlan)
+    if (!result) {
+      setDiscount(0)
+      setCouponStatus("not_applicable")
+    } else {
+      setDiscount(result.discount)
+      setCouponStatus("valid")
+    }
   }, [selectedPlan, appliedCoupon])
 
   // Check for auto_apply_coupon in sessionStorage on mount
@@ -116,15 +114,15 @@ export function PricingTable({
       const cleanCode = code.trim().toUpperCase()
       setShowCoupon(true)
       setCouponInput(cleanCode)
-      validateCoupon(cleanCode, selectedPlan).then(result => {
-        if (result) {
-          setDiscount(result.discount)
-          setAppliedCoupon(cleanCode)
-          setCouponStatus("valid")
-        } else {
-          setCouponStatus("invalid")
-        }
-      })
+      validateCoupon(cleanCode, selectedPlan)
+      const result = validateCoupon(cleanCode, selectedPlan)
+      if (result) {
+        setDiscount(result.discount)
+        setAppliedCoupon(cleanCode)
+        setCouponStatus("valid")
+      } else {
+        setCouponStatus("invalid")
+      }
     }
   }, [selectedPlan])
 

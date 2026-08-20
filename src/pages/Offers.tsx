@@ -151,31 +151,18 @@ export default function Offers() {
   }, []);
 
   useEffect(() => {
-    const fetchOffers = async () => {
-      const all = await getOffers();
-      const activeList = all.filter(o => o.status !== "expired").map(o => ({
-        title: o.title,
-        description: o.description,
-        discount: o.discount,
-        validTill: o.validTill,
-        cta: o.ctaText,
-        whatsappMessage: o.whatsappMessage,
-        image: o.image,
-        couponCode: o.couponCode,
-      }));
-      setOngoingOffers(activeList);
-
-      const expList = all.filter(o => o.status === "expired").map(o => ({
-        title: o.title,
-        description: o.description,
-        discount: o.discount,
-        validTill: o.validTill,
-        cta: o.ctaText,
-        whatsappMessage: o.whatsappMessage,
-        image: o.image,
-        couponCode: o.couponCode,
-      }));
-      setExpiredOffers(expList);
+    const fetchOffers = () => {
+      const all = getOffers();
+      setOngoingOffers(all.filter(o => o.status !== "expired").map(o => ({
+        title: o.title, description: o.description, discount: o.discount,
+        validTill: o.validTill, cta: o.ctaText, whatsappMessage: o.whatsappMessage,
+        image: o.image, couponCode: o.couponCode,
+      })));
+      setExpiredOffers(all.filter(o => o.status === "expired").map(o => ({
+        title: o.title, description: o.description, discount: o.discount,
+        validTill: o.validTill, cta: o.ctaText, whatsappMessage: o.whatsappMessage,
+        image: o.image, couponCode: o.couponCode,
+      })));
     };
     fetchOffers();
     window.addEventListener("offersUpdated", fetchOffers);

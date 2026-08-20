@@ -1,19 +1,32 @@
 import type { Offer } from "@/data/offers";
 
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw06TogGaQrRyBdRGHuvEYqBKPfT9f0AFYcB36t-XwJweaLkuT3-wi55un3ckiPMPZOYQ/exec";
+const CACHE_KEY = "me_offers_v2";
 
-// ── Sheets API ───────────────────────────────────────────────────────────────
+// ── localStorage (instant) ───────────────────────────────────────────────────
 
-async function fetchOffersFromSheets(): Promise<Offer[] | null> {
-  try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&_t=${Date.now()}`, { redirect: "follow" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return Array.isArray(json?.offers) ? json.offers : null;
-  } catch { return null; }
+function readCache(): Offer[] {
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "[]"); } catch { return []; }
 }
 
-function saveOffersToSheets(offers: Offer[]): void {
+function writeCache(offers: Offer[]): void {
+  localStorage.setItem(CACHE_KEY, JSON.stringify(offers));
+}
+
+// ── Sheets (background) ──────────────────────────────────────────────────────
+
+export async function pullOffersFromSheets(): Promise<void> {
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&_t=${Date.now()}`, { redirect: "follow" });
+    const json = await res.json();
+    if (Array.isArray(json?.offers)) {
+      writeCache(json.offers);
+      window.dispatchEvent(new CustomEvent("offersUpdated"));
+    }
+  } catch {}
+}
+
+function pushToSheets(offers: Offer[]): void {
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
     mode: "no-cors",
@@ -22,30 +35,30 @@ function saveOffersToSheets(offers: Offer[]): void {
   }).catch(() => {});
 }
 
-// ── Public API — always fetches from Sheets ──────────────────────────────────
+// ── Public API (synchronous for instant UI) ──────────────────────────────────
 
-export async function getOffers(): Promise<Offer[]> {
-  const remote = await fetchOffersFromSheets();
-  return remote ?? [];
+export function getOffers(): Offer[] {
+  return readCache();
 }
 
-export async function saveOffers(offers: Offer[]): Promise<void> {
-  saveOffersToSheets(offers);
+function _save(offers: Offer[]): void {
+  writeCache(offers);
+  pushToSheets(offers);
   window.dispatchEvent(new CustomEvent("offersUpdated"));
 }
 
-export async function addOffer(offer: Omit<Offer, "id">): Promise<void> {
-  const offers = await getOffers();
+export function saveOffers(offers: Offer[]): void { _save(offers); }
+
+export function addOffer(offer: Omit<Offer, "id">): void {
+  const offers = readCache();
   offers.push({ id: "offer_" + Date.now(), ...offer });
-  await saveOffers(offers);
+  _save(offers);
 }
 
-export async function removeOffer(id: string): Promise<void> {
-  const offers = (await getOffers()).filter(o => o.id !== id);
-  await saveOffers(offers);
+export function removeOffer(id: string): void {
+  _save(readCache().filter(o => o.id !== id));
 }
 
-export async function updateOffer(id: string, updated: Partial<Offer>): Promise<void> {
-  const offers = (await getOffers()).map(o => o.id === id ? { ...o, ...updated } : o);
-  await saveOffers(offers);
+export function updateOffer(id: string, updated: Partial<Offer>): void {
+  _save(readCache().map(o => o.id === id ? { ...o, ...updated } : o));
 }
