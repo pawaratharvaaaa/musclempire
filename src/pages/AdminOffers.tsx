@@ -35,12 +35,17 @@ export default function AdminOffers() {
     setCpCode(""); setCpDiscount(""); setCpPlans([]); setCpDesc(""); setCpEnabled(true);
   }
 
+  const [savingCoupon, setSavingCoupon] = useState(false);
+
   async function handleAddCoupon() {
     if (!cpCode.trim() || !cpDiscount.trim()) { alert("Code and discount are required"); return; }
+    if (savingCoupon) return;
+    setSavingCoupon(true);
     await addCoupon({ code: cpCode.trim().toUpperCase(), discount: Number(cpDiscount), plans: cpPlans, description: cpDesc.trim(), enabled: cpEnabled });
     setCoupons(await getCoupons());
     resetCouponForm();
     setShowAddCoupon(false);
+    setSavingCoupon(false);
   }
 
   async function handleUpdateCoupon() {
@@ -426,8 +431,8 @@ export default function AdminOffers() {
                   </div>
                 </div>
                 <div className="px-6 py-4 border-t border-white/10 flex gap-3">
-                  <button onClick={handleAddCoupon} className="flex-1 h-11 bg-yellow-400 hover:bg-yellow-300 text-black font-black uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer">
-                    <Check size={15} /> Add Coupon
+                  <button onClick={handleAddCoupon} disabled={savingCoupon} className="flex-1 h-11 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-black font-black uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer">
+                    <Check size={15} /> {savingCoupon ? "Saving..." : "Add Coupon"}
                   </button>
                   <button onClick={() => setShowAddCoupon(false)} className="px-6 h-11 bg-white/5 hover:bg-white/10 text-white font-bold uppercase text-xs rounded-xl border border-white/5 cursor-pointer">Cancel</button>
                 </div>

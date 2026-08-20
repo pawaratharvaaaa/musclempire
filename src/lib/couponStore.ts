@@ -4,20 +4,24 @@ export interface Coupon {
   id: string;
   code: string;
   discount: number;
-  plans: string[];           // [] means all plans
+  plans: string[];
   enabled: boolean;
   description?: string;
 }
 
 // ── Sheets API ───────────────────────────────────────────────────────────────
 
+let _couponsFetchPromise: Promise<Coupon[] | null> | null = null;
+
 async function fetchCouponsFromSheets(): Promise<Coupon[] | null> {
-  try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getCoupons&_t=${Date.now()}`, { redirect: "follow" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return Array.isArray(json?.coupons) ? json.coupons : null;
-  } catch { return null; }
+  // Deduplicate concurrent fetches
+  if (_couponsFetchPromise) return _couponsFetchPromise;
+  _couponsFetchPromise = fetch(`${APPS_SCRIPT_URL}?action=getCoupons&_t=${Date.now()}`, { redirect: "follow" })
+    .then(r => r.json())
+    .then(json => Array.isArray(json?.coupons) ? json.coupons as Coupon[] : null)
+    .catch(() => null)
+    .finally(() => { _couponsFetchPromise = null; });
+  return _couponsFetchPromise;
 }
 
 function saveCouponsToSheets(coupons: Coupon[]): void {
@@ -29,7 +33,7 @@ function saveCouponsToSheets(coupons: Coupon[]): void {
   }).catch(() => {});
 }
 
-// ── Public API — always fetches from Sheets ──────────────────────────────────
+// ── Public API ───────────────────────────────────────────────────────────────
 
 export async function getCoupons(): Promise<Coupon[]> {
   const remote = await fetchCouponsFromSheets();
@@ -43,6 +47,8 @@ export async function saveCoupons(coupons: Coupon[]): Promise<void> {
 
 export async function addCoupon(coupon: Omit<Coupon, "id">): Promise<void> {
   const coupons = await getCoupons();
+  // Prevent duplicates — check if code already exists
+  if (coupons.find(c => c.code === coupon.code.toUpperCase())) return;
   coupons.push({ id: "coupon_" + Date.now(), ...coupon });
   await saveCoupons(coupons);
 }
@@ -74,7 +80,6 @@ export async function ensureCouponExists(code: string, discount: number = 25, de
   }
 }
 
-// Sync alias for pricing-table (background fetch, no-op if not needed)
 export async function syncCouponsFromSheets(): Promise<void> {
-  // No-op: getCoupons always fetches fresh from Sheets
+  // No-op: getCoupons always fetches fresh
 }
