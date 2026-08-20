@@ -2,6 +2,8 @@ import type { Offer } from "@/data/offers";
 
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylqcC98hu82JWfiMKBNJ28heqAqphNVlxUtqJAQNP1Ebdg81QQDblw9i1Z6VEHSM-TmA/exec";
 const CACHE_KEY = "me_offers_v2";
+const CACHE_TS_KEY = "me_offers_ts";
+const CACHE_TTL = 30_000; // 30 seconds — re-pull from Sheets if stale
 
 // ── localStorage (instant) ───────────────────────────────────────────────────
 
@@ -11,6 +13,12 @@ function readCache(): Offer[] {
 
 function writeCache(offers: Offer[]): void {
   localStorage.setItem(CACHE_KEY, JSON.stringify(offers));
+  localStorage.setItem(CACHE_TS_KEY, String(Date.now()));
+}
+
+function isCacheStale(): boolean {
+  const ts = parseInt(localStorage.getItem(CACHE_TS_KEY) || "0", 10);
+  return Date.now() - ts > CACHE_TTL;
 }
 
 // ── Sheets (background) ──────────────────────────────────────────────────────
@@ -39,6 +47,15 @@ function pushToSheets(offers: Offer[]): void {
 
 export function getOffers(): Offer[] {
   return readCache();
+}
+
+// Auto-pull from Sheets if cache is stale (used by public pages)
+export function getOffersAndSync(): Offer[] {
+  const cached = readCache();
+  if (isCacheStale()) {
+    pullOffersFromSheets(); // background refresh
+  }
+  return cached;
 }
 
 function _save(offers: Offer[]): void {

@@ -84,15 +84,19 @@ export default function AdminOffers() {
   const [showInPopup, setShowInPopup] = useState(true);
 
   useEffect(() => {
-    // Show cached data instantly, then pull fresh from Sheets in background
-    setOffers(getOffers());
-    setCoupons(getCoupons());
-    pullOffersFromSheets();
-    pullFromSheets();
+    // Always pull fresh from Sheets on admin panel load (cross-device sync)
     const handler = () => setOffers(getOffers());
     const couponHandler = () => setCoupons(getCoupons());
     window.addEventListener("offersUpdated", handler);
     window.addEventListener("couponsUpdated", couponHandler);
+
+    // Show cached immediately, then refresh from Sheets
+    setOffers(getOffers());
+    setCoupons(getCoupons());
+    // Force pull from Sheets — admin always needs latest
+    pullOffersFromSheets().then(() => setOffers(getOffers()));
+    pullFromSheets().then(() => setCoupons(getCoupons()));
+
     return () => {
       window.removeEventListener("offersUpdated", handler);
       window.removeEventListener("couponsUpdated", couponHandler);
