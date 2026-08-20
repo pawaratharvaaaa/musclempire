@@ -97,7 +97,7 @@ export default function Hero() {
               }}
             >
               <div>
-                <p className="text-white font-black text-[1.15rem] leading-tight mb-1">10k+ Members</p>
+                <p className="text-white font-black text-[1.15rem] leading-tight mb-1">5k+ Members</p>
                 <div className="flex gap-1 mt-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="#E8A820">

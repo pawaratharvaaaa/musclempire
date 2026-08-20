@@ -1,6 +1,6 @@
 import type { Offer } from "@/data/offers";
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw06TogGaQrRyBdRGHuvEYqBKPfT9f0AFYcB36t-XwJweaLkuT3-wi55un3ckiPMPZOYQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylqcC98hu82JWfiMKBNJ28heqAqphNVlxUtqJAQNP1Ebdg81QQDblw9i1Z6VEHSM-TmA/exec";
 const CACHE_KEY = "me_offers_v2";
 
 // ── localStorage (instant) ───────────────────────────────────────────────────

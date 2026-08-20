@@ -150,7 +150,7 @@ export default function Testimonials() {
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}>
-                10k+ members
+                5k+ members
               </span>
             </h2>
           </motion.div>
