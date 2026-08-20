@@ -32,13 +32,19 @@ function isCacheStale(): boolean {
 
 export async function pullFromSheets(): Promise<void> {
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getCoupons&_t=${Date.now()}`, { redirect: "follow" });
-    const json = await res.json();
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getCoupons&_t=${Date.now()}`, {
+      redirect: "follow",
+      cache: "no-store",
+    });
+    const text = await res.text();
+    const json = JSON.parse(text);
     if (Array.isArray(json?.coupons)) {
-      writeCache(json.coupons);
+      writeCache(json.coupons as Coupon[]);
       window.dispatchEvent(new CustomEvent("couponsUpdated"));
     }
-  } catch {}
+  } catch (e) {
+    console.warn("[couponStore] pullFromSheets failed:", e);
+  }
 }
 
 function pushToSheets(coupons: Coupon[]): void {

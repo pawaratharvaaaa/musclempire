@@ -83,6 +83,8 @@ export default function AdminOffers() {
   const [isFeatured, setIsFeatured] = useState(true);
   const [showInPopup, setShowInPopup] = useState(true);
 
+  const [syncing, setSyncing] = useState(true);
+
   useEffect(() => {
     // Always pull fresh from Sheets on admin panel load (cross-device sync)
     const handler = () => setOffers(getOffers());
@@ -90,12 +92,16 @@ export default function AdminOffers() {
     window.addEventListener("offersUpdated", handler);
     window.addEventListener("couponsUpdated", couponHandler);
 
-    // Show cached immediately, then refresh from Sheets
+    // Show cached immediately
     setOffers(getOffers());
     setCoupons(getCoupons());
-    // Force pull from Sheets — admin always needs latest
-    pullOffersFromSheets().then(() => setOffers(getOffers()));
-    pullFromSheets().then(() => setCoupons(getCoupons()));
+
+    // Then force pull from Sheets
+    setSyncing(true);
+    Promise.all([
+      pullOffersFromSheets().then(() => setOffers(getOffers())),
+      pullFromSheets().then(() => setCoupons(getCoupons())),
+    ]).finally(() => setSyncing(false));
 
     return () => {
       window.removeEventListener("offersUpdated", handler);
@@ -195,6 +201,7 @@ export default function AdminOffers() {
                   <h1 className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
                     <Tag size={20} className="text-green-400" />
                     Offers Manager
+                    {syncing && <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest animate-pulse">Syncing...</span>}
                   </h1>
                   <p className="text-white/30 text-xs mt-0.5">Customize running & upcoming deals</p>
                 </div>

@@ -25,13 +25,19 @@ function isCacheStale(): boolean {
 
 export async function pullOffersFromSheets(): Promise<void> {
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&_t=${Date.now()}`, { redirect: "follow" });
-    const json = await res.json();
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&_t=${Date.now()}`, {
+      redirect: "follow",
+      cache: "no-store",
+    });
+    const text = await res.text();
+    const json = JSON.parse(text);
     if (Array.isArray(json?.offers)) {
       writeCache(json.offers);
       window.dispatchEvent(new CustomEvent("offersUpdated"));
     }
-  } catch {}
+  } catch (e) {
+    console.warn("[offersStore] pullOffersFromSheets failed:", e);
+  }
 }
 
 function pushToSheets(offers: Offer[]): void {
