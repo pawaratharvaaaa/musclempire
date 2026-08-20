@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { getOffers, addOffer, removeOffer, updateOffer } from "@/lib/offersStore";
-import { getCoupons, addCoupon, updateCoupon, removeCoupon, ensureCouponExists } from "@/lib/couponStore";
+import { getCoupons, addCoupon, updateCoupon, removeCoupon, ensureCouponExists, forceSyncCouponsFromSheets } from "@/lib/couponStore";
 import type { Coupon } from "@/lib/couponStore";
 import type { Offer } from "@/data/offers";
 import { Plus, Trash2, Edit, LogOut, Users, Tag, Upload, X, Check, Ticket, ToggleLeft, ToggleRight } from "lucide-react";
@@ -76,7 +76,8 @@ export default function AdminOffers() {
 
   useEffect(() => {
     setOffers(getOffers());
-    setCoupons(getCoupons());
+    // Force-sync coupons from Sheets on mount so admin always sees latest
+    forceSyncCouponsFromSheets().then(setCoupons);
     const handler = () => setOffers(getOffers());
     const couponHandler = () => setCoupons(getCoupons());
     window.addEventListener("offersUpdated", handler);
