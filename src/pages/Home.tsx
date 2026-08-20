@@ -48,22 +48,21 @@ export default function Home() {
   return (
     <>
       {loading && <Preloader onComplete={() => setLoading(false)} />}
-      
-      {!loading && (
-        <div className="min-h-[100dvh] w-full bg-background text-foreground selection:bg-primary selection:text-black">
-          <Navbar />
-          <main>
-            <Hero />
-            <About />
-            <Services />
-            <WhyChooseUs />
-            <Pricing />
-            <Testimonials />
-            <Contact />
-          </main>
-          <Footer />
-        </div>
-      )}
+
+      {/* Always mounted so the slide-up exit reveals the page underneath */}
+      <div className="min-h-[100dvh] w-full bg-background text-foreground selection:bg-primary selection:text-black">
+        <Navbar />
+        <main>
+          <Hero />
+          <About />
+          <Services />
+          <WhyChooseUs />
+          <Pricing />
+          <Testimonials />
+          <Contact />
+        </main>
+        <Footer />
+      </div>
     </>
   );
 }
