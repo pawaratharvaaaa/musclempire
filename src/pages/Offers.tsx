@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { GradientBackground } from "@/components/ui/desert-horizon";
 import CouponClaimModal from "@/components/CouponClaimModal";
 
-import { getOffers, getExpiredOffers } from "@/lib/offersStore";
+import { getOffers } from "@/lib/offersStore";
 import chalkboardBg from "@/assets/images/chalkboard-bg.png";
 
 const upcomingOffers: Offer[] = [
@@ -151,8 +151,9 @@ export default function Offers() {
   }, []);
 
   useEffect(() => {
-    const fetchOffers = () => {
-      const activeList = getOffers().filter(o => o.status !== "expired").map(o => ({
+    const fetchOffers = async () => {
+      const all = await getOffers();
+      const activeList = all.filter(o => o.status !== "expired").map(o => ({
         title: o.title,
         description: o.description,
         discount: o.discount,
@@ -164,7 +165,7 @@ export default function Offers() {
       }));
       setOngoingOffers(activeList);
 
-      const expList = getExpiredOffers().map(o => ({
+      const expList = all.filter(o => o.status === "expired").map(o => ({
         title: o.title,
         description: o.description,
         discount: o.discount,

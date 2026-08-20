@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { getOffers, addOffer, removeOffer, updateOffer } from "@/lib/offersStore";
-import { getCoupons, addCoupon, updateCoupon, removeCoupon, ensureCouponExists, forceSyncCouponsFromSheets } from "@/lib/couponStore";
+import { getCoupons, addCoupon, updateCoupon, removeCoupon, ensureCouponExists } from "@/lib/couponStore";
 import type { Coupon } from "@/lib/couponStore";
 import type { Offer } from "@/data/offers";
 import { Plus, Trash2, Edit, LogOut, Users, Tag, Upload, X, Check, Ticket, ToggleLeft, ToggleRight } from "lucide-react";
@@ -35,28 +35,31 @@ export default function AdminOffers() {
     setCpCode(""); setCpDiscount(""); setCpPlans([]); setCpDesc(""); setCpEnabled(true);
   }
 
-  function handleAddCoupon() {
+  async function handleAddCoupon() {
     if (!cpCode.trim() || !cpDiscount.trim()) { alert("Code and discount are required"); return; }
-    addCoupon({ code: cpCode.trim().toUpperCase(), discount: Number(cpDiscount), plans: cpPlans, description: cpDesc.trim(), enabled: cpEnabled });
-    setCoupons(getCoupons());
+    await addCoupon({ code: cpCode.trim().toUpperCase(), discount: Number(cpDiscount), plans: cpPlans, description: cpDesc.trim(), enabled: cpEnabled });
+    setCoupons(await getCoupons());
     resetCouponForm();
     setShowAddCoupon(false);
   }
 
-  function handleUpdateCoupon() {
+  async function handleUpdateCoupon() {
     if (!editingCoupon) return;
-    updateCoupon(editingCoupon.id, editingCoupon);
-    setCoupons(getCoupons());
+    await updateCoupon(editingCoupon.id, editingCoupon);
+    setCoupons(await getCoupons());
     setEditingCoupon(null);
   }
 
-  function handleRemoveCoupon(id: string) {
-    if (confirm("Delete this coupon?")) { removeCoupon(id); setCoupons(getCoupons()); }
+  async function handleRemoveCoupon(id: string) {
+    if (confirm("Delete this coupon?")) {
+      await removeCoupon(id);
+      setCoupons(await getCoupons());
+    }
   }
 
-  function toggleCoupon(id: string, enabled: boolean) {
-    updateCoupon(id, { enabled });
-    setCoupons(getCoupons());
+  async function toggleCoupon(id: string, enabled: boolean) {
+    await updateCoupon(id, { enabled });
+    setCoupons(await getCoupons());
   }
 
   // Form states
@@ -75,11 +78,11 @@ export default function AdminOffers() {
   const [showInPopup, setShowInPopup] = useState(true);
 
   useEffect(() => {
-    setOffers(getOffers());
-    // Force-sync coupons from Sheets on mount so admin always sees latest
-    forceSyncCouponsFromSheets().then(setCoupons);
-    const handler = () => setOffers(getOffers());
-    const couponHandler = () => setCoupons(getCoupons());
+    // Fetch fresh from Sheets on mount
+    getOffers().then(setOffers);
+    getCoupons().then(setCoupons);
+    const handler = () => getOffers().then(setOffers);
+    const couponHandler = () => getCoupons().then(setCoupons);
     window.addEventListener("offersUpdated", handler);
     window.addEventListener("couponsUpdated", couponHandler);
     return () => {
@@ -129,13 +132,13 @@ export default function AdminOffers() {
     reader.readAsDataURL(file);
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!title.trim() || !description.trim()) {
       alert("Title and Description are required");
       return;
     }
     const cleanCoupon = couponCode.trim().toUpperCase();
-    addOffer({
+    await addOffer({
       title: title.trim(),
       subtitle: subtitle.trim(),
       description: description.trim(),
@@ -152,27 +155,30 @@ export default function AdminOffers() {
     });
     if (cleanCoupon) {
       const discNum = parseInt(discount.replace(/\D/g, ""), 10) || 25;
-      ensureCouponExists(cleanCoupon, discNum, `${title} Offer Coupon`);
-      setCoupons(getCoupons());
+      await ensureCouponExists(cleanCoupon, discNum, `${title} Offer Coupon`);
+      setCoupons(await getCoupons());
     }
+    setOffers(await getOffers());
     resetForm();
     setShowAdd(false);
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (!editingOffer) return;
     if (editingOffer.couponCode) {
       const discNum = parseInt((editingOffer.discount || "").replace(/\D/g, ""), 10) || 25;
-      ensureCouponExists(editingOffer.couponCode, discNum, `${editingOffer.title} Offer Coupon`);
-      setCoupons(getCoupons());
+      await ensureCouponExists(editingOffer.couponCode, discNum, `${editingOffer.title} Offer Coupon`);
+      setCoupons(await getCoupons());
     }
-    updateOffer(editingOffer.id, editingOffer);
+    await updateOffer(editingOffer.id, editingOffer);
+    setOffers(await getOffers());
     setEditingOffer(null);
   };
 
-  const handleRemove = (id: string) => {
+  const handleRemove = async (id: string) => {
     if (confirm("Are you sure you want to delete this offer?")) {
-      removeOffer(id);
+      await removeOffer(id);
+      setOffers(await getOffers());
     }
   };
 
@@ -262,10 +268,10 @@ export default function AdminOffers() {
                       )}
                       <select
                         value={offer.status || "active"}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const newStatus = e.target.value as "active" | "upcoming" | "expired";
-                          updateOffer(offer.id, { status: newStatus });
-                          setOffers(getOffers());
+                          await updateOffer(offer.id, { status: newStatus });
+                          setOffers(await getOffers());
                         }}
                         className={`absolute top-3 left-3 backdrop-blur-md text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border outline-none cursor-pointer z-10 ${
                           (offer.status || "active") === "active"

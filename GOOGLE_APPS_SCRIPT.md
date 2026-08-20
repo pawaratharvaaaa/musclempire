@@ -250,6 +250,37 @@ function handleRequest(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  if (action === "getOffers") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var oSheet = ss.getSheetByName("Offers");
+    if (!oSheet || oSheet.getLastRow() < 1) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ offers: [] }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    try {
+      var val = oSheet.getRange(1, 1).getValue();
+      return ContentService
+        .createTextOutput(JSON.stringify({ offers: JSON.parse(String(val)) }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ offers: [] }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  if (action === "saveOffers") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var oSheet = ss.getSheetByName("Offers");
+    if (!oSheet) oSheet = ss.insertSheet("Offers");
+    oSheet.clearContents();
+    oSheet.getRange(1, 1).setValue(p.data || "[]");
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   if (action === "getVideos") {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var vSheet = ss.getSheetByName("Videos");

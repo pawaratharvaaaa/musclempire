@@ -35,8 +35,9 @@ export default function OfferPopup() {
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    const loadPopupOffers = () => {
-      const active = getOffers().filter(o => o.status !== "expired" && o.showInPopup !== false);
+    const loadPopupOffers = async () => {
+      const all = await getOffers();
+      const active = all.filter(o => o.status !== "expired" && o.showInPopup !== false);
       setOffers(active);
     };
     loadPopupOffers();
