@@ -28,10 +28,14 @@ export default function Footer() {
               className="flex items-center mb-5 group cursor-pointer"
             >
               <img
-                src={logo}
+                src="/footer.png"
                 alt="Muscle Empire Gymnasium"
-                className="h-18 md:h-22 w-auto object-contain drop-shadow-[0_2px_12px_rgba(200,144,10,0.3)] group-hover:scale-105 transition-all duration-300"
-                style={{ imageRendering: "-webkit-optimize-contrast" }}
+                className="h-20 w-20 object-cover rounded-full group-hover:scale-105 transition-all duration-300"
+                style={{
+                  imageRendering: "-webkit-optimize-contrast",
+                  boxShadow: "0 2px 16px rgba(200,144,10,0.35)",
+                  border: "2px solid rgba(0,0,0,0.08)",
+                }}
               />
             </button>
             <p className="text-black text-[0.85rem] leading-relaxed mb-6">

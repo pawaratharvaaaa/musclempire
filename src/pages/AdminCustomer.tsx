@@ -7,6 +7,7 @@ import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
 import { getSelectedAssessment, clearSelectedAssessment } from "@/lib/adminStore";
 import logoPng from "@/assets/images/logo.png";
+import footerPng from "/footer.png";
 
 // Bottom fields — Suggestion only (fixed)
 const EXTRA_FIELDS = [
@@ -276,7 +277,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     // Load logo from static import (always available)
     let logoDataUrl = "";
     try {
-      const response = await fetch(logoPng);
+      const response = await fetch(footerPng);
       const blob = await response.blob();
       logoDataUrl = await new Promise<string>((resolve) => {
         const reader = new FileReader();
