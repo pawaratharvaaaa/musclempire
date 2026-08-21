@@ -30,12 +30,8 @@ export default function Footer() {
               <img
                 src="/footer.png"
                 alt="Muscle Empire Gymnasium"
-                className="h-20 w-20 object-cover rounded-full group-hover:scale-105 transition-all duration-300"
-                style={{
-                  imageRendering: "-webkit-optimize-contrast",
-                  boxShadow: "0 2px 16px rgba(200,144,10,0.35)",
-                  border: "2px solid rgba(0,0,0,0.08)",
-                }}
+                className="h-28 w-auto object-contain group-hover:scale-105 transition-all duration-300"
+                style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </button>
             <p className="text-black text-[0.85rem] leading-relaxed mb-6">
