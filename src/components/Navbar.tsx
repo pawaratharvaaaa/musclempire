@@ -38,7 +38,7 @@ export default function Navbar() {
           <img
             src={logo}
             alt="Muscle Empire"
-            className="relative h-11 w-11 rounded-full object-cover border-[1.5px] border-[#E8A820]/55 group-hover:border-[#E8A820] transition-all duration-300"
+            className="relative h-16 w-16 rounded-full object-cover border-[1.5px] border-[#E8A820]/55 group-hover:border-[#E8A820] transition-all duration-300"
           />
         </div>
 

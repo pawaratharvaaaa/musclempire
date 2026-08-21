@@ -58,7 +58,7 @@ export default function PlanNavbar() {
                 <img
                   src={logo}
                   alt="Muscle Empire"
-                  className="relative h-11 w-11 object-cover rounded-full border-[1.5px] border-[#E8A820]/55 group-hover:border-[#E8A820] transition-all duration-300"
+                  className="relative h-16 w-16 object-cover rounded-full border-[1.5px] border-[#E8A820]/55 group-hover:border-[#E8A820] transition-all duration-300"
                 />
               </div>
 
