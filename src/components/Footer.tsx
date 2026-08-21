@@ -1,5 +1,5 @@
 import { FaInstagram, FaFacebookF } from "react-icons/fa";
-import logo from "@/assets/images/logo.png";
+import logo from "@/assets/images/logo.jpeg";
 
 const quickLinks = [
   { href: "/branches", label: "Branches" },

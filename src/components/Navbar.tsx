@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "wouter";
-import logo from "@/assets/images/logo.png";
+import logo from "@/assets/images/logo.jpeg";
 
 export default function Navbar() {
   const [nameVisible, setNameVisible] = useState(true);
