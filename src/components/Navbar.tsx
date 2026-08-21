@@ -41,9 +41,7 @@ export default function Navbar() {
             className="relative h-11 w-11 rounded-full object-cover border-[1.5px] border-[#E8A820]/55 group-hover:border-[#E8A820] transition-all duration-300"
           />
         </div>
-        <span className="font-display font-black text-[1.12rem] tracking-tight leading-none text-[#E8A820]">
-          Muscle Empire®
-        </span>
+
       </a>
     </motion.div>
   );
