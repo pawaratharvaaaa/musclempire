@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
 import { getSelectedAssessment, clearSelectedAssessment } from "@/lib/adminStore";
+import logoPng from "@/assets/images/logo.png";
 
 // Bottom fields — Suggestion only (fixed)
 const EXTRA_FIELDS = [
@@ -272,11 +273,10 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       return s.split("T")[0] || s;
     };
 
-    // Load logo
+    // Load logo from static import (always available)
     let logoDataUrl = "";
     try {
-      const logoModule = await import("@/assets/images/logo.png");
-      const response = await fetch(logoModule.default);
+      const response = await fetch(logoPng);
       const blob = await response.blob();
       logoDataUrl = await new Promise<string>((resolve) => {
         const reader = new FileReader();
@@ -288,22 +288,22 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
 
     // --- TOP HEADER (Logo + Title + Contacts) ---
     if (logoDataUrl) {
-      doc.addImage(logoDataUrl, "PNG", margin, y, 22, 22);
+      doc.addImage(logoDataUrl, "PNG", margin, y, 28, 28);
     }
 
     // Huge bold condensed uppercase title "MUSCLE EMPIRE NUTRITION" (Black & White Theme)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(21);
     doc.setTextColor(0, 0, 0);
-    doc.text("MUSCLE EMPIRE NUTRITION", margin + 25, y + 10);
+    doc.text("MUSCLE EMPIRE NUTRITION", margin + 31, y + 12);
 
     // Contact Numbers line
     doc.setFontSize(9.5);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
-    doc.text("Office : - 9137870108  |  Sagar Kharat : -  9773053632  |  8779682084", margin + 25, y + 18);
+    doc.text("Office : - 9137870108  |  Sagar Kharat : -  9773053632  |  8779682084", margin + 31, y + 22);
 
-    y += 24;
+    y += 30;
     doc.setLineWidth(0.6);
     doc.setDrawColor(0, 0, 0);
     doc.line(margin, y, W - margin, y);
