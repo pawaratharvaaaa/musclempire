@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import logo from "@/assets/images/logo.jpeg";
+import logo from "@/assets/images/logo.png";
 
 export default function PlanNavbar() {
   const [location, navigate] = useLocation();
