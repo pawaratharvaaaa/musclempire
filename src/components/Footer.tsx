@@ -27,12 +27,9 @@ export default function Footer() {
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               className="flex items-center mb-5 group cursor-pointer"
             >
-              <img
-                src="/footer.png"
-                alt="Muscle Empire Gymnasium"
-                className="h-28 w-auto object-contain group-hover:scale-105 transition-all duration-300"
-                style={{ imageRendering: "-webkit-optimize-contrast" }}
-              />
+              <span className="text-2xl font-black uppercase tracking-tight text-black group-hover:text-[#C8900A] transition-colors duration-300">
+                MUSCLE EMPIRE
+              </span>
             </button>
             <p className="text-black text-[0.85rem] leading-relaxed mb-6">
               Ghatkopar's premier hardcore training facility. We provide the iron, you provide the dedication.
