@@ -309,124 +309,79 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     doc.line(margin, y, W - margin, y);
     y += 5;
 
-    // --- CLIENT DETAILS (pointer/bullet style, grouped) ---
+    // --- CLIENT DETAILS (bullet/pointer style, 3 columns) ---
     const bfStr = getBodyFatStr(customer.bmi, customer.age, customer.gender);
-
     doc.setFontSize(8.5);
 
-    // Group 1: Identity
-    const group1: Array<[string, string]> = [
-      ["Name", cleanText(customer.name)],
-      ["MF No.", String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "1").padStart(5, "0")],
-      ["Date", formatPdfDate(customer.date)],
-      ["Contact No.", cleanText(customer.phone)],
-      ["Email", cleanText(customer.email)],
-      ["Age", cleanText(customer.age)],
-      ["Gender", cleanText(customer.gender)],
-    ];
+    const allItems: Array<[string, string]> = [
+      ["Name",             cleanText(customer.name)],
+      ["MF No.",           String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "1").padStart(5, "0")],
+      ["Date",             formatPdfDate(customer.date)],
+      ["Contact No.",      cleanText(customer.phone)],
+      ["Email",            cleanText(customer.email)],
+      ["Age",              cleanText(customer.age)],
+      ["Gender",           cleanText(customer.gender)],
+      ["Weight",           customer.weight ? `${cleanText(customer.weight)} kg` : "--"],
+      ["Height",           customer.height ? `${cleanText(customer.height)} cm` : "--"],
+      ["BMI",              customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--"],
+      ["Body Fat (Est.)",  bfStr],
+      ["Food Pref",        cleanText(customer.foodPref).toUpperCase()],
+      ["Wake-up Time",     clean(customer.wakeTime)],
+      ["Bed Time",         clean(customer.bedTime)],
+      ["Sleep Duration",   customer.sleepDuration ? `${cleanText(customer.sleepDuration)} hrs` : "--"],
+      ["Duty",             cleanText(customer.duty)],
+      ["College Timing",   clean(customer.collegeTime)],
+      ["Working Time",     clean(customer.workTime)],
+      ["Rest Time",        clean(customer.restTime)],
+      ["Workout Time",     clean(customer.workoutTime)],
+      ["Goals",            cleanText(customer.goals)],
+      ["Medical Cond.",    cleanText(customer.medicalConditions)],
+      ["Allergies",        cleanText(customer.allergies)],
+      ["Supplements",      cleanText(customer.supplements)],
+      ["Remark",           cleanText(customer.remarks)],
+    ].filter(([, v]) => v && v !== "--" && v !== "0" && v !== "undefined" && v !== "null") as Array<[string, string]>;
 
-    // Group 2: Body
-    const group2: Array<[string, string]> = [
-      ["Weight", customer.weight ? `${cleanText(customer.weight)} kg` : "--"],
-      ["Height", customer.height ? `${cleanText(customer.height)} cm` : "--"],
-      ["BMI", customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--"],
-      ["Body Fat (Est.)", bfStr],
-      ["Food Preference", cleanText(customer.foodPref).toUpperCase()],
-    ];
+    // Split into 3 equal columns
+    const totalItems = allItems.length;
+    const perCol     = Math.ceil(totalItems / 3);
+    const col1Items  = allItems.slice(0, perCol);
+    const col2Items  = allItems.slice(perCol, perCol * 2);
+    const col3Items  = allItems.slice(perCol * 2);
 
-    // Group 3: Schedule
-    const group3: Array<[string, string]> = [
-      ["Wake-up Time", clean(customer.wakeTime)],
-      ["Bed Time", clean(customer.bedTime)],
-      ["Sleep Duration", customer.sleepDuration ? `${cleanText(customer.sleepDuration)} hrs` : "--"],
-      ["Duty", cleanText(customer.duty)],
-      ["College Timing", clean(customer.collegeTime)],
-      ["Working Time", clean(customer.workTime)],
-      ["Rest Time", clean(customer.restTime)],
-      ["Workout Time", clean(customer.workoutTime)],
-    ];
+    const colW3 = (usableW - 6) / 3;  // width for each column (2mm gutter between)
+    const col1X  = margin;
+    const col2X  = margin + colW3 + 3;
+    const col3X  = margin + (colW3 + 3) * 2;
+    const startY = y;
 
-    // Group 4: Health & Goals
-    const group4: Array<[string, string]> = [
-      ["Goals", cleanText(customer.goals)],
-      ["Medical Conditions", cleanText(customer.medicalConditions)],
-      ["Allergies", cleanText(customer.allergies)],
-      ["Supplements", cleanText(customer.supplements)],
-      ["Remark", cleanText(customer.remarks)],
-    ];
-
-    const drawPointerGroup = (items: Array<[string, string]>) => {
+    const drawCol = (items: Array<[string, string]>, xOff: number) => {
+      let cy = startY;
       items.forEach(([label, val]) => {
-        const v = val && val !== "--" && val !== "0" && val !== "undefined" && val !== "null" ? val : null;
-        if (!v) return;
-        if (y > 275) { doc.addPage(); y = 15; }
-
-        // bullet dot
+        if (cy > 275) return;
+        // bullet
         doc.setFillColor(0, 0, 0);
-        doc.circle(margin + 1.5, y - 1, 0.8, "F");
-
+        doc.circle(xOff + 1.2, cy - 1, 0.7, "F");
         // bold label
         doc.setFont("helvetica", "bold");
         doc.setTextColor(0, 0, 0);
-        doc.text(`${label} :`, margin + 4, y);
-
+        doc.text(`${label}:`, xOff + 3.5, cy);
         // normal value
         doc.setFont("helvetica", "normal");
-        const labelW = doc.getTextWidth(`${label} : `);
-        const maxValW = usableW - 4 - labelW;
-        const valLines = doc.splitTextToSize(v, maxValW) as string[];
+        const lw = doc.getTextWidth(`${label}: `);
+        const valLines = doc.splitTextToSize(val, colW3 - lw - 2) as string[];
         valLines.forEach((line, i) => {
-          if (i === 0) {
-            doc.text(line, margin + 4 + labelW, y);
-          } else {
-            y += 5;
-            doc.text(line, margin + 4 + labelW, y);
-          }
-        });
-        y += 5.5;
-      });
-    };
-
-    // Render groups in 2 columns side by side
-    const col1X = margin;
-    const col2X = margin + usableW / 2 + 3;
-    const colW  = usableW / 2 - 5;
-    const startY = y;
-
-    // Left column: groups 1 & 3
-    const leftItems = [...group1, ...group3];
-    // Right column: groups 2 & 4
-    const rightItems = [...group2, ...group4];
-
-    const drawPointerCol = (items: Array<[string, string]>, xOff: number) => {
-      let cy = startY;
-      items.forEach(([label, val]) => {
-        const v = val && val !== "--" && val !== "0" && val !== "undefined" && val !== "null" ? val : null;
-        if (!v) return;
-        if (cy > 275) return;
-
-        doc.setFillColor(0, 0, 0);
-        doc.circle(xOff + 1.5, cy - 1, 0.7, "F");
-
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(0, 0, 0);
-        doc.text(`${label} :`, xOff + 4, cy);
-
-        doc.setFont("helvetica", "normal");
-        const lw = doc.getTextWidth(`${label} : `);
-        const valLines = doc.splitTextToSize(v, colW - lw - 2) as string[];
-        valLines.forEach((line, i) => {
-          if (i === 0) doc.text(line, xOff + 4 + lw, cy);
-          else { cy += 5; doc.text(line, xOff + 4 + lw, cy); }
+          if (i === 0) doc.text(line, xOff + 3.5 + lw, cy);
+          else { cy += 5; doc.text(line, xOff + 3.5 + lw, cy); }
         });
         cy += 5.5;
       });
       return cy;
     };
 
-    const leftEnd  = drawPointerCol(leftItems,  col1X);
-    const rightEnd = drawPointerCol(rightItems, col2X);
-    y = Math.max(leftEnd, rightEnd) + 3;
+    const end1 = drawCol(col1Items, col1X);
+    const end2 = drawCol(col2Items, col2X);
+    const end3 = drawCol(col3Items, col3X);
+    y = Math.max(end1, end2, end3) + 3;
 
     doc.setLineWidth(0.6);
     doc.setDrawColor(0, 0, 0);
