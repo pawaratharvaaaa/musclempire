@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
 import { getSelectedAssessment, clearSelectedAssessment } from "@/lib/adminStore";
-import logoPng from "@/assets/images/logo.png";
+import logoPng from "@/assets/images/logo.jpeg";
 
 // Bottom fields — Suggestion only (fixed)
 const EXTRA_FIELDS = [
@@ -273,10 +273,10 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       return s.split("T")[0] || s;
     };
 
-    // Load logo from public folder
+    // Load logo from static import (always available)
     let logoDataUrl = "";
     try {
-      const response = await fetch("/footer.png");
+      const response = await fetch(logoPng);
       const blob = await response.blob();
       logoDataUrl = await new Promise<string>((resolve) => {
         const reader = new FileReader();
@@ -288,7 +288,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
 
     // --- TOP HEADER (Logo + Title + Contacts) ---
     if (logoDataUrl) {
-      doc.addImage(logoDataUrl, "PNG", margin, y, 28, 28);
+      doc.addImage(logoDataUrl, "JPEG", margin, y, 28, 28);
     }
 
     // Huge bold condensed uppercase title "MUSCLE EMPIRE NUTRITION" (Black & White Theme)
