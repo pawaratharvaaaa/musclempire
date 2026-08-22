@@ -309,73 +309,91 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     doc.line(margin, y, W - margin, y);
     y += 5;
 
-    // --- CONTINUOUS SIDE-BY-SIDE FIELD RENDERING (Fills Entire Page Width - Zero Blank Space) ---
-    doc.setFontSize(8.5);
-    const rowGap = 6.0;
+    // --- CLIENT DETAILS TABLE (2-column grid, clean) ---
     const bfStr = getBodyFatStr(customer.bmi, customer.age, customer.gender);
 
-    const rawFields: Array<{ label: string; val: string }> = [
-      { label: "Name : ", val: cleanText(customer.name) },
-      { label: "MF No. : ", val: String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0") },
-      { label: "Date : ", val: formatPdfDate(customer.date) },
-      { label: "Contacts No. : ", val: cleanText(customer.phone) },
-      { label: "Email : ", val: cleanText(customer.email) },
-      { label: "Age : ", val: cleanText(customer.age) },
-      { label: "Gender : ", val: cleanText(customer.gender) },
-      { label: "Weight (Kg) : ", val: customer.weight ? `${cleanText(customer.weight)} kg` : "--" },
-      { label: "Height (cms) : ", val: customer.height ? `${cleanText(customer.height)} cm` : "--" },
-      { label: "BMI : ", val: customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--" },
-      { label: "Body Fat (Est.) : ", val: bfStr },
-      { label: "Food Pref : ", val: cleanText(customer.foodPref).toUpperCase() },
-      { label: "Wake-up Time : ", val: clean(customer.wakeTime) },
-      { label: "Bed Time : ", val: clean(customer.bedTime) },
-      { label: "Sleep Duration : ", val: customer.sleepDuration ? `${cleanText(customer.sleepDuration)} hrs` : "--" },
-      { label: "Duty : ", val: cleanText(customer.duty) },
-      { label: "College Timing : ", val: clean(customer.collegeTime) },
-      { label: "Working Time : ", val: clean(customer.workTime) },
-      { label: "Rest Time : ", val: clean(customer.restTime) },
-      { label: "Workout Time : ", val: clean(customer.workoutTime) },
-      { label: "Goals : ", val: cleanText(customer.goals) },
-      { label: "Medical Conditions : ", val: cleanText(customer.medicalConditions) },
-      { label: "Allergies : ", val: cleanText(customer.allergies) },
-      { label: "Supplements : ", val: cleanText(customer.supplements) },
-      { label: "Remark : ", val: cleanText(customer.remarks) },
+    const detailRows: Array<[string, string, string, string]> = [
+      ["Name",            cleanText(customer.name),                                 "MF No.",         String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "1").padStart(5, "0")],
+      ["Date",            formatPdfDate(customer.date),                             "Contact No.",    cleanText(customer.phone)],
+      ["Email",           cleanText(customer.email),                                "Age",            cleanText(customer.age)],
+      ["Gender",          cleanText(customer.gender),                               "Weight",         customer.weight ? `${cleanText(customer.weight)} kg` : "--"],
+      ["Height",          customer.height ? `${cleanText(customer.height)} cm` : "--", "BMI",         customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--"],
+      ["Body Fat (Est.)", bfStr,                                                    "Food Pref",      cleanText(customer.foodPref).toUpperCase()],
+      ["Wake-up Time",    clean(customer.wakeTime),                                 "Bed Time",       clean(customer.bedTime)],
+      ["Sleep Duration",  customer.sleepDuration ? `${cleanText(customer.sleepDuration)} hrs` : "--", "Duty", cleanText(customer.duty)],
+      ["College Timing",  clean(customer.collegeTime),                              "Working Time",   clean(customer.workTime)],
+      ["Rest Time",       clean(customer.restTime),                                 "Workout Time",   clean(customer.workoutTime)],
+      ["Goals",           cleanText(customer.goals),                                "Medical Cond.",  cleanText(customer.medicalConditions)],
+      ["Allergies",       cleanText(customer.allergies),                            "Supplements",    cleanText(customer.supplements)],
+      ["Remark",          cleanText(customer.remarks),                              "",               ""],
     ];
 
-    // Filter out all empty / unfilled fields ("--", "", "0", "undefined", "null", "N/A")
-    const fieldsToDraw = rawFields.filter(item => {
-      const v = String(item.val || "").trim();
-      return v && v !== "--" && v !== "0" && v !== "undefined" && v !== "null" && v !== "N/A";
-    });
+    const colW1 = 28; // label 1
+    const colW2 = 60; // value 1
+    const colW3 = 28; // label 2
+    const colW4 = usableW - colW1 - colW2 - colW3; // value 2
+    const rowH  = 6.5;
 
-    let cx = margin;
-    const minGap = 7; // Horizontal gap between fields on the same line
+    doc.setFontSize(8);
+    detailRows.forEach((row, idx) => {
+      const [l1, v1, l2, v2] = row;
+      const isLast = idx === detailRows.length - 1;
 
-    fieldsToDraw.forEach((item) => {
-      const valStr = String(item.val || "").trim() || "--";
-      doc.setFont("helvetica", "bold");
-      const labelW = doc.getTextWidth(item.label);
-      doc.setFont("helvetica", "normal");
-      const valW = doc.getTextWidth(valStr);
-      const itemW = labelW + valW;
+      // filter empty pairs
+      const v1clean = v1 && v1 !== "--" ? v1 : "";
+      const v2clean = v2 && v2 !== "--" ? v2 : "";
+      if (!v1clean && !v2clean) return;
 
-      // Wrap line if field exceeds right margin
-      if (cx > margin && cx + itemW > W - margin) {
-        cx = margin;
-        y += rowGap;
+      // alternate row background
+      if (idx % 2 === 0) {
+        doc.setFillColor(247, 247, 247);
+        doc.rect(margin, y, usableW, rowH, "F");
       }
 
+      // draw cell borders
+      doc.setDrawColor(210, 210, 210);
+      doc.setLineWidth(0.2);
+      doc.rect(margin, y, usableW, rowH);
+      if (!isLast) {
+        doc.line(margin + colW1, y, margin + colW1, y + rowH);
+        doc.line(margin + colW1 + colW2, y, margin + colW1 + colW2, y + rowH);
+        doc.line(margin + colW1 + colW2 + colW3, y, margin + colW1 + colW2 + colW3, y + rowH);
+      }
+
+      // label 1
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(0, 0, 0);
-      doc.text(item.label, cx, y);
+      doc.setTextColor(60, 60, 60);
+      doc.text(l1, margin + 2, y + 4.5);
 
+      // value 1
       doc.setFont("helvetica", "normal");
-      doc.text(valStr, cx + labelW, y);
+      doc.setTextColor(0, 0, 0);
+      const v1Lines = doc.splitTextToSize(v1clean || "--", colW2 - 3) as string[];
+      doc.text(v1Lines[0] || "--", margin + colW1 + 2, y + 4.5);
 
-      cx += itemW + minGap;
+      if (!isLast && l2) {
+        // label 2
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(60, 60, 60);
+        doc.text(l2, margin + colW1 + colW2 + 2, y + 4.5);
+
+        // value 2
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(0, 0, 0);
+        const v2Lines = doc.splitTextToSize(v2clean || "--", colW4 - 3) as string[];
+        doc.text(v2Lines[0] || "--", margin + colW1 + colW2 + colW3 + 2, y + 4.5);
+      } else if (isLast) {
+        // remark spans full width
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(0, 0, 0);
+        const remarkLines = doc.splitTextToSize(v1clean || "--", colW2 + colW3 + colW4 - 3) as string[];
+        doc.text(remarkLines[0] || "--", margin + colW1 + 2, y + 4.5);
+      }
+
+      y += rowH;
     });
 
-    y += 7;
+    y += 5;
     doc.setLineWidth(0.6);
     doc.setDrawColor(0, 0, 0);
     doc.line(margin, y, W - margin, y);
