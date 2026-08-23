@@ -14,12 +14,12 @@ async function fetchPassword(): Promise<string> {
       { redirect: "follow", cache: "no-store" }
     );
     const json = await res.json();
-    if (json?.password && json.password !== "undefined") {
+    if (json?.password && json.password !== "undefined" && !json.error) {
       localStorage.setItem(PASS_CACHE_KEY, json.password);
       return json.password;
     }
   } catch {}
-  // Fall back to cached value if Sheets unreachable
+  // Fall back to cached value if Sheets unreachable or token mismatch
   const cached = localStorage.getItem(PASS_CACHE_KEY);
   if (cached && cached.trim()) return cached.trim();
   return DEFAULT_PASS;
@@ -49,3 +49,4 @@ export async function changePassword(currentPass: string, newPass: string): Prom
 
 export function logout(): void { localStorage.removeItem(SESSION_KEY); }
 export function isLoggedIn(): boolean { return localStorage.getItem(SESSION_KEY) === "true"; }
+

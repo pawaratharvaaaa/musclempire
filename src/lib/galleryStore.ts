@@ -1,7 +1,7 @@
 // All gallery content (images + videos) is synced via Google Sheets.
 // Images are URL-only — no base64/IndexedDB. Works across all devices.
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKITQjKTh3KS_obNRmAq2RIOzjeuWlOq7Th5NTCRaNf-oe73gkCstPq2naB0kACBGMfg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzt16aWEy6Wq9Unm8mgCL-0V9dp3CEBcB3kNAqWtaFu9Q9_-tAlWyTjGSiRbtMSkGo60Q/exec";
 const T = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 
 const IMAGES_KEY = "me_gallery_images";
@@ -190,5 +190,6 @@ export async function syncVideosFromSheets(): Promise<void> {
     window.dispatchEvent(new CustomEvent("galleryUpdated"));
   }
 }
+
 
 

@@ -1,4 +1,4 @@
-export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKITQjKTh3KS_obNRmAq2RIOzjeuWlOq7Th5NTCRaNf-oe73gkCstPq2naB0kACBGMfg/exec";
+export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzt16aWEy6Wq9Unm8mgCL-0V9dp3CEBcB3kNAqWtaFu9Q9_-tAlWyTjGSiRbtMSkGo60Q/exec";
 
 export type AssessmentData = {
   id?: string;
@@ -123,5 +123,6 @@ export async function deleteRecord(rowIndex: number): Promise<void> {
   // Delete from Google Sheets — rowIndex is the 0-based data row index
   scriptGet({ action: "deleteRow", rowIndex: String(rowIndex) });
 }
+
 
 
