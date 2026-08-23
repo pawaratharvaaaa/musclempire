@@ -12,14 +12,18 @@ function formatDate(raw: string | undefined): string {
   const s = String(raw).trim();
   if (!s || s === "undefined") return "--";
   // Handle Excel/Sheets serial date numbers
-  if (/^\d+$/.test(s)) {
+  if (/^\d+(\.\d+)?$/.test(s)) {
+    const num = Number(s);
+    if (num <= 1) return "--"; // 0 or 1 = empty/epoch in Sheets
     try {
-      const d = new Date(Math.round((Number(s) - 25569) * 86400 * 1000));
+      const d = new Date(Math.round((num - 25569) * 86400 * 1000));
       if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
         return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
       }
     } catch {}
   }
+  // Catch the 1899 date specifically
+  if (s.includes("1899") || s.includes("1900")) return "--";
   // Already clean format like "25/6/2026" or "11 Aug 2026"
   if (!s.includes("GMT") && !s.includes("00:00:00") && s.length < 20) return s;
   try {
@@ -28,7 +32,7 @@ function formatDate(raw: string | undefined): string {
       return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
     }
   } catch {}
-  return s;
+  return "--";
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -59,7 +63,34 @@ export default function AdminDashboard() {
   const load = async (force = false) => {
     setLoading(true);
     const items = await fetchSubmissions(force);
-    setData(items);
+    // Fix shifted columns for old rows submitted before duty/restTime fields were added
+    const fixed = items.map(row => {
+      // Detect shifted row: foodPref contains a date string (wrong column)
+      const foodPrefLooksLikeDate = row.foodPref && (
+        String(row.foodPref).includes("GMT") ||
+        String(row.foodPref).includes("1899") ||
+        String(row.foodPref).match(/^\d{2}:\d{2}/)
+      );
+      if (foodPrefLooksLikeDate) {
+        return {
+          ...row,
+          targetWeight: row.weightChange || "",
+          weightChange: row.foodPref || "",
+          foodPref: row.collegeTime || "",
+          collegeTime: row.workTime || "",
+          workTime: row.medicalConditions || "",
+          medicalConditions: row.allergies || "",
+          allergies: row.supplements || "",
+          supplements: row.goals || "",
+          goals: row.remarks || "",
+          remarks: row.status || "",
+          status: String(row.foodHistory || "").startsWith("[") ? "Completed" : (row.foodHistory || "New"),
+          foodHistory: "",
+        };
+      }
+      return row;
+    });
+    setData(fixed);
     setLoading(false);
   };
 

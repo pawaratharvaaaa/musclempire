@@ -11,7 +11,9 @@ import Footer from "@/components/Footer";
 import Preloader from "@/components/Preloader";
 
 export default function Home() {
-  const [loading, setLoading] = useState(true);
+  // Skip preloader if returning from another page (back navigation)
+  const isReturning = !!sessionStorage.getItem("scroll_before_plans") || !!sessionStorage.getItem(`scroll_/`);
+  const [loading, setLoading] = useState(!isReturning);
 
   // Restore scroll before first paint if returning from sub-page
   useLayoutEffect(() => {
