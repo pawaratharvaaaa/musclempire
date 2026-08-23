@@ -30,7 +30,7 @@ export default function Footer() {
               <img
                 src={logo}
                 alt="Muscle Empire"
-                className="h-12 w-12 rounded-full object-cover border-[1.5px] border-[#E8A820]/60 group-hover:border-[#E8A820] transition-colors"
+                className="h-12 w-12 object-contain"
               />
               <span className="font-display font-black text-[1.05rem] text-[#C8900A] tracking-tight">
                 Muscle Empire®

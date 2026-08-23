@@ -54,11 +54,10 @@ export default function PlanNavbar() {
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
               <div className="relative shrink-0">
-                <div className="absolute inset-0 rounded-full bg-[#E8A820]/20 blur-lg group-hover:bg-[#E8A820]/35 transition-all duration-400" />
                 <img
                   src={logo}
                   alt="Muscle Empire"
-                  className="relative h-16 w-16 object-cover rounded-full border-[1.5px] border-[#E8A820]/55 group-hover:border-[#E8A820] transition-all duration-300"
+                  className="relative h-16 w-16 object-contain"
                 />
               </div>
 
