@@ -41,11 +41,16 @@ export async function pullOffersFromSheets(): Promise<void> {
 }
 
 function pushToSheets(offers: Offer[]): void {
+  // Strip base64 images before saving — Sheets has a 50k char cell limit
+  const stripped = offers.map(o => ({
+    ...o,
+    image: o.image?.startsWith("data:") ? "" : (o.image || ""),
+  }));
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action: "saveOffers", data: JSON.stringify(offers) }),
+    body: JSON.stringify({ action: "saveOffers", data: JSON.stringify(stripped) }),
   }).catch(() => {});
 }
 
