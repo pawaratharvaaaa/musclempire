@@ -74,14 +74,20 @@ export default function AdminDashboard() {
   };
 
   const handleDelete = async (arrayIndex: number, rowIndex: number) => {
-    await deleteRecord(rowIndex);
+    // Always reload fresh from Sheets first to get accurate row indices
+    const freshData = await fetchSubmissions(true);
+    setData(freshData);
+    // Find the matching row by arrayIndex in fresh data
+    const target = freshData[arrayIndex];
+    const accurateRowIndex = target?._rowIndex ?? rowIndex;
+    await deleteRecord(accurateRowIndex);
     setData((prev) => {
       const next = [...prev];
       next.splice(arrayIndex, 1);
       return next;
     });
     setConfirmDelete(null);
-    setTimeout(() => load(true), 500);
+    setTimeout(() => load(true), 800);
   };
 
   return (

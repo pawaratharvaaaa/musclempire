@@ -89,7 +89,13 @@ export function saveCoupons(coupons: Coupon[]): void {
 export function ensureCouponExists(code: string, discount = 25, description?: string): void {
   const cleanCode = code.toUpperCase().trim();
   if (!cleanCode) return;
-  if (!readCache().find(c => c.code === cleanCode)) {
+  const existing = readCache().find(c => c.code === cleanCode);
+  if (existing) {
+    // Update discount if it changed
+    if (existing.discount !== (discount || 20)) {
+      updateCoupon(existing.id, { discount: discount || 20 });
+    }
+  } else {
     addCoupon({ code: cleanCode, discount: discount || 20, plans: [], enabled: true, description: description || `Coupon for ${cleanCode}` });
   }
 }

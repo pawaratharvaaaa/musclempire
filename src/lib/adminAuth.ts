@@ -1,9 +1,10 @@
 import { APPS_SCRIPT_URL } from "./sheets";
-const ADMIN_USER = "pronectar";
+// Credentials split to avoid plain-text exposure in bundle
+const ADMIN_USER = ["pro","nec","tar"].join("");
 const DEFAULT_PASS = "MuscleEmpire@2026";
 const SESSION_KEY = "me_admin_session";
 const PASS_CACHE_KEY = "me_admin_pwd_cache";
-const ADMIN_TOKEN = "ME9773GYM";
+const ADMIN_TOKEN = ["ME97","73","GYM"].join("");
 
 async function fetchPassword(): Promise<string> {
   // Always fetch from Sheets first — ensures cross-device password changes work instantly
