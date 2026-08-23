@@ -493,6 +493,28 @@ export default function AdminOffers() {
                 </div>
 
                 <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                  {/* Image URL — first so it's always visible */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs text-green-400 uppercase tracking-wider font-bold">Offer Banner Image URL</label>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 bg-white/5 border border-green-400/30 rounded-xl px-3 py-2.5">
+                        <Link size={14} className="text-green-400 shrink-0" />
+                        <input
+                          type="url"
+                          value={image}
+                          onChange={e => setImage(e.target.value)}
+                          placeholder="https://i.ibb.co/... paste image URL here"
+                          className="bg-transparent text-white text-sm outline-none flex-1 placeholder:text-white/30"
+                        />
+                        {image && <button onClick={() => setImage("")} className="text-white/30 hover:text-red-400 transition-colors"><X size={14} /></button>}
+                      </div>
+                      {image && !image.startsWith("data:") && (
+                        <img src={image} alt="preview" className="w-full h-32 object-cover rounded-xl border border-white/10" onError={e => (e.currentTarget.style.display = "none")} />
+                      )}
+                      <p className="text-[10px] text-white/30">Upload to <span className="text-green-400 font-bold">imgbb.com</span> → copy Direct Link → paste here. Syncs across all devices.</p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Title</label>
@@ -569,26 +591,6 @@ export default function AdminOffers() {
                     </button>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Banner Image URL</label>
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
-                        <Link size={14} className="text-white/30 shrink-0" />
-                        <input
-                          type="url"
-                          value={image}
-                          onChange={e => setImage(e.target.value)}
-                          placeholder="https://i.ibb.co/... or any image URL"
-                          className="bg-transparent text-white text-sm outline-none flex-1 placeholder:text-white/20"
-                        />
-                        {image && <button onClick={() => setImage("")} className="text-white/30 hover:text-red-400 transition-colors"><X size={14} /></button>}
-                      </div>
-                      {image && !image.startsWith("data:") && (
-                        <img src={image} alt="preview" className="w-full h-32 object-cover rounded-xl border border-white/10" onError={e => (e.currentTarget.style.display = "none")} />
-                      )}
-                      <p className="text-[10px] text-white/30">Paste a hosted image URL (e.g. from <span className="text-green-400">imgbb.com</span>). This syncs across all devices.</p>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="px-6 py-4 border-t border-white/10 flex gap-3 bg-white/[0.02]">
@@ -622,6 +624,28 @@ export default function AdminOffers() {
                 </div>
 
                 <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                  {/* Image URL — first so it's always visible */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs text-green-400 uppercase tracking-wider font-bold">Offer Banner Image URL</label>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 bg-white/5 border border-green-400/30 rounded-xl px-3 py-2.5">
+                        <Link size={14} className="text-green-400 shrink-0" />
+                        <input
+                          type="url"
+                          value={editingOffer.image || ""}
+                          onChange={e => setEditingOffer({ ...editingOffer, image: e.target.value })}
+                          placeholder="https://i.ibb.co/... paste image URL here"
+                          className="bg-transparent text-white text-sm outline-none flex-1 placeholder:text-white/30"
+                        />
+                        {editingOffer.image && <button onClick={() => setEditingOffer({ ...editingOffer, image: "" })} className="text-white/30 hover:text-red-400 transition-colors"><X size={14} /></button>}
+                      </div>
+                      {editingOffer.image && !editingOffer.image.startsWith("data:") && (
+                        <img src={editingOffer.image} alt="preview" className="w-full h-32 object-cover rounded-xl border border-white/10" onError={e => (e.currentTarget.style.display = "none")} />
+                      )}
+                      <p className="text-[10px] text-white/30">Upload to <span className="text-green-400 font-bold">imgbb.com</span> → copy Direct Link → paste here. Syncs across all devices.</p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Title</label>

@@ -43,13 +43,12 @@ export async function pullOffersFromSheets(): Promise<void> {
 }
 
 function pushToSheets(offers: Offer[]): void {
-  // Strip base64 images before saving — Sheets has a 50k char cell limit
+  // Strip base64 images before saving — use URL only
   const stripped = offers.map(o => ({
     ...o,
     image: o.image?.startsWith("data:") ? "" : (o.image || ""),
   }));
   const data = encodeURIComponent(JSON.stringify(stripped));
-  // Use GET (no-cors) — same pattern as submitAssessment; avoids POST redirect body-drop
   fetch(`${APPS_SCRIPT_URL}?action=saveOffers&data=${data}`, {
     method: "GET",
     mode: "no-cors",

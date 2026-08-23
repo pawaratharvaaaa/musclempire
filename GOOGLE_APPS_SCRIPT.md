@@ -253,21 +253,31 @@ function handleRequest(e) {
   if (action === "getOffers") {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var oSheet = ss.getSheetByName("Offers");
-    if (!oSheet || oSheet.getLastRow() < 1) {
+    if (!oSheet || oSheet.getLastRow() < 2) {
       return ContentService
         .createTextOutput(JSON.stringify({ offers: [] }))
         .setMimeType(ContentService.MimeType.JSON);
     }
-    try {
-      var val = oSheet.getRange(1, 1).getValue();
-      return ContentService
-        .createTextOutput(JSON.stringify({ offers: JSON.parse(String(val)) }))
-        .setMimeType(ContentService.MimeType.JSON);
-    } catch (err) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ offers: [] }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
+    var rows = oSheet.getRange(2, 1, oSheet.getLastRow() - 1, 12).getValues();
+    var offers = rows.filter(function(r) { return r[0]; }).map(function(r) {
+      return {
+        id: String(r[0]),
+        title: String(r[1]),
+        subtitle: String(r[2] || ""),
+        description: String(r[3] || ""),
+        discount: String(r[4] || ""),
+        badge: String(r[5] || ""),
+        validTill: String(r[6] || ""),
+        ctaText: String(r[7] || ""),
+        status: String(r[8] || "active"),
+        isFeatured: String(r[9]) === "true",
+        showInPopup: String(r[10]) !== "false",
+        image: String(r[11] || "")
+      };
+    });
+    return ContentService
+      .createTextOutput(JSON.stringify({ offers: offers }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 
   if (action === "saveOffers") {
@@ -275,7 +285,27 @@ function handleRequest(e) {
     var oSheet = ss.getSheetByName("Offers");
     if (!oSheet) oSheet = ss.insertSheet("Offers");
     oSheet.clearContents();
-    oSheet.getRange(1, 1).setValue(p.data || "[]");
+    oSheet.appendRow(["ID","Title","Subtitle","Description","Discount","Badge","Valid Till","CTA Text","Status","Featured","Show In Popup","Image URL"]);
+    oSheet.getRange(1, 1, 1, 12).setFontWeight("bold").setBackground("#FFD000");
+    try {
+      var offers = JSON.parse(p.data || "[]");
+      offers.forEach(function(o) {
+        oSheet.appendRow([
+          o.id || "",
+          o.title || "",
+          o.subtitle || "",
+          o.description || "",
+          o.discount || "",
+          o.badge || "",
+          o.validTill || "",
+          o.ctaText || "",
+          o.status || "active",
+          o.isFeatured === true ? "true" : "false",
+          o.showInPopup === false ? "false" : "true",
+          o.image || ""
+        ]);
+      });
+    } catch(err) {}
     return ContentService
       .createTextOutput(JSON.stringify({ success: true }))
       .setMimeType(ContentService.MimeType.JSON);
