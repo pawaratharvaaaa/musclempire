@@ -12,27 +12,26 @@ import Preloader from "@/components/Preloader";
 
 export default function Home() {
   // Skip preloader if returning from another page (back navigation)
-  const isReturning = !!sessionStorage.getItem("scroll_before_plans") || !!sessionStorage.getItem(`scroll_/`);
+  const savedScroll = sessionStorage.getItem("scroll_/") || sessionStorage.getItem("scroll_before_plans");
+  const isReturning = !!savedScroll;
   const [loading, setLoading] = useState(!isReturning);
 
-  // Restore scroll before first paint if returning from sub-page
+  // Restore scroll immediately before paint when returning
   useLayoutEffect(() => {
-    const saved = sessionStorage.getItem("scroll_before_plans");
-    if (saved !== null) {
-      window.scrollTo(0, parseInt(saved, 10));
-      sessionStorage.removeItem("scroll_before_plans");
-    }
+    const pos = sessionStorage.getItem("scroll_/") || sessionStorage.getItem("scroll_before_plans");
+    if (pos) window.scrollTo(0, parseInt(pos, 10));
   }, []);
 
-  // Reset scroll to top if not restoring scroll or scrolling to hash
-  useEffect(() => {
-    if (!sessionStorage.getItem("scroll_before_plans") && !sessionStorage.getItem("scroll_to_hash")) {
-      window.scrollTo(0, 0);
-    }
-  }, []);
-
+  // After preloader / on mount
   useEffect(() => {
     if (!loading) {
+      // Restore scroll after content renders
+      const pos = sessionStorage.getItem("scroll_/") || sessionStorage.getItem("scroll_before_plans");
+      if (pos) {
+        setTimeout(() => window.scrollTo(0, parseInt(pos, 10)), 50);
+        return;
+      }
+      // Handle hash navigation
       const hash = sessionStorage.getItem("scroll_to_hash");
       if (hash) {
         sessionStorage.removeItem("scroll_to_hash");
@@ -43,7 +42,10 @@ export default function Home() {
             window.scrollTo({ top, behavior: "smooth" });
           }
         }, 300);
+        return;
       }
+      // Fresh visit — scroll to top
+      if (!isReturning) window.scrollTo(0, 0);
     }
   }, [loading]);
 
