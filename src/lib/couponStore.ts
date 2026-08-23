@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxj2fOe7PS_1yy7BYIxWA4Q9npzHhKhg-qX-B6HCLSU9WHeC0rlC6S-E9Or_PbEEgZKA/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVfFmJLP1AUrm7Fm3VDiwoWLYMMNvaqZuzY6caLQi7sBeaKDDWJoArRphAdcfKP3bulA/exec";
 const CACHE_KEY = "me_coupons_v2";
 const CACHE_TS_KEY = "me_coupons_ts";
 const CACHE_TTL = 30_000; // 30 seconds
