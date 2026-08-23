@@ -2,7 +2,7 @@ import type { Offer } from "@/data/offers";
 import type { Offer } from "@/data/offers";
 import { activeOffers } from "@/data/offers";
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVfFmJLP1AUrm7Fm3VDiwoWLYMMNvaqZuzY6caLQi7sBeaKDDWJoArRphAdcfKP3bulA/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKITQjKTh3KS_obNRmAq2RIOzjeuWlOq7Th5NTCRaNf-oe73gkCstPq2naB0kACBGMfg/exec";
 const T = ["ME97","73","GYM"].join("");
 const CACHE_KEY = "me_offers_v2";
 const CACHE_TS_KEY = "me_offers_ts";
