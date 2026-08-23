@@ -1,6 +1,7 @@
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, lazy, Suspense } from "react";
+import { useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import FloatingContact from "@/components/FloatingContact";
@@ -67,6 +68,25 @@ function AdminShortcut() {
   return null;
 }
 
+// Save scroll position per route and restore on back navigation
+function ScrollRestoration() {
+  const [location] = useLocation();
+  useEffect(() => {
+    const saved = sessionStorage.getItem(`scroll_${location}`);
+    if (saved) {
+      window.scrollTo(0, parseInt(saved, 10));
+    } else {
+      window.scrollTo(0, 0);
+    }
+    const saveScroll = () => {
+      sessionStorage.setItem(`scroll_${location}`, String(window.scrollY));
+    };
+    window.addEventListener("scroll", saveScroll, { passive: true });
+    return () => window.removeEventListener("scroll", saveScroll);
+  }, [location]);
+  return null;
+}
+
 function PublicWidgets() {
   const [location] = useLocation();
   if (location.startsWith("/sagarkharat")) return null;
@@ -111,6 +131,7 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <AdminShortcut />
+          <ScrollRestoration />
           <Router />
           <PublicWidgets />
         </WouterRouter>

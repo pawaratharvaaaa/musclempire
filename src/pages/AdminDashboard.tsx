@@ -10,11 +10,21 @@ import { setSelectedAssessment } from "@/lib/adminStore";
 function formatDate(raw: string | undefined): string {
   if (!raw) return "--";
   const s = String(raw).trim();
+  if (!s || s === "undefined") return "--";
+  // Handle Excel/Sheets serial date numbers
+  if (/^\d+$/.test(s)) {
+    try {
+      const d = new Date(Math.round((Number(s) - 25569) * 86400 * 1000));
+      if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
+        return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+      }
+    } catch {}
+  }
   // Already clean format like "25/6/2026" or "11 Aug 2026"
   if (!s.includes("GMT") && !s.includes("00:00:00") && s.length < 20) return s;
   try {
     const d = new Date(s);
-    if (!isNaN(d.getTime())) {
+    if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
       return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
     }
   } catch {}
@@ -22,7 +32,9 @@ function formatDate(raw: string | undefined): string {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const s = (status || "New").trim();
+  // Guard against JSON/object being passed as status
+  const raw = String(status || "New").trim();
+  const s = raw.startsWith("[") || raw.startsWith("{") || raw.length > 30 ? "New" : raw;
   const colors: Record<string, string> = {
     New: "bg-yellow-400/15 text-yellow-400 border-yellow-400/30",
     "In Progress": "bg-blue-400/15 text-blue-400 border-blue-400/30",
