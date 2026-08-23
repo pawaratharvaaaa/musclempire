@@ -46,11 +46,11 @@ function pushToSheets(offers: Offer[]): void {
     ...o,
     image: o.image?.startsWith("data:") ? "" : (o.image || ""),
   }));
-  fetch(APPS_SCRIPT_URL, {
-    method: "POST",
+  const data = encodeURIComponent(JSON.stringify(stripped));
+  // Use GET (no-cors) — same pattern as submitAssessment; avoids POST redirect body-drop
+  fetch(`${APPS_SCRIPT_URL}?action=saveOffers&data=${data}`, {
+    method: "GET",
     mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action: "saveOffers", data: JSON.stringify(stripped) }),
   }).catch(() => {});
 }
 
