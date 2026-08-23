@@ -1,4 +1,5 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVfFmJLP1AUrm7Fm3VDiwoWLYMMNvaqZuzY6caLQi7sBeaKDDWJoArRphAdcfKP3bulA/exec";
+const T = ["ME97","73","GYM"].join("");
 const CACHE_KEY = "me_coupons_v2";
 const CACHE_TS_KEY = "me_coupons_ts";
 const CACHE_TTL = 30_000; // 30 seconds
@@ -32,7 +33,7 @@ function isCacheStale(): boolean {
 
 export async function pullFromSheets(): Promise<void> {
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getCoupons&_t=${Date.now()}`, {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getCoupons&token=${T}&_t=${Date.now()}`, {
       redirect: "follow",
       cache: "no-store",
     });
@@ -49,7 +50,7 @@ export async function pullFromSheets(): Promise<void> {
 
 function pushToSheets(coupons: Coupon[]): void {
   const data = encodeURIComponent(JSON.stringify(coupons));
-  fetch(`${APPS_SCRIPT_URL}?action=saveCoupons&data=${data}`, {
+  fetch(`${APPS_SCRIPT_URL}?action=saveCoupons&token=${T}&data=${data}`, {
     method: "GET",
     mode: "no-cors",
   }).catch(() => {});

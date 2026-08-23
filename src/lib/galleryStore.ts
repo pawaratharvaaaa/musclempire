@@ -2,6 +2,7 @@
 // Images are URL-only — no base64/IndexedDB. Works across all devices.
 
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVfFmJLP1AUrm7Fm3VDiwoWLYMMNvaqZuzY6caLQi7sBeaKDDWJoArRphAdcfKP3bulA/exec";
+const T = ["ME97","73","GYM"].join("");
 
 const IMAGES_KEY = "me_gallery_images";
 const IMAGES_TS_KEY = "me_gallery_images_ts";
@@ -71,7 +72,7 @@ function isVideosCacheStale(): boolean {
 
 async function fetchImagesFromSheets(): Promise<GalleryImage[] | null> {
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getImages&_t=${Date.now()}`, { redirect: "follow", cache: "no-store" });
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getImages&token=${T}&_t=${Date.now()}`, { redirect: "follow", cache: "no-store" });
     if (!res.ok) return null;
     const json = await res.json();
     return Array.isArray(json?.images) ? json.images : null;
@@ -80,7 +81,7 @@ async function fetchImagesFromSheets(): Promise<GalleryImage[] | null> {
 
 function saveImagesToSheets(images: GalleryImage[]): void {
   const data = encodeURIComponent(JSON.stringify(images));
-  fetch(`${APPS_SCRIPT_URL}?action=saveImages&data=${data}`, {
+  fetch(`${APPS_SCRIPT_URL}?action=saveImages&token=${T}&data=${data}`, {
     method: "GET",
     mode: "no-cors",
   }).catch(() => {});
@@ -88,7 +89,7 @@ function saveImagesToSheets(images: GalleryImage[]): void {
 
 async function fetchVideosFromSheets(): Promise<GalleryVideo[] | null> {
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getVideos&_t=${Date.now()}`, { redirect: "follow", cache: "no-store" });
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getVideos&token=${T}&_t=${Date.now()}`, { redirect: "follow", cache: "no-store" });
     if (!res.ok) return null;
     const json = await res.json();
     return Array.isArray(json?.videos) ? json.videos : null;
@@ -97,7 +98,7 @@ async function fetchVideosFromSheets(): Promise<GalleryVideo[] | null> {
 
 function saveVideosToSheets(videos: GalleryVideo[]): void {
   const data = encodeURIComponent(JSON.stringify(videos));
-  fetch(`${APPS_SCRIPT_URL}?action=saveVideos&data=${data}`, {
+  fetch(`${APPS_SCRIPT_URL}?action=saveVideos&token=${T}&data=${data}`, {
     method: "GET",
     mode: "no-cors",
   }).catch(() => {});

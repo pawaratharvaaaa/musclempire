@@ -67,7 +67,9 @@ function handleRequest(e) {
 
   var action = p.action;
 
-  if (action === "getPassword" || action === "setPassword") {
+  // Actions that require admin token
+  var protectedActions = ["getPassword","setPassword","list","update","deleteRow","getCoupons","saveCoupons","getOffers","saveOffers","getImages","saveImages","getVideos","saveVideos"];
+  if (protectedActions.indexOf(action) !== -1) {
     if (p.token !== ADMIN_TOKEN) {
       return ContentService
         .createTextOutput(JSON.stringify({ error: "Unauthorized" }))

@@ -1,7 +1,9 @@
 import type { Offer } from "@/data/offers";
+import type { Offer } from "@/data/offers";
 import { activeOffers } from "@/data/offers";
 
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVfFmJLP1AUrm7Fm3VDiwoWLYMMNvaqZuzY6caLQi7sBeaKDDWJoArRphAdcfKP3bulA/exec";
+const T = ["ME97","73","GYM"].join("");
 const CACHE_KEY = "me_offers_v2";
 const CACHE_TS_KEY = "me_offers_ts";
 const CACHE_TTL = 30_000;
@@ -25,7 +27,7 @@ function isCacheStale(): boolean {
 export async function pullOffersFromSheets(): Promise<void> {
   try {
     localStorage.removeItem("me_offers_ts");
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&_t=${Date.now()}`, {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&token=${T}&_t=${Date.now()}`, {
       redirect: "follow",
       cache: "no-store",
     });
@@ -53,7 +55,7 @@ function pushToSheets(offers: Offer[]): void {
     image: o.image?.startsWith("data:") ? "" : (o.image || ""),
   }));
   const data = encodeURIComponent(JSON.stringify(stripped));
-  fetch(`${APPS_SCRIPT_URL}?action=saveOffers&data=${data}`, {
+  fetch(`${APPS_SCRIPT_URL}?action=saveOffers&token=${T}&data=${data}`, {
     method: "GET",
     mode: "no-cors",
   }).catch(() => {});
