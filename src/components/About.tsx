@@ -51,7 +51,7 @@ const entries: Entry[] = [
     ],
   },
   {
-    year: "Univ.",
+    year: "University",
     tag: "Mumbai University",
     tagColor: "#8c8c8c",
     narrative: "Four inter-university seasons representing Mumbai.",

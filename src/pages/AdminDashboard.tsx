@@ -51,7 +51,11 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  useEffect(() => { load(true); }, []); // always fresh on mount
+  useEffect(() => { 
+    // Clear stale cache on mount to force fresh fetch with new token
+    localStorage.removeItem("me_assessments_ts");
+    load(true); 
+  }, []);
   const handleRefresh = () => load(true);
 
   const filtered = data
@@ -112,26 +116,26 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <div className="bg-[#161b22] border-b border-white/10 px-6 py-4 flex items-center justify-between">
+        <div className="bg-[#161b22] border-b border-white/10 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl font-black uppercase tracking-wider text-green-400">Muscle Empire</h1>
+            <h1 className="text-lg font-black uppercase tracking-wider text-green-400">Muscle Empire</h1>
             <p className="text-xs text-white/40 uppercase tracking-widest">Nutrition Admin Dashboard</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-wrap">
             <button onClick={() => navigate("/sagarkharat/gallery")}
-              className="flex items-center gap-2 text-white/50 hover:text-green-400 text-sm transition-colors cursor-pointer">
-              <ImageIcon size={14} /> Gallery
+              className="flex items-center gap-1.5 text-white/50 hover:text-green-400 text-xs transition-colors cursor-pointer">
+              <ImageIcon size={13} /> Gallery
             </button>
             <button onClick={() => navigate("/sagarkharat/offers")}
-              className="flex items-center gap-2 text-white/50 hover:text-green-400 text-sm transition-colors cursor-pointer">
-              <Tag size={14} /> Offers
+              className="flex items-center gap-1.5 text-white/50 hover:text-green-400 text-xs transition-colors cursor-pointer">
+              <Tag size={13} /> Offers
             </button>
-            <button onClick={handleRefresh} className="flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors">
-              <RefreshCw size={14} /> Refresh
+            <button onClick={handleRefresh} className="flex items-center gap-1.5 text-white/50 hover:text-white text-xs transition-colors">
+              <RefreshCw size={13} /> Refresh
             </button>
             <button onClick={() => { logout(); navigate("/sagarkharat"); }}
-              className="flex items-center gap-2 text-red-400/60 hover:text-red-400 text-sm transition-colors">
-              <LogOut size={14} /> Logout
+              className="flex items-center gap-1.5 text-red-400/60 hover:text-red-400 text-xs transition-colors">
+              <LogOut size={13} /> Logout
             </button>
           </div>
         </div>
