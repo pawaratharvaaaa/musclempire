@@ -22,7 +22,7 @@ function isCacheStale(): boolean {
   return Date.now() - ts > CACHE_TTL;
 }
 
-// ── Sheets (background) ──────────────────────────────────────────────────────
+// â”€â”€ Sheets (background) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function pullOffersFromSheets(): Promise<void> {
   try {
@@ -61,19 +61,19 @@ function pushToSheets(offers: Offer[]): void {
   }).catch(() => {});
 }
 
-// ── Public API ────────────────────────────────────────────────────────────────
+// â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function getOffers(): Offer[] {
   const cached = readCache();
   // Seed defaults if cache empty (before Sheets sync completes)
-  if (cached.length === 0) return activeOffers;
+  if (cached.length === 0) { pullOffersFromSheets(); return []; }
   return cached;
 }
 
 export function getOffersAndSync(): Offer[] {
   const cached = readCache();
   if (isCacheStale()) pullOffersFromSheets();
-  return cached.length > 0 ? cached : activeOffers;
+  return cached;
 }
 
 function _save(offers: Offer[]): void {
@@ -85,7 +85,7 @@ function _save(offers: Offer[]): void {
 export function saveOffers(offers: Offer[]): void { _save(offers); }
 
 export function addOffer(offer: Omit<Offer, "id">): void {
-  const offers = readCache().length > 0 ? readCache() : [...activeOffers];
+  const offers = readCache();
   offers.push({ id: "offer_" + Date.now(), ...offer });
   _save(offers);
 }
