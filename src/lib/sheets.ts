@@ -1,4 +1,5 @@
 export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzt16aWEy6Wq9Unm8mgCL-0V9dp3CEBcB3kNAqWtaFu9Q9_-tAlWyTjGSiRbtMSkGo60Q/exec";
+const T = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 
 export type AssessmentData = {
   id?: string;
@@ -20,7 +21,7 @@ export type AssessmentData = {
 
 const LOCAL_KEY = "me_assessments";
 const CACHE_TS_KEY = "me_assessments_ts";
-const CACHE_TTL = 60_000; // 60 seconds — only re-fetch from Sheets if older than this
+const CACHE_TTL = 60_000; // 60 seconds â€” only re-fetch from Sheets if older than this
 
 function getLocal(): AssessmentData[] {
   try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); }
@@ -36,13 +37,13 @@ function isCacheStale(): boolean {
 }
 
 function scriptGet(params: Record<string, string>): Promise<unknown> {
-  const qs = new URLSearchParams(params).toString();
+  const qs = new URLSearchParams({ ...params, token: T }).toString();
   return fetch(`${APPS_SCRIPT_URL}?${qs}`, { method: "GET", redirect: "follow" })
     .then(r => r.json()).catch(() => null);
 }
 
 export async function submitAssessment(data: AssessmentData): Promise<void> {
-  // Use timestamp as unique ID — guarantees every submission is unique
+  // Use timestamp as unique ID â€” guarantees every submission is unique
   const id = String(Date.now());
   const payload = {
     ...data,
@@ -58,10 +59,10 @@ export async function submitAssessment(data: AssessmentData): Promise<void> {
 
   const params: Record<string, string> = {};
   Object.entries(payload).forEach(([k, v]) => { params[k] = String(v ?? ""); });
-  const qs = new URLSearchParams(params).toString();
+  const qs = new URLSearchParams({ ...params, token: T }).toString();
   const url = `${APPS_SCRIPT_URL}?${qs}`;
 
-  // Single GET request — no-cors to avoid CORS redirect blocks
+  // Single GET request â€” no-cors to avoid CORS redirect blocks
   fetch(url, { method: "GET", mode: "no-cors" }).catch(() => {});
 }
 
@@ -75,10 +76,9 @@ export async function fetchSubmissions(forceRefresh = false): Promise<Assessment
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=list&_t=${Date.now()}`, {
-      redirect: "follow",
-      signal: controller.signal,
+    const timeout = setTimeout(() => controller.abort(), 12000); // 8s timeout
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=list&token=${T}&_t=${Date.now()}`, {
+      method: "GET", redirect: "follow", cache: "no-store", signal: controller.signal,
     });
     clearTimeout(timeout);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -88,7 +88,7 @@ export async function fetchSubmissions(forceRefresh = false): Promise<Assessment
       return json.data;
     }
   } catch {
-    // Sheets unavailable — return local cache silently
+    // Sheets unavailable â€” return local cache silently
   }
 
   return local;
@@ -120,7 +120,7 @@ export async function deleteRecord(rowIndex: number): Promise<void> {
     existing.forEach((item, i) => { item._rowIndex = i; });
     saveLocal(existing);
   }
-  // Delete from Google Sheets — rowIndex is the 0-based data row index
+  // Delete from Google Sheets â€” rowIndex is the 0-based data row index
   scriptGet({ action: "deleteRow", rowIndex: String(rowIndex) });
 }
 
