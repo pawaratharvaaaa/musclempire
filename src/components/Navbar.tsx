@@ -37,7 +37,7 @@ export default function Navbar() {
           <img
             src={logo}
             alt="Muscle Empire"
-            className="relative h-16 w-16 object-contain"
+            className="relative h-24 w-24 object-contain"
           />
         </div>
 

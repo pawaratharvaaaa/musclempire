@@ -30,7 +30,7 @@ export default function Footer() {
               <img
                 src={logo}
                 alt="Muscle Empire"
-                className="h-12 w-12 object-contain"
+                className="h-20 w-20 object-contain"
               />
               <span className="font-display font-black text-[1.05rem] text-[#C8900A] tracking-tight">
                 Muscle Empire®
