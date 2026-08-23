@@ -295,7 +295,7 @@ export default function Branches() {
           >
             {[
               { label: "Active Centers", value: "2 Centers", sub: "Ghatkopar West", icon: Building2 },
-              { label: "Certified Trainers", value: "15+ Coaches", sub: "Male & Female Staff", icon: Award },
+              { label: "Certified Trainers", value: "8+ Coaches", sub: "Male & Female Staff", icon: Award },
               { label: "Happy Athletes", value: "2,500+ Members", sub: "Strong Community", icon: Users },
             ].map((stat, i) => (
               <div key={i} className="flex flex-col p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
