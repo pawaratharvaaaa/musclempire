@@ -1,11 +1,10 @@
 import type { Offer } from "@/data/offers";
+import { activeOffers } from "@/data/offers";
 
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVfFmJLP1AUrm7Fm3VDiwoWLYMMNvaqZuzY6caLQi7sBeaKDDWJoArRphAdcfKP3bulA/exec";
 const CACHE_KEY = "me_offers_v2";
 const CACHE_TS_KEY = "me_offers_ts";
-const CACHE_TTL = 30_000; // 30 seconds — re-pull from Sheets if stale
-
-// ── localStorage (instant) ───────────────────────────────────────────────────
+const CACHE_TTL = 30_000;
 
 function readCache(): Offer[] {
   try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "[]"); } catch { return []; }
@@ -25,7 +24,6 @@ function isCacheStale(): boolean {
 
 export async function pullOffersFromSheets(): Promise<void> {
   try {
-    // Reset timestamp so next getOffersAndSync also re-fetches
     localStorage.removeItem("me_offers_ts");
     const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&_t=${Date.now()}`, {
       redirect: "follow",
@@ -34,16 +32,22 @@ export async function pullOffersFromSheets(): Promise<void> {
     const text = await res.text();
     const json = JSON.parse(text);
     if (Array.isArray(json?.offers)) {
-      writeCache(json.offers);
+      // If Sheets returns empty, seed with default offers
+      const offers = json.offers.length > 0 ? json.offers : activeOffers;
+      writeCache(offers);
       window.dispatchEvent(new CustomEvent("offersUpdated"));
     }
   } catch (e) {
     console.warn("[offersStore] pullOffersFromSheets failed:", e);
+    // On network failure, seed defaults if cache is empty
+    if (readCache().length === 0) {
+      writeCache(activeOffers);
+      window.dispatchEvent(new CustomEvent("offersUpdated"));
+    }
   }
 }
 
 function pushToSheets(offers: Offer[]): void {
-  // Strip base64 images before saving — use URL only
   const stripped = offers.map(o => ({
     ...o,
     image: o.image?.startsWith("data:") ? "" : (o.image || ""),
@@ -55,19 +59,19 @@ function pushToSheets(offers: Offer[]): void {
   }).catch(() => {});
 }
 
-// ── Public API (synchronous for instant UI) ──────────────────────────────────
+// ── Public API ────────────────────────────────────────────────────────────────
 
 export function getOffers(): Offer[] {
-  return readCache();
+  const cached = readCache();
+  // Seed defaults if cache empty (before Sheets sync completes)
+  if (cached.length === 0) return activeOffers;
+  return cached;
 }
 
-// Auto-pull from Sheets if cache is stale (used by public pages)
 export function getOffersAndSync(): Offer[] {
   const cached = readCache();
-  if (isCacheStale()) {
-    pullOffersFromSheets(); // background refresh
-  }
-  return cached;
+  if (isCacheStale()) pullOffersFromSheets();
+  return cached.length > 0 ? cached : activeOffers;
 }
 
 function _save(offers: Offer[]): void {
@@ -79,7 +83,7 @@ function _save(offers: Offer[]): void {
 export function saveOffers(offers: Offer[]): void { _save(offers); }
 
 export function addOffer(offer: Omit<Offer, "id">): void {
-  const offers = readCache();
+  const offers = readCache().length > 0 ? readCache() : [...activeOffers];
   offers.push({ id: "offer_" + Date.now(), ...offer });
   _save(offers);
 }

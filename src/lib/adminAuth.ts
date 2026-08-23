@@ -6,14 +6,11 @@ const PASS_CACHE_KEY = "me_admin_pwd_cache";
 const ADMIN_TOKEN = "ME9773GYM";
 
 async function fetchPassword(): Promise<string> {
-  // 1. Check localStorage cache first (set on successful password change)
-  const cached = localStorage.getItem(PASS_CACHE_KEY);
-  if (cached && cached.trim()) return cached.trim();
-  // 2. Try fetching from Sheets
+  // Always fetch from Sheets first — ensures cross-device password changes work instantly
   try {
     const res = await fetch(
       `${APPS_SCRIPT_URL}?action=getPassword&token=${ADMIN_TOKEN}`,
-      { redirect: "follow" }
+      { redirect: "follow", cache: "no-store" }
     );
     const json = await res.json();
     if (json?.password && json.password !== "undefined") {
@@ -21,7 +18,9 @@ async function fetchPassword(): Promise<string> {
       return json.password;
     }
   } catch {}
-  // 3. Fall back to default
+  // Fall back to cached value if Sheets unreachable
+  const cached = localStorage.getItem(PASS_CACHE_KEY);
+  if (cached && cached.trim()) return cached.trim();
   return DEFAULT_PASS;
 }
 

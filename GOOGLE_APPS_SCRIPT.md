@@ -311,10 +311,44 @@ function handleRequest(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  if (action === "getImages") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var iSheet = ss.getSheetByName("GalleryImages");
+    if (!iSheet || iSheet.getLastRow() < 2) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ images: [] }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    var rows = iSheet.getRange(2, 1, iSheet.getLastRow() - 1, 3).getValues();
+    var images = rows.filter(function(r) { return r[0]; }).map(function(r) {
+      return { id: String(r[0]), src: String(r[1]), alt: String(r[2] || "") };
+    });
+    return ContentService
+      .createTextOutput(JSON.stringify({ images: images }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (action === "saveImages") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var iSheet = ss.getSheetByName("GalleryImages");
+    if (!iSheet) iSheet = ss.insertSheet("GalleryImages");
+    iSheet.clearContents();
+    iSheet.appendRow(["ID", "URL / Source", "Caption"]);
+    iSheet.getRange(1, 1, 1, 3).setFontWeight("bold").setBackground("#FFD000");
+    try {
+      var images = JSON.parse(p.data || "[]");
+      images.forEach(function(img) {
+        iSheet.appendRow([img.id || "", img.src || "", img.alt || ""]);
+      });
+    } catch (err) {}
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   if (action === "getVideos") {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var vSheet = ss.getSheetByName("Videos");
-    if (!vSheet || vSheet.getLastRow() < 2) {
+    var vSheet = ss.getSheetByName("Videos");    if (!vSheet || vSheet.getLastRow() < 2) {
       return ContentService
         .createTextOutput(JSON.stringify({ videos: [] }))
         .setMimeType(ContentService.MimeType.JSON);
@@ -345,7 +379,6 @@ function handleRequest(e) {
       .createTextOutput(JSON.stringify({ success: true }))
       .setMimeType(ContentService.MimeType.JSON);
   }
-
   return ContentService
     .createTextOutput(JSON.stringify({ error: "Unknown action" }))
     .setMimeType(ContentService.MimeType.JSON);

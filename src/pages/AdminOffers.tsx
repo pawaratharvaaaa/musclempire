@@ -29,11 +29,6 @@ export default function AdminOffers() {
   const [cpEnabled, setCpEnabled] = useState(true);
 
   const ALL_PLANS = ["Monthly", "Quarterly", "Half Yearly", "Yearly"];
-
-  function resetCouponForm() {
-    setCpCode(""); setCpDiscount(""); setCpPlans([]); setCpDesc(""); setCpEnabled(true);
-  }
-
   const [savingCoupon, setSavingCoupon] = useState(false);
 
   function resetCouponForm() {
@@ -42,10 +37,12 @@ export default function AdminOffers() {
 
   function handleAddCoupon() {
     if (!cpCode.trim() || !cpDiscount.trim()) { alert("Code and discount are required"); return; }
+    setSavingCoupon(true);
     addCoupon({ code: cpCode.trim().toUpperCase(), discount: Number(cpDiscount), plans: cpPlans, description: cpDesc.trim(), enabled: cpEnabled });
     setCoupons(getCoupons());
     resetCouponForm();
     setShowAddCoupon(false);
+    setSavingCoupon(false);
   }
 
   function handleUpdateCoupon() {

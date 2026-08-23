@@ -4,7 +4,7 @@ import {
   getGalleryImages, addGalleryImage, removeGalleryImage, type GalleryImage,
   getGalleryVideos, addGalleryVideo, removeGalleryVideo, type GalleryVideo 
 } from "@/lib/galleryStore";
-import { Plus, Trash2, Image as ImageIcon, Video, LogOut, Users, Upload, Tag, Play, X } from "lucide-react";
+import { Plus, Trash2, Image as ImageIcon, Video, LogOut, Users, Tag, Play, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
@@ -42,7 +42,6 @@ function getThumb(url: string): string | null {
   const [newThumb, setNewThumb] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [activeVideo, setActiveVideo] = useState<GalleryVideo | null>(null);
 
   useEffect(() => {
@@ -55,58 +54,6 @@ function getThumb(url: string): string | null {
     window.addEventListener("galleryUpdated", handler);
     return () => window.removeEventListener("galleryUpdated", handler);
   }, []);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (activeTab === "photos") {
-      if (!file.type.startsWith("image/")) {
-        alert("Please select an image file");
-        return;
-      }
-    } else {
-      if (!file.type.startsWith("video/")) {
-        alert("Please select a video file");
-        return;
-      }
-    }
-    setUploading(true);
-    setUploadProgress(0);
-    const reader = new FileReader();
-    reader.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percent = Math.round((event.loaded / event.total) * 100);
-        setUploadProgress(percent);
-      }
-    };
-    reader.onload = async () => {
-      const base64 = reader.result as string;
-      setUploadProgress(100);
-      try {
-        if (activeTab === "photos") {
-          await addGalleryImage(base64, newAlt.trim() || file.name || "Gallery image");
-          const list = await getGalleryImages();
-          setImages(list);
-        } else {
-          await addGalleryVideo(base64, newAlt.trim() || file.name || "Gallery video");
-          const list = await getGalleryVideos();
-          setVideos(list);
-        }
-      } catch (err) {
-        alert("Upload failed. The file may be too large or the browser storage is full.");
-      }
-      setNewSrc("");
-      setNewAlt("");
-      setShowAdd(false);
-      setUploading(false);
-      e.target.value = "";
-    };
-    reader.onerror = () => {
-      alert("Failed to read file");
-      setUploading(false);
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleAdd = async () => {
     if (!newSrc.trim()) return;
@@ -251,42 +198,12 @@ function getThumb(url: string): string | null {
                     />
                   </div>
 
-                  {/* Upload from device */}
-                  <div>
-                    <label className="block text-xs text-white/40 uppercase tracking-widest mb-1.5">Upload from Device</label>
-                    {activeTab === "videos" ? (
-                      <div className="w-full h-20 border border-dashed border-orange-400/30 rounded-xl flex items-center justify-center bg-orange-400/5 px-4">
-                        <p className="text-orange-400/80 text-xs text-center leading-relaxed">
-                          ⚠️ File upload is device-specific. Use a <strong>YouTube or direct video URL</strong> below so it shows on all devices.
-                        </p>
-                      </div>
-                    ) : (
-                      <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 hover:border-green-400/50 rounded-xl cursor-pointer transition-colors ${uploading ? "pointer-events-none border-green-500/30" : ""}`}>
-                        {uploading ? (
-                          <div className="w-full px-8 text-center space-y-3">
-                            <div className="flex justify-between text-xs text-white/60 uppercase tracking-widest font-bold">
-                              <span>Processing Photo...</span>
-                              <span>{uploadProgress}%</span>
-                            </div>
-                            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-green-400 transition-all duration-150 rounded-full" style={{ width: `${uploadProgress}%` }} />
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center gap-2 text-white/30">
-                            <Upload size={24} />
-                            <span className="text-xs uppercase tracking-widest">Click to choose file</span>
-                            <span className="text-[10px] text-white/20">JPG, PNG, WEBP, GIF</span>
-                          </div>
-                        )}
-                        <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
-                      </label>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-white/10" />
-                    <span className="text-white/20 text-xs uppercase tracking-widest">or use URL / Link</span>
-                    <div className="flex-1 h-px bg-white/10" />
+                  {/* URL-only note */}
+                  <div className="w-full py-3 px-4 border border-green-400/20 rounded-xl bg-green-400/5">
+                    <p className="text-green-400/80 text-xs text-center leading-relaxed">
+                      📎 Use a hosted URL so images sync across all devices.<br />
+                      Upload to <strong className="text-green-400">imgbb.com</strong> → copy Direct Link → paste below.
+                    </p>
                   </div>
 
                   {/* URL input */}

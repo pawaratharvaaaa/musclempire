@@ -1,15 +1,13 @@
-// Videos are synced via Google Sheets so they work on all devices.
-// Images remain in IndexedDB (base64 uploads are device-local by nature).
+// All gallery content (images + videos) is synced via Google Sheets.
+// Images are URL-only — no base64/IndexedDB. Works across all devices.
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw06TogGaQrRyBdRGHuvEYqBKPfT9f0AFYcB36t-XwJweaLkuT3-wi55un3ckiPMPZOYQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVfFmJLP1AUrm7Fm3VDiwoWLYMMNvaqZuzY6caLQi7sBeaKDDWJoArRphAdcfKP3bulA/exec";
 
-const DB_NAME = "MuscleEmpireGalleryDB";
-const DB_VERSION = 1;
-const IMAGES_STORE = "images";
-
+const IMAGES_KEY = "me_gallery_images";
+const IMAGES_TS_KEY = "me_gallery_images_ts";
 const VIDEOS_KEY = "me_gallery_videos";
 const VIDEOS_TS_KEY = "me_gallery_videos_ts";
-const VIDEOS_TTL = 2 * 60 * 1000; // 2 minutes
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
 export interface GalleryImage {
   id: string;
@@ -39,50 +37,21 @@ const DEFAULT_IMAGES: GalleryImage[] = [
   { id: "12", src: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80", alt: "Locker room" },
 ];
 
-// ── IndexedDB helpers (images only) ─────────────────────────────────────────
+// ── localStorage helpers ─────────────────────────────────────────────────────
 
-function openDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(IMAGES_STORE)) {
-        db.createObjectStore(IMAGES_STORE, { keyPath: "id" });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+function getLocalImages(): GalleryImage[] {
+  try { return JSON.parse(localStorage.getItem(IMAGES_KEY) || "[]"); } catch { return []; }
 }
 
-function getAllItems<T>(storeName: string): Promise<T[]> {
-  return openDB().then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, "readonly");
-    const req = tx.objectStore(storeName).getAll();
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  }));
+function saveLocalImages(images: GalleryImage[]): void {
+  localStorage.setItem(IMAGES_KEY, JSON.stringify(images));
+  localStorage.setItem(IMAGES_TS_KEY, String(Date.now()));
 }
 
-function addItem<T>(storeName: string, item: T): Promise<void> {
-  return openDB().then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, "readwrite");
-    const req = tx.objectStore(storeName).put(item);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  }));
+function isImagesCacheStale(): boolean {
+  const ts = parseInt(localStorage.getItem(IMAGES_TS_KEY) || "0", 10);
+  return Date.now() - ts > CACHE_TTL;
 }
-
-function removeItem(storeName: string, id: string): Promise<void> {
-  return openDB().then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, "readwrite");
-    const req = tx.objectStore(storeName).delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  }));
-}
-
-// ── Sheets helpers (videos) ──────────────────────────────────────────────────
 
 function getLocalVideos(): GalleryVideo[] {
   try { return JSON.parse(localStorage.getItem(VIDEOS_KEY) || "[]"); } catch { return []; }
@@ -95,12 +64,31 @@ function saveLocalVideos(videos: GalleryVideo[]): void {
 
 function isVideosCacheStale(): boolean {
   const ts = parseInt(localStorage.getItem(VIDEOS_TS_KEY) || "0", 10);
-  return Date.now() - ts > VIDEOS_TTL;
+  return Date.now() - ts > CACHE_TTL;
+}
+
+// ── Sheets helpers ───────────────────────────────────────────────────────────
+
+async function fetchImagesFromSheets(): Promise<GalleryImage[] | null> {
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getImages&_t=${Date.now()}`, { redirect: "follow", cache: "no-store" });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return Array.isArray(json?.images) ? json.images : null;
+  } catch { return null; }
+}
+
+function saveImagesToSheets(images: GalleryImage[]): void {
+  const data = encodeURIComponent(JSON.stringify(images));
+  fetch(`${APPS_SCRIPT_URL}?action=saveImages&data=${data}`, {
+    method: "GET",
+    mode: "no-cors",
+  }).catch(() => {});
 }
 
 async function fetchVideosFromSheets(): Promise<GalleryVideo[] | null> {
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getVideos&_t=${Date.now()}`, { redirect: "follow" });
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getVideos&_t=${Date.now()}`, { redirect: "follow", cache: "no-store" });
     if (!res.ok) return null;
     const json = await res.json();
     return Array.isArray(json?.videos) ? json.videos : null;
@@ -108,43 +96,62 @@ async function fetchVideosFromSheets(): Promise<GalleryVideo[] | null> {
 }
 
 function saveVideosToSheets(videos: GalleryVideo[]): void {
-  // Single POST only — prevents duplicate galleryUpdated events
-  fetch(APPS_SCRIPT_URL, {
-    method: "POST",
+  const data = encodeURIComponent(JSON.stringify(videos));
+  fetch(`${APPS_SCRIPT_URL}?action=saveVideos&data=${data}`, {
+    method: "GET",
     mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action: "saveVideos", data: JSON.stringify(videos) }),
   }).catch(() => {});
 }
 
 // ── Public API — Images ──────────────────────────────────────────────────────
 
 export async function getGalleryImages(): Promise<GalleryImage[]> {
-  try {
-    const items = await getAllItems<GalleryImage>(IMAGES_STORE);
-    if (items.length > 0) return items;
-    for (const img of DEFAULT_IMAGES) await addItem(IMAGES_STORE, img);
-    return DEFAULT_IMAGES;
-  } catch { return DEFAULT_IMAGES; }
+  const local = getLocalImages();
+
+  if (isImagesCacheStale()) {
+    fetchImagesFromSheets().then(remote => {
+      if (remote !== null) {
+        const images = remote.length > 0 ? remote : DEFAULT_IMAGES;
+        saveLocalImages(images);
+        window.dispatchEvent(new CustomEvent("galleryUpdated"));
+      }
+    });
+  }
+
+  return local.length > 0 ? local : DEFAULT_IMAGES;
 }
 
 export async function addGalleryImage(src: string, alt: string): Promise<void> {
-  await addItem(IMAGES_STORE, { id: Date.now().toString(), src, alt });
+  if (src.startsWith("data:")) {
+    throw new Error("Please use a URL (from imgbb.com etc.) instead of uploading a file. File uploads are device-specific.");
+  }
+  const images = getLocalImages().length > 0 ? getLocalImages() : [...DEFAULT_IMAGES];
+  images.push({ id: Date.now().toString(), src, alt });
+  saveLocalImages(images);
+  saveImagesToSheets(images);
   window.dispatchEvent(new CustomEvent("galleryUpdated"));
 }
 
 export async function removeGalleryImage(id: string): Promise<void> {
-  await removeItem(IMAGES_STORE, id);
+  const images = (getLocalImages().length > 0 ? getLocalImages() : DEFAULT_IMAGES).filter(i => i.id !== id);
+  saveLocalImages(images);
+  saveImagesToSheets(images);
   window.dispatchEvent(new CustomEvent("galleryUpdated"));
 }
 
-// ── Public API — Videos (Sheets-synced) ─────────────────────────────────────
+export async function syncImagesFromSheets(): Promise<void> {
+  const remote = await fetchImagesFromSheets();
+  if (remote !== null) {
+    saveLocalImages(remote.length > 0 ? remote : DEFAULT_IMAGES);
+    window.dispatchEvent(new CustomEvent("galleryUpdated"));
+  }
+}
+
+// ── Public API — Videos ──────────────────────────────────────────────────────
 
 export async function getGalleryVideos(): Promise<GalleryVideo[]> {
-  // Always serve from cache immediately
   const local = getLocalVideos();
 
-  // Background sync if stale
   if (isVideosCacheStale()) {
     fetchVideosFromSheets().then(remote => {
       if (remote !== null) {
@@ -158,9 +165,8 @@ export async function getGalleryVideos(): Promise<GalleryVideo[]> {
 }
 
 export async function addGalleryVideo(src: string, alt: string, thumbnail?: string): Promise<void> {
-  // Only allow URLs, not base64
   if (src.startsWith("data:")) {
-    throw new Error("Please use a URL (YouTube, direct link) instead of uploading a file. File uploads are device-specific.");
+    throw new Error("Please use a URL (YouTube, direct link) instead of uploading a file.");
   }
   const videos = getLocalVideos();
   videos.push({ id: Date.now().toString(), src, alt, thumbnail });
@@ -176,7 +182,6 @@ export async function removeGalleryVideo(id: string): Promise<void> {
   window.dispatchEvent(new CustomEvent("galleryUpdated"));
 }
 
-/** Force refresh videos from Sheets */
 export async function syncVideosFromSheets(): Promise<void> {
   const remote = await fetchVideosFromSheets();
   if (remote !== null) {
