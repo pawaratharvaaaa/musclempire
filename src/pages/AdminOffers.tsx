@@ -95,7 +95,7 @@ export default function AdminOffers() {
     setOffers(getOffers());
     setCoupons(getCoupons());
 
-    // Then force pull from Sheets
+    // Always force pull from Sheets on admin load — ignore cache TTL
     setSyncing(true);
     Promise.all([
       pullOffersFromSheets().then(() => setOffers(getOffers())),

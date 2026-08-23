@@ -25,6 +25,8 @@ function isCacheStale(): boolean {
 
 export async function pullOffersFromSheets(): Promise<void> {
   try {
+    // Reset timestamp so next getOffersAndSync also re-fetches
+    localStorage.removeItem("me_offers_ts");
     const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&_t=${Date.now()}`, {
       redirect: "follow",
       cache: "no-store",
