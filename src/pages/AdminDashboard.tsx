@@ -18,7 +18,7 @@ function formatDate(raw: string | undefined): string {
     try {
       const d = new Date(Math.round((num - 25569) * 86400 * 1000));
       if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
-        return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+        return d.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
       }
     } catch {}
   }
@@ -29,7 +29,7 @@ function formatDate(raw: string | undefined): string {
   try {
     const d = new Date(s);
     if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
-      return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+      return d.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
     }
   } catch {}
   return "--";
@@ -63,29 +63,29 @@ export default function AdminDashboard() {
   const load = async (force = false) => {
     setLoading(true);
     const items = await fetchSubmissions(force);
-    // Fix shifted columns for old rows submitted before duty/restTime fields were added
     const fixed = items.map(row => {
-      // Detect shifted row: foodPref contains a date string (wrong column)
-      const foodPrefLooksLikeDate = row.foodPref && (
-        String(row.foodPref).includes("GMT") ||
-        String(row.foodPref).includes("1899") ||
-        String(row.foodPref).match(/^\d{2}:\d{2}/)
-      );
-      if (foodPrefLooksLikeDate) {
+      // Detect shifted row: foodPref contains a date string (cols shifted by 2 due to duty/restTime added later)
+      const foodPrefVal = String(row.foodPref || "");
+      const isShifted = foodPrefVal.includes("GMT") || foodPrefVal.includes("1899") || foodPrefVal.match(/^\d{2}:\d{2}/) !== null;
+      if (isShifted) {
+        // Remap: cols 15-16 (duty/restTime) were inserted, shifting everything after
         return {
           ...row,
-          targetWeight: row.weightChange || "",
-          weightChange: row.foodPref || "",
-          foodPref: row.collegeTime || "",
-          collegeTime: row.workTime || "",
-          workTime: row.medicalConditions || "",
-          medicalConditions: row.allergies || "",
-          allergies: row.supplements || "",
-          supplements: row.goals || "",
-          goals: row.remarks || "",
-          remarks: row.status || "",
-          status: String(row.foodHistory || "").startsWith("[") ? "Completed" : (row.foodHistory || "New"),
-          foodHistory: "",
+          duty: "",
+          restTime: "",
+          targetWeight: String(row.targetWeight || ""),   // was foodPref → now targetWeight (off by 2)
+          weightChange: String(row.weightChange || ""),
+          foodPref: String(row.targetWeight || ""),       // foodPref is actually in targetWeight slot
+          collegeTime: String(row.weightChange || ""),
+          workTime: String(row.foodPref || ""),           // skip date value
+          medicalConditions: String(row.collegeTime || ""),
+          allergies: String(row.workTime || ""),
+          supplements: String(row.medicalConditions || ""),
+          goals: String(row.allergies || ""),
+          remarks: String(row.supplements || ""),
+          status: String(row.goals || "New"),             // actual status is in goals slot
+          foodHistory: String(row.remarks || ""),         // food history is in remarks slot
+          earlyMorning: String(row.status || ""),         // meal plan data shifted into status
         };
       }
       return row;

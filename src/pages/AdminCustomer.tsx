@@ -131,6 +131,17 @@ function getNormalizedCustomer(c: AssessmentData): AssessmentData {
     }
   }
 
+  // Fix status showing JSON meal plan data (shifted column)
+  if (norm.status && (norm.status.startsWith("[") || norm.status.startsWith("{"))) {
+    norm.status = norm.goals && !norm.goals.startsWith("[") ? norm.goals : "New";
+  }
+
+  // Fix goals showing "Completed"/"New"/"In Progress" when it should be the actual goal text
+  if (["completed","new","in progress"].includes(String(norm.goals || "").toLowerCase().trim())) {
+    norm.status = norm.goals;
+    norm.goals = norm.allergies || "--";
+  }
+
   return norm;
 }
 
