@@ -1,4 +1,4 @@
-import product1b from "@/assets/images/product-1b.jpg";
+import product1b from "@/assets/images/about-img.png";
 
 export const products = [
   {

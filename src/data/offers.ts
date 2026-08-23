@@ -1,4 +1,4 @@
-import newMemberOffer from "@/assets/images/new_member_offer.jpg";
+import newMemberOffer from "@/assets/images/unisex-bg.png";
 import duoOffer from "@/assets/images/duo_offer.jpg";
 import femaleOffer from "@/assets/images/female_offer.jpg";
 
