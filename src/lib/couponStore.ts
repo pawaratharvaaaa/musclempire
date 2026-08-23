@@ -1,5 +1,5 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKITQjKTh3KS_obNRmAq2RIOzjeuWlOq7Th5NTCRaNf-oe73gkCstPq2naB0kACBGMfg/exec";
-const T = ["ME97","73","GYM"].join("");
+const T = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 const CACHE_KEY = "me_coupons_v2";
 const CACHE_TS_KEY = "me_coupons_ts";
 const CACHE_TTL = 30_000; // 30 seconds
@@ -119,3 +119,5 @@ export function getCouponsAndSync(): Coupon[] {
   }
   return cached;
 }
+
+

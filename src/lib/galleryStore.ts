@@ -2,7 +2,7 @@
 // Images are URL-only — no base64/IndexedDB. Works across all devices.
 
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKITQjKTh3KS_obNRmAq2RIOzjeuWlOq7Th5NTCRaNf-oe73gkCstPq2naB0kACBGMfg/exec";
-const T = ["ME97","73","GYM"].join("");
+const T = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 
 const IMAGES_KEY = "me_gallery_images";
 const IMAGES_TS_KEY = "me_gallery_images_ts";
@@ -190,3 +190,5 @@ export async function syncVideosFromSheets(): Promise<void> {
     window.dispatchEvent(new CustomEvent("galleryUpdated"));
   }
 }
+
+

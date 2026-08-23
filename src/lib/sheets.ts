@@ -123,3 +123,5 @@ export async function deleteRecord(rowIndex: number): Promise<void> {
   // Delete from Google Sheets — rowIndex is the 0-based data row index
   scriptGet({ action: "deleteRow", rowIndex: String(rowIndex) });
 }
+
+

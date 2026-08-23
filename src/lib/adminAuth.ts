@@ -4,7 +4,7 @@ const ADMIN_USER = ["pro","nec","tar"].join("");
 const DEFAULT_PASS = "MuscleEmpire@2026";
 const SESSION_KEY = "me_admin_session";
 const PASS_CACHE_KEY = "me_admin_pwd_cache";
-const ADMIN_TOKEN = ["ME97","73","GYM"].join("");
+const ADMIN_TOKEN = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 
 async function fetchPassword(): Promise<string> {
   // Always fetch from Sheets first — ensures cross-device password changes work instantly
