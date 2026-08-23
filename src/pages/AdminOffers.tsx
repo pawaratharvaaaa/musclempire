@@ -4,7 +4,7 @@ import { getOffers, addOffer, removeOffer, updateOffer, pullOffersFromSheets } f
 import { getCoupons, addCoupon, updateCoupon, removeCoupon, ensureCouponExists, pullFromSheets } from "@/lib/couponStore";
 import type { Coupon } from "@/lib/couponStore";
 import type { Offer } from "@/data/offers";
-import { Plus, Trash2, Edit, LogOut, Users, Tag, Upload, X, Check, Ticket, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Trash2, Edit, LogOut, Users, Tag, Link, X, Check, Ticket, ToggleLeft, ToggleRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
@@ -17,7 +17,6 @@ export default function AdminOffers() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
   // ── Coupons state ─────────────────────────────────────────
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -125,30 +124,7 @@ export default function AdminOffers() {
     setShowInPopup(true);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file");
-      return;
-    }
-    setUploading(true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      if (isEdit && editingOffer) {
-        setEditingOffer({ ...editingOffer, image: base64 });
-      } else {
-        setImage(base64);
-      }
-      setUploading(false);
-    };
-    reader.onerror = () => {
-      alert("Failed to read file");
-      setUploading(false);
-    };
-    reader.readAsDataURL(file);
-  };
+
 
   const handleAdd = () => {
     if (!title.trim() || !description.trim()) { alert("Title and Description are required"); return; }
@@ -594,23 +570,23 @@ export default function AdminOffers() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Banner Image</label>
-                    <div className="flex items-center gap-4">
-                      {image ? (
-                        <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10">
-                          <img src={image} className="w-full h-full object-cover" />
-                          <button onClick={() => setImage("")} className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-500 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <label className="w-20 h-20 bg-white/5 border border-dashed border-white/20 hover:border-green-400/50 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors">
-                          <Upload size={18} className="text-white/40" />
-                          <span className="text-[9px] text-white/30 mt-1">Upload</span>
-                          <input type="file" onChange={(e) => handleFileUpload(e)} className="hidden" accept="image/*" />
-                        </label>
+                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Banner Image URL</label>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                        <Link size={14} className="text-white/30 shrink-0" />
+                        <input
+                          type="url"
+                          value={image}
+                          onChange={e => setImage(e.target.value)}
+                          placeholder="https://i.ibb.co/... or any image URL"
+                          className="bg-transparent text-white text-sm outline-none flex-1 placeholder:text-white/20"
+                        />
+                        {image && <button onClick={() => setImage("")} className="text-white/30 hover:text-red-400 transition-colors"><X size={14} /></button>}
+                      </div>
+                      {image && !image.startsWith("data:") && (
+                        <img src={image} alt="preview" className="w-full h-32 object-cover rounded-xl border border-white/10" onError={e => (e.currentTarget.style.display = "none")} />
                       )}
-                      <p className="text-[10px] text-white/30">Upload a 16:9 banner image for the offer card.</p>
+                      <p className="text-[10px] text-white/30">Paste a hosted image URL (e.g. from <span className="text-green-400">imgbb.com</span>). This syncs across all devices.</p>
                     </div>
                   </div>
                 </div>
@@ -723,23 +699,23 @@ export default function AdminOffers() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Banner Image</label>
-                    <div className="flex items-center gap-4">
-                      {editingOffer.image ? (
-                        <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10">
-                          <img src={editingOffer.image} className="w-full h-full object-cover" />
-                          <button onClick={() => setEditingOffer({ ...editingOffer, image: "" })} className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-500 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <label className="w-20 h-20 bg-white/5 border border-dashed border-white/20 hover:border-green-400/50 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors">
-                          <Upload size={18} className="text-white/40" />
-                          <span className="text-[9px] text-white/30 mt-1">Upload</span>
-                          <input type="file" onChange={(e) => handleFileUpload(e, true)} className="hidden" accept="image/*" />
-                        </label>
+                    <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Offer Banner Image URL</label>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                        <Link size={14} className="text-white/30 shrink-0" />
+                        <input
+                          type="url"
+                          value={editingOffer.image || ""}
+                          onChange={e => setEditingOffer({ ...editingOffer, image: e.target.value })}
+                          placeholder="https://i.ibb.co/... or any image URL"
+                          className="bg-transparent text-white text-sm outline-none flex-1 placeholder:text-white/20"
+                        />
+                        {editingOffer.image && <button onClick={() => setEditingOffer({ ...editingOffer, image: "" })} className="text-white/30 hover:text-red-400 transition-colors"><X size={14} /></button>}
+                      </div>
+                      {editingOffer.image && !editingOffer.image.startsWith("data:") && (
+                        <img src={editingOffer.image} alt="preview" className="w-full h-32 object-cover rounded-xl border border-white/10" onError={e => (e.currentTarget.style.display = "none")} />
                       )}
-                      <p className="text-[10px] text-white/30">Replace the offer card banner graphic.</p>
+                      <p className="text-[10px] text-white/30">Paste a hosted image URL (e.g. from <span className="text-green-400">imgbb.com</span>). This syncs across all devices.</p>
                     </div>
                   </div>
                 </div>
