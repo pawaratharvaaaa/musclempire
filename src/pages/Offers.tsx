@@ -100,7 +100,7 @@ function OfferCard({
               <Clock size={13} />
               <span>
                 {expired ? "Expired on: " : "Valid till: "}
-                <span className="text-gray-700 font-bold">{offer.validTill}</span>
+                <span className="text-gray-700 font-bold">{formatValidTill(offer.validTill)}</span>
               </span>
             </>
           ) : null}
@@ -136,6 +136,18 @@ function EmptyState({ title, desc }: { title: string; desc: string }) {
       <p className="text-gray-500 text-sm max-w-xs">{desc}</p>
     </div>
   );
+}
+
+// Clean up date strings like "Thu Dec 31 2026 00:00:00 GMT+0530 (India Standard Time)" → "31 Dec 2026"
+function formatValidTill(val?: string): string {
+  if (!val) return "";
+  try {
+    const d = new Date(val);
+    if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
+      return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    }
+  } catch {}
+  return val;
 }
 
 export default function Offers() {

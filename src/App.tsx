@@ -27,6 +27,12 @@ const AdminOffers = lazy(() => import("@/pages/AdminOffers"));
 
 const queryClient = new QueryClient();
 
+// One-time cleanup of old localStorage cache keys that had hardcoded default offers
+if (typeof localStorage !== "undefined") {
+  localStorage.removeItem("me_offers_v2");
+  localStorage.removeItem("me_offers_ts");
+}
+
 // Ctrl+Shift+S+K opens admin login (SAGAR KHARAT)
 function AdminShortcut() {
   useEffect(() => {

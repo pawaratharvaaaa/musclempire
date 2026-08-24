@@ -274,7 +274,7 @@ export default function AdminOffers() {
                         <p className="text-white/40 text-xs font-semibold uppercase">{offer.subtitle || "Exclusive Deal"}</p>
                       </div>
                       <p className="text-white/60 text-xs leading-relaxed flex-1">{offer.description}</p>
-                      <p className="text-[11px] text-white/45">Valid till: <strong className="text-white/80">{offer.validTill}</strong></p>
+                      <p className="text-[11px] text-white/45">Valid till: <strong className="text-white/80">{(() => { try { const d = new Date(offer.validTill); return !isNaN(d.getTime()) && d.getFullYear() > 2000 ? d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : offer.validTill; } catch { return offer.validTill; } })()}</strong></p>
                       <div className="flex gap-2.5 pt-3 border-t border-white/10">
                         <button onClick={() => setEditingOffer(offer)} className="flex-1 flex items-center justify-center gap-1.5 h-9 bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer border border-white/5">
                           <Edit size={13} /> Edit
@@ -552,7 +552,7 @@ export default function AdminOffers() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Valid Until</label>
-                      <input value={validTill} onChange={(e) => setValidTill(e.target.value)} type="text" placeholder="e.g. 31 August 2026" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors" />
+                      <input value={validTill} onChange={(e) => setValidTill(e.target.value)} type="date" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors text-white" />
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">CTA Text</label>
@@ -683,7 +683,7 @@ export default function AdminOffers() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">Valid Until</label>
-                      <input value={editingOffer.validTill} onChange={(e) => setEditingOffer({ ...editingOffer, validTill: e.target.value })} type="text" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors" />
+                      <input value={editingOffer.validTill} onChange={(e) => setEditingOffer({ ...editingOffer, validTill: e.target.value })} type="date" className="h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm outline-none focus:border-green-400/50 transition-colors text-white" />
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-white/50 uppercase tracking-wider font-bold">CTA Text</label>
