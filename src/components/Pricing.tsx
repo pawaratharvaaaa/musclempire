@@ -210,8 +210,8 @@ function GymCard({ gym, i, onSelect }: { gym: typeof gyms[0], i: number, onSelec
     <motion.div
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ delay: i * 0.12, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true, margin: "0px" }}
+      transition={{ delay: i * 0.06, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
       className={`group relative flex flex-col rounded-[22px] p-8 border transition-all duration-300 overflow-hidden hover:-translate-y-2 ${
         gym.featured
           ? "bg-[#232325]/90 border-[#E8A820]/30 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-[#E8A820]/60 hover:shadow-[0_20px_50px_rgba(232,168,32,0.15)]"
@@ -396,8 +396,8 @@ export default function Pricing() {
             <motion.div
               initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: 0.24, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true, margin: "0px" }}
+              transition={{ delay: 0.08, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               className="group relative flex flex-col rounded-[22px] p-6 border transition-all duration-300 overflow-hidden hover:-translate-y-1 bg-[#0a1a10]/90 border-green-500/20 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-green-500/40 hover:shadow-[0_20px_50px_rgba(34,197,94,0.15)] font-sans flex-1"
             >
               {/* Tint Overlay for contrast */}
@@ -454,8 +454,8 @@ export default function Pricing() {
             <motion.div
               initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: 0.32, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true, margin: "0px" }}
+              transition={{ delay: 0.14, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               className="group relative flex flex-col rounded-[22px] p-6 border transition-all duration-300 overflow-hidden hover:-translate-y-1 bg-[#0a1424]/90 border-blue-500/20 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-blue-500/40 hover:shadow-[0_20px_50px_rgba(59,130,246,0.15)] font-sans flex-1"
             >
               {/* Tint Overlay for contrast */}
