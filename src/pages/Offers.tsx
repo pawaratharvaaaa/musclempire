@@ -9,15 +9,7 @@ import CouponClaimModal from "@/components/CouponClaimModal";
 import { getOffers } from "@/lib/offersStore";
 import chalkboardBg from "@/assets/images/chalkboard-bg.png";
 
-const upcomingOffers: Offer[] = [
-  {
-    title: "Diwali & New Year Fitness Blowout",
-    description: "Flat 30% off on Annual VIP Memberships + Free Personal Training Package.",
-    launchDate: "15 October 2026",
-    teaser: "Coming soon — save big on your long-term fitness goals.",
-    image: chalkboardBg,
-  },
-];
+const upcomingOffers: Offer[] = [];
 
 type Offer = {
   title: string;
