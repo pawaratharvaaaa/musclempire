@@ -28,7 +28,7 @@ export default function AdminOffers() {
   const [cpDesc, setCpDesc] = useState("");
   const [cpEnabled, setCpEnabled] = useState(true);
 
-  const ALL_PLANS = ["Monthly", "Quarterly", "Half Yearly", "Yearly"];
+  const ALL_PLANS = ["Monthly", "Quarterly", "Half Yearly", "Yearly", "PT 12 Sessions", "PT Every Day", "Dietitian Plan"];
   const [savingCoupon, setSavingCoupon] = useState(false);
 
   function resetCouponForm() {

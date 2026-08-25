@@ -347,28 +347,37 @@ export default function Pricing() {
   const [showDietCoupon, setShowDietCoupon] = useState(false);
   const [showPtCoupon, setShowPtCoupon] = useState(false);
 
-  function applyDietCoupon() {
-    const result = validateCoupon(dietCoupon, "Personalised Dietitian Plan");
-    if (result) {
-      setDietDiscount(result.discount);
-      setDietCouponMsg({ text: `${result.discount}% OFF applied!`, valid: true });
-    } else {
-      setDietDiscount(0);
-      setDietCouponMsg({ text: "Invalid or expired coupon", valid: false });
-    }
-  }
+  // Separate coupons for each PT modal plan
+  const [pt12Coupon, setPt12Coupon] = useState("");
+  const [pt12Msg, setPt12Msg] = useState<{text: string; valid: boolean} | null>(null);
+  const [pt12Discount, setPt12Discount] = useState(0);
+  const [showPt12Coupon, setShowPt12Coupon] = useState(false);
 
+  const [ptEdCoupon, setPtEdCoupon] = useState("");
+  const [ptEdMsg, setPtEdMsg] = useState<{text: string; valid: boolean} | null>(null);
+  const [ptEdDiscount, setPtEdDiscount] = useState(0);
+  const [showPtEdCoupon, setShowPtEdCoupon] = useState(false);
+
+  function applyDietCoupon() {
+    const result = validateCoupon(dietCoupon, "Dietitian Plan");
+    if (result) { setDietDiscount(result.discount); setDietCouponMsg({ text: `${result.discount}% OFF applied!`, valid: true }); }
+    else { setDietDiscount(0); setDietCouponMsg({ text: "Invalid or expired coupon", valid: false }); }
+  }
   function applyPtCoupon() {
     const result = validateCoupon(ptCoupon, "Personal Training Plan");
-    if (result) {
-      setPtDiscount(result.discount);
-      setPtCouponMsg({ text: `${result.discount}% OFF applied!`, valid: true });
-    } else {
-      setPtDiscount(0);
-      setPtCouponMsg({ text: "Invalid or expired coupon", valid: false });
-    }
+    if (result) { setPtDiscount(result.discount); setPtCouponMsg({ text: `${result.discount}% OFF applied!`, valid: true }); }
+    else { setPtDiscount(0); setPtCouponMsg({ text: "Invalid or expired coupon", valid: false }); }
   }
-
+  function applyPt12Coupon() {
+    const result = validateCoupon(pt12Coupon, "PT 12 Sessions");
+    if (result) { setPt12Discount(result.discount); setPt12Msg({ text: `${result.discount}% OFF applied!`, valid: true }); }
+    else { setPt12Discount(0); setPt12Msg({ text: "Invalid or expired coupon", valid: false }); }
+  }
+  function applyPtEdCoupon() {
+    const result = validateCoupon(ptEdCoupon, "PT Every Day");
+    if (result) { setPtEdDiscount(result.discount); setPtEdMsg({ text: `${result.discount}% OFF applied!`, valid: true }); }
+    else { setPtEdDiscount(0); setPtEdMsg({ text: "Invalid or expired coupon", valid: false }); }
+  }
   function discountedPrice(base: number, discount: number) {
     return Math.round(base * (1 - discount / 100));
   }
@@ -668,11 +677,29 @@ export default function Pricing() {
                       </li>
                     ))}
                   </ul>
+                  {/* Coupon for 12 Sessions */}
+                  <button onClick={() => setShowPt12Coupon(v => !v)} className="text-[10px] text-blue-400/70 hover:text-blue-400 underline underline-offset-2 mb-2 cursor-pointer block transition-colors">
+                    {showPt12Coupon ? "Hide coupon" : "Have a coupon code?"}
+                  </button>
+                  {showPt12Coupon && (
+                    <div className="mb-2 flex gap-2">
+                      <input value={pt12Coupon} onChange={e => { setPt12Coupon(e.target.value.toUpperCase()); setPt12Msg(null); }}
+                        placeholder="Enter code" className="flex-1 h-8 bg-white/5 border border-white/10 rounded-lg px-2 text-xs text-white outline-none focus:border-blue-400/50" />
+                      <button onClick={applyPt12Coupon} className="h-8 px-3 bg-blue-500 hover:bg-blue-400 text-black text-xs font-black rounded-lg cursor-pointer">Apply</button>
+                    </div>
+                  )}
+                  {pt12Msg && <p className={`text-[10px] mb-2 font-bold ${pt12Msg.valid ? "text-blue-400" : "text-red-400"}`}>{pt12Msg.text}</p>}
+                  {pt12Discount > 0 && (
+                    <div className="mb-2 flex items-center justify-between text-[11px]">
+                      <span className="text-white/40 line-through">₹5,000</span>
+                      <span className="text-blue-400 font-black">₹{discountedPrice(5000, pt12Discount)} ({pt12Discount}% OFF)</span>
+                    </div>
+                  )}
                   <button
-                    onClick={() => { openRazorpay("Personal Training – 12 Sessions/month", discountedPrice(5000, ptDiscount) * 100); setPtModalOpen(false); }}
+                    onClick={() => { openRazorpay("Personal Training – 12 Sessions/month", discountedPrice(5000, pt12Discount) * 100); setPtModalOpen(false); }}
                     className="w-full h-[42px] rounded-xl font-bold text-[12px] bg-blue-500 hover:bg-blue-400 text-[#0f1a2a] transition-all flex items-center justify-center gap-2 group"
                   >
-                    {ptDiscount > 0 ? `Get started – ₹${discountedPrice(5000, ptDiscount)}` : "Get started"} <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
+                    {pt12Discount > 0 ? `Get started – ₹${discountedPrice(5000, pt12Discount)}` : "Get started"} <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
 
@@ -697,11 +724,29 @@ export default function Pricing() {
                       </li>
                     ))}
                   </ul>
+                  {/* Coupon for Every Day */}
+                  <button onClick={() => setShowPtEdCoupon(v => !v)} className="text-[10px] text-blue-400/70 hover:text-blue-400 underline underline-offset-2 mb-2 cursor-pointer block transition-colors">
+                    {showPtEdCoupon ? "Hide coupon" : "Have a coupon code?"}
+                  </button>
+                  {showPtEdCoupon && (
+                    <div className="mb-2 flex gap-2">
+                      <input value={ptEdCoupon} onChange={e => { setPtEdCoupon(e.target.value.toUpperCase()); setPtEdMsg(null); }}
+                        placeholder="Enter code" className="flex-1 h-8 bg-white/5 border border-white/10 rounded-lg px-2 text-xs text-white outline-none focus:border-blue-400/50" />
+                      <button onClick={applyPtEdCoupon} className="h-8 px-3 bg-blue-500 hover:bg-blue-400 text-black text-xs font-black rounded-lg cursor-pointer">Apply</button>
+                    </div>
+                  )}
+                  {ptEdMsg && <p className={`text-[10px] mb-2 font-bold ${ptEdMsg.valid ? "text-blue-400" : "text-red-400"}`}>{ptEdMsg.text}</p>}
+                  {ptEdDiscount > 0 && (
+                    <div className="mb-2 flex items-center justify-between text-[11px]">
+                      <span className="text-white/40 line-through">₹8,000</span>
+                      <span className="text-blue-400 font-black">₹{discountedPrice(8000, ptEdDiscount)} ({ptEdDiscount}% OFF)</span>
+                    </div>
+                  )}
                   <button
-                    onClick={() => { openRazorpay("Personal Training – Every Day/month", discountedPrice(8000, ptDiscount) * 100); setPtModalOpen(false); }}
+                    onClick={() => { openRazorpay("Personal Training – Every Day/month", discountedPrice(8000, ptEdDiscount) * 100); setPtModalOpen(false); }}
                     className="w-full h-[42px] rounded-xl font-bold text-[12px] bg-blue-500 hover:bg-blue-400 text-[#0f1a2a] transition-all flex items-center justify-center gap-2 group"
                   >
-                    {ptDiscount > 0 ? `Get started – ₹${discountedPrice(8000, ptDiscount)}` : "Get started"} <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
+                    {ptEdDiscount > 0 ? `Get started – ₹${discountedPrice(8000, ptEdDiscount)}` : "Get started"} <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
               </div>
