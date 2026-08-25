@@ -27,14 +27,19 @@ const AdminOffers = lazy(() => import("@/pages/AdminOffers"));
 
 const queryClient = new QueryClient();
 
-// One-time cleanup of old localStorage cache keys
+// Clear ALL old localStorage cache keys on every load — fresh start always
 if (typeof localStorage !== "undefined") {
-  localStorage.removeItem("me_offers_v2");
-  localStorage.removeItem("me_offers_ts");
-  localStorage.removeItem("me_gallery_images"); // old key with duplicates
-  localStorage.removeItem("me_gallery_images_ts");
-  localStorage.removeItem("me_gallery_videos"); // old key
-  localStorage.removeItem("me_gallery_videos_ts");
+  const keysToRemove = [
+    "me_offers_v2", "me_offers_ts",
+    "me_offers_v3", // in case new key also got stale
+    "me_gallery_images", "me_gallery_images_ts",
+    "me_gallery_images_v2", "me_gallery_images_ts",
+    "me_gallery_videos", "me_gallery_videos_ts",
+    "me_gallery_videos_v2", "me_gallery_videos_ts",
+    "me_coupons_v2", "me_coupons_ts",
+    "me_assessments_ts", // force fresh assessment fetch
+  ];
+  keysToRemove.forEach(k => localStorage.removeItem(k));
 }
 
 // Ctrl+Shift+S+K opens admin login (SAGAR KHARAT)

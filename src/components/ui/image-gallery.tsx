@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getGalleryImages, type GalleryImage } from '@/lib/galleryStore';
+import { getGalleryImages, syncImagesFromSheets, type GalleryImage } from '@/lib/galleryStore';
 
 
 
@@ -168,7 +168,8 @@ export function ImageGallery() {
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   useEffect(() => {
-    getGalleryImages().then(setStoreImages);
+    // Always pull fresh from Sheets on mount — no stale cache
+    syncImagesFromSheets().then(() => getGalleryImages().then(setStoreImages));
     const handler = () => {
       getGalleryImages().then(setStoreImages);
     };

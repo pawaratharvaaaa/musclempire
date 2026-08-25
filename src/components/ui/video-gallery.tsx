@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Play, Volume2, VolumeX } from 'lucide-react';
-import { getGalleryVideos, type GalleryVideo } from '@/lib/galleryStore';
+import { getGalleryVideos, syncVideosFromSheets, type GalleryVideo } from '@/lib/galleryStore';
 
 function getYoutubeEmbedUrl(url: string): string | null {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -175,7 +175,7 @@ export function VideoGallery() {
   const [activeVideo, setActiveVideo] = useState<GalleryVideo | null>(null);
 
   useEffect(() => {
-    getGalleryVideos().then(setStoreVideos);
+    syncVideosFromSheets().then(() => getGalleryVideos().then(setStoreVideos));
     const handler = () => {
       getGalleryVideos().then(setStoreVideos);
     };
