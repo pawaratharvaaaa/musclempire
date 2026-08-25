@@ -8,6 +8,7 @@ import femaleBg from "@/assets/images/female-bg.png";
 import { PricingModal } from "@/components/ui/pricing-table";
 import type { PricingPlan, PricingFeature } from "@/components/ui/pricing-table";
 import { openRazorpay } from "@/lib/razorpay";
+import { validateCoupon } from "@/lib/couponStore";
 
 /* ── Unisex gym data ──────────────────────────────────────── */
 // Gym-only plans (used as base; CrossFit & Gym+CF toggled in GymCard)
@@ -336,6 +337,42 @@ export default function Pricing() {
   const [modalGym, setModalGym] = useState<{gym: typeof gyms[0], planType: PlanType} | null>(null);
   const [ptModalOpen, setPtModalOpen] = useState(false);
 
+  // Coupon states for Dietitian and PT cards
+  const [dietCoupon, setDietCoupon] = useState("");
+  const [dietCouponMsg, setDietCouponMsg] = useState<{text: string; valid: boolean} | null>(null);
+  const [dietDiscount, setDietDiscount] = useState(0);
+  const [ptCoupon, setPtCoupon] = useState("");
+  const [ptCouponMsg, setPtCouponMsg] = useState<{text: string; valid: boolean} | null>(null);
+  const [ptDiscount, setPtDiscount] = useState(0);
+  const [showDietCoupon, setShowDietCoupon] = useState(false);
+  const [showPtCoupon, setShowPtCoupon] = useState(false);
+
+  function applyDietCoupon() {
+    const result = validateCoupon(dietCoupon, "Personalised Dietitian Plan");
+    if (result) {
+      setDietDiscount(result.discount);
+      setDietCouponMsg({ text: `${result.discount}% OFF applied!`, valid: true });
+    } else {
+      setDietDiscount(0);
+      setDietCouponMsg({ text: "Invalid or expired coupon", valid: false });
+    }
+  }
+
+  function applyPtCoupon() {
+    const result = validateCoupon(ptCoupon, "Personal Training Plan");
+    if (result) {
+      setPtDiscount(result.discount);
+      setPtCouponMsg({ text: `${result.discount}% OFF applied!`, valid: true });
+    } else {
+      setPtDiscount(0);
+      setPtCouponMsg({ text: "Invalid or expired coupon", valid: false });
+    }
+  }
+
+  function discountedPrice(base: number, discount: number) {
+    return Math.round(base * (1 - discount / 100));
+  }
+
   return (
     <section id="pricing" className="py-28 bg-[#1C1C1E] relative overflow-hidden">
       {/* Golden grid background */}
@@ -435,14 +472,41 @@ export default function Pricing() {
 
               <div className="mt-auto z-10">
                 {/* price pill */}
-                <div className="mb-4 px-4 py-2.5 rounded-xl border text-white font-black text-[0.95rem] z-10 transition-all duration-300 bg-green-500/[0.04] border-green-500/15 group-hover:bg-green-500/[0.08] group-hover:border-green-500/30">
-                  ₹800 <span className="text-[0.75rem] font-medium text-white/45">/ session</span>
+                <div className="mb-2 px-4 py-2.5 rounded-xl border text-white font-black text-[0.95rem] z-10 transition-all duration-300 bg-green-500/[0.04] border-green-500/15 group-hover:bg-green-500/[0.08] group-hover:border-green-500/30 flex items-center justify-between">
+                  <span>
+                    {dietDiscount > 0 ? (
+                      <>
+                        <span className="line-through text-white/30 text-[0.8rem] mr-2">₹800</span>
+                        ₹{discountedPrice(800, dietDiscount)}
+                      </>
+                    ) : "₹800"}
+                  </span>
+                  <span className="text-[0.75rem] font-medium text-white/45">/ session</span>
                 </div>
+
+                {/* Coupon */}
+                <button onClick={() => setShowDietCoupon(v => !v)} className="text-[10px] text-green-400/70 hover:text-green-400 underline underline-offset-2 mb-2 cursor-pointer block transition-colors">
+                  {showDietCoupon ? "Hide coupon" : "Have a coupon code?"}
+                </button>
+                {showDietCoupon && (
+                  <div className="mb-3 flex gap-2">
+                    <input
+                      value={dietCoupon}
+                      onChange={e => { setDietCoupon(e.target.value.toUpperCase()); setDietCouponMsg(null); }}
+                      placeholder="Enter code"
+                      className="flex-1 h-8 bg-white/5 border border-white/10 rounded-lg px-2 text-xs text-white outline-none focus:border-green-400/50"
+                    />
+                    <button onClick={applyDietCoupon} className="h-8 px-3 bg-green-500 hover:bg-green-400 text-black text-xs font-black rounded-lg transition-colors cursor-pointer">Apply</button>
+                  </div>
+                )}
+                {dietCouponMsg && (
+                  <p className={`text-[10px] mb-2 font-bold ${dietCouponMsg.valid ? "text-green-400" : "text-red-400"}`}>{dietCouponMsg.text}</p>
+                )}
 
                 {/* CTA */}
                 <button 
                   type="button" 
-                  onClick={() => openRazorpay("Personalised Dietitian Plan", 800 * 100)}
+                  onClick={() => openRazorpay("Personalised Dietitian Plan", discountedPrice(800, dietDiscount) * 100)}
                   className="w-full flex items-center justify-center gap-2 font-bold text-[12px] h-[46px] rounded-xl transition-all duration-300 z-10 text-[#0f2a1a] bg-green-500 hover:bg-green-400 shadow-[0_4px_20px_rgba(34,197,94,0.25)] group-hover:shadow-[0_10px_25px_rgba(34,197,94,0.35)] hover:-translate-y-0.5 group"
                 >
                   Get this plan <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
@@ -488,6 +552,27 @@ export default function Pricing() {
               </p>
 
               <div className="mt-auto z-10">
+                {/* Coupon */}
+                <button onClick={() => setShowPtCoupon(v => !v)} className="text-[10px] text-blue-400/70 hover:text-blue-400 underline underline-offset-2 mb-2 cursor-pointer block transition-colors">
+                  {showPtCoupon ? "Hide coupon" : "Have a coupon code?"}
+                </button>
+                {showPtCoupon && (
+                  <div className="mb-2 flex gap-2">
+                    <input
+                      value={ptCoupon}
+                      onChange={e => { setPtCoupon(e.target.value.toUpperCase()); setPtCouponMsg(null); }}
+                      placeholder="Enter code"
+                      className="flex-1 h-8 bg-white/5 border border-white/10 rounded-lg px-2 text-xs text-white outline-none focus:border-blue-400/50"
+                    />
+                    <button onClick={applyPtCoupon} className="h-8 px-3 bg-blue-500 hover:bg-blue-400 text-black text-xs font-black rounded-lg transition-colors cursor-pointer">Apply</button>
+                  </div>
+                )}
+                {ptCouponMsg && (
+                  <p className={`text-[10px] mb-2 font-bold ${ptCouponMsg.valid ? "text-blue-400" : "text-red-400"}`}>{ptCouponMsg.text}</p>
+                )}
+                {ptDiscount > 0 && (
+                  <p className="text-[10px] text-blue-400 font-bold mb-2">{ptDiscount}% OFF will be applied at checkout</p>
+                )}
                 {/* CTA */}
                 <button 
                   type="button" 
@@ -584,10 +669,10 @@ export default function Pricing() {
                     ))}
                   </ul>
                   <button
-                    onClick={() => { openRazorpay("Personal Training – 12 Sessions/month", 5000 * 100); setPtModalOpen(false); }}
+                    onClick={() => { openRazorpay("Personal Training – 12 Sessions/month", discountedPrice(5000, ptDiscount) * 100); setPtModalOpen(false); }}
                     className="w-full h-[42px] rounded-xl font-bold text-[12px] bg-blue-500 hover:bg-blue-400 text-[#0f1a2a] transition-all flex items-center justify-center gap-2 group"
                   >
-                    Get started <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
+                    {ptDiscount > 0 ? `Get started – ₹${discountedPrice(5000, ptDiscount)}` : "Get started"} <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
 
@@ -613,10 +698,10 @@ export default function Pricing() {
                     ))}
                   </ul>
                   <button
-                    onClick={() => { openRazorpay("Personal Training – Every Day/month", 8000 * 100); setPtModalOpen(false); }}
+                    onClick={() => { openRazorpay("Personal Training – Every Day/month", discountedPrice(8000, ptDiscount) * 100); setPtModalOpen(false); }}
                     className="w-full h-[42px] rounded-xl font-bold text-[12px] bg-blue-500 hover:bg-blue-400 text-[#0f1a2a] transition-all flex items-center justify-center gap-2 group"
                   >
-                    Get started <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
+                    {ptDiscount > 0 ? `Get started – ₹${discountedPrice(8000, ptDiscount)}` : "Get started"} <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
               </div>
