@@ -11,9 +11,12 @@ const navLinks = [
 
 const staggeredItems = [
   { label: "Branches", ariaLabel: "View branch locations", link: "/branches" },
-  { label: "Gallery", ariaLabel: "View gallery", link: "/gallery" },
-  ...navLinks.map(l => ({ label: l.name, ariaLabel: `Go to ${l.name}`, link: l.href })),
   { label: "Pricing", ariaLabel: "View pricing plans", link: "#pricing" },
+  { label: "Nutrition", ariaLabel: "View nutrition assessment", link: "/nutrition" },
+  { label: "Offers", ariaLabel: "View offers", link: "/offers" },
+  { label: "Gallery", ariaLabel: "View gallery", link: "/gallery" },
+  { label: "Reviews", ariaLabel: "Go to Reviews", link: "#reviews" },
+  { label: "Contact", ariaLabel: "Go to Contact", link: "#contact" },
 ];
 
 const staggeredSocials = [
