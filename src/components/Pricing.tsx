@@ -561,27 +561,6 @@ export default function Pricing() {
               </p>
 
               <div className="mt-auto z-10">
-                {/* Coupon */}
-                <button onClick={() => setShowPtCoupon(v => !v)} className="text-[10px] text-blue-400/70 hover:text-blue-400 underline underline-offset-2 mb-2 cursor-pointer block transition-colors">
-                  {showPtCoupon ? "Hide coupon" : "Have a coupon code?"}
-                </button>
-                {showPtCoupon && (
-                  <div className="mb-2 flex gap-2">
-                    <input
-                      value={ptCoupon}
-                      onChange={e => { setPtCoupon(e.target.value.toUpperCase()); setPtCouponMsg(null); }}
-                      placeholder="Enter code"
-                      className="flex-1 h-8 bg-white/5 border border-white/10 rounded-lg px-2 text-xs text-white outline-none focus:border-blue-400/50"
-                    />
-                    <button onClick={applyPtCoupon} className="h-8 px-3 bg-blue-500 hover:bg-blue-400 text-black text-xs font-black rounded-lg transition-colors cursor-pointer">Apply</button>
-                  </div>
-                )}
-                {ptCouponMsg && (
-                  <p className={`text-[10px] mb-2 font-bold ${ptCouponMsg.valid ? "text-blue-400" : "text-red-400"}`}>{ptCouponMsg.text}</p>
-                )}
-                {ptDiscount > 0 && (
-                  <p className="text-[10px] text-blue-400 font-bold mb-2">{ptDiscount}% OFF will be applied at checkout</p>
-                )}
                 {/* CTA */}
                 <button 
                   type="button" 
