@@ -27,10 +27,14 @@ const AdminOffers = lazy(() => import("@/pages/AdminOffers"));
 
 const queryClient = new QueryClient();
 
-// One-time cleanup of old localStorage cache keys that had hardcoded default offers
+// One-time cleanup of old localStorage cache keys
 if (typeof localStorage !== "undefined") {
   localStorage.removeItem("me_offers_v2");
   localStorage.removeItem("me_offers_ts");
+  localStorage.removeItem("me_gallery_images"); // old key with duplicates
+  localStorage.removeItem("me_gallery_images_ts");
+  localStorage.removeItem("me_gallery_videos"); // old key
+  localStorage.removeItem("me_gallery_videos_ts");
 }
 
 // Ctrl+Shift+S+K opens admin login (SAGAR KHARAT)
