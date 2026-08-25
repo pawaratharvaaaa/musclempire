@@ -21,7 +21,7 @@ const staggeredItems = [
 
 const staggeredSocials = [
   { label: "Instagram", link: "https://instagram.com" },
-  { label: "YouTube", link: "https://youtube.com" },
+  { label: "YouTube", link: "https://www.youtube.com/@sagarKharat-d7g" },
   { label: "WhatsApp", link: "https://wa.me/" },
 ];
 
