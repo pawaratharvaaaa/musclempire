@@ -543,9 +543,15 @@ export default function AdminOffers() {
                     <label className="text-xs text-amber-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
                       <Ticket size={14} /> Coupon Code for this Offer
                     </label>
-                    <input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} type="text" placeholder="e.g. TRANSFORM25" className="h-10 bg-black/40 border border-amber-500/40 text-amber-300 placeholder:text-amber-500/40 rounded-xl px-3 text-sm font-mono tracking-widest font-black uppercase outline-none focus:border-amber-400 transition-colors" />
+                    <select value={couponCode} onChange={(e) => setCouponCode(e.target.value)}
+                      className="h-10 bg-black/40 border border-amber-500/40 text-amber-300 rounded-xl px-3 text-sm font-mono tracking-widest font-black uppercase outline-none focus:border-amber-400 transition-colors cursor-pointer">
+                      <option value="">— No coupon —</option>
+                      {coupons.filter(c => c.enabled).map(c => (
+                        <option key={c.id} value={c.code}>{c.code} ({c.discount}% OFF)</option>
+                      ))}
+                    </select>
                     <p className="text-[10px] text-amber-300/70">
-                      Creates a matching coupon code automatically usable by customers at checkout!
+                      Select an existing coupon code to attach to this offer.
                     </p>
                   </div>
 
@@ -674,9 +680,15 @@ export default function AdminOffers() {
                     <label className="text-xs text-amber-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
                       <Ticket size={14} /> Coupon Code for this Offer
                     </label>
-                    <input value={editingOffer.couponCode || ""} onChange={(e) => setEditingOffer({ ...editingOffer, couponCode: e.target.value.toUpperCase() })} type="text" placeholder="e.g. TRANSFORM25" className="h-10 bg-black/40 border border-amber-500/40 text-amber-300 placeholder:text-amber-500/40 rounded-xl px-3 text-sm font-mono tracking-widest font-black uppercase outline-none focus:border-amber-400 transition-colors" />
+                    <select value={editingOffer.couponCode || ""} onChange={(e) => setEditingOffer({ ...editingOffer, couponCode: e.target.value })}
+                      className="h-10 bg-black/40 border border-amber-500/40 text-amber-300 rounded-xl px-3 text-sm font-mono tracking-widest font-black uppercase outline-none focus:border-amber-400 transition-colors cursor-pointer">
+                      <option value="">— No coupon —</option>
+                      {coupons.filter(c => c.enabled).map(c => (
+                        <option key={c.id} value={c.code}>{c.code} ({c.discount}% OFF)</option>
+                      ))}
+                    </select>
                     <p className="text-[10px] text-amber-300/70">
-                      Creates/updates matching coupon code automatically usable by customers at checkout!
+                      Select an existing coupon code to attach to this offer.
                     </p>
                   </div>
 

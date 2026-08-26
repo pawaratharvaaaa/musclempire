@@ -147,6 +147,7 @@ export default function Offers() {
   const upcomingRef = useRef<HTMLDivElement>(null);
   const expiredRef = useRef<HTMLDivElement>(null);
   const [ongoingOffers, setOngoingOffers] = useState<Offer[]>([]);
+  const [upcomingDynamicOffers, setUpcomingDynamicOffers] = useState<Offer[]>([]);
   const [expiredOffers, setExpiredOffers] = useState<Offer[]>([]);
   const [selectedClaimOffer, setSelectedClaimOffer] = useState<Offer | null>(null);
 
@@ -160,6 +161,12 @@ export default function Offers() {
       setOngoingOffers(all.filter(o => o.status === "active").map(o => ({
         title: o.title, description: o.description, discount: o.discount,
         validTill: o.validTill, cta: o.ctaText, whatsappMessage: o.whatsappMessage,
+        image: o.image, couponCode: o.couponCode,
+      })));
+      setUpcomingDynamicOffers(all.filter(o => o.status === "upcoming").map(o => ({
+        title: o.title, description: o.description, discount: o.discount,
+        validTill: o.validTill, launchDate: o.validTill, teaser: o.description,
+        cta: o.ctaText, whatsappMessage: o.whatsappMessage,
         image: o.image, couponCode: o.couponCode,
       })));
       setExpiredOffers(all.filter(o => o.status === "expired").map(o => ({
@@ -235,9 +242,9 @@ export default function Offers() {
               <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
               Upcoming Offers
             </h2>
-            {upcomingOffers.length > 0 ? (
+            {upcomingDynamicOffers.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {upcomingOffers.map((offer, i) => (
+                {upcomingDynamicOffers.map((offer, i) => (
                   <OfferCard key={i} offer={offer} upcoming />
                 ))}
               </div>
