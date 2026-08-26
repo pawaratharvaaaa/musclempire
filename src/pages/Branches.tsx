@@ -69,7 +69,7 @@ const branchesData: BranchInfo[] = [
       "Sunday: Closed (Maintenance & Recovery)"
     ],
     peakHours: "7:00 AM – 10:00 AM & 6:00 PM – 9:30 PM",
-    size: "5,500+ Sq. Ft. Floor Space",
+    size: "2,000+ Sq. Ft. Floor Space",
     mapEmbedUrl: "https://maps.google.com/maps?q=Muscle%20Empire%20Gym%20Bhatwadi%20Barve%20Nagar%20Ghatkopar%20West%20Mumbai&t=&z=16&ie=UTF8&iwloc=&output=embed",
     mapDirectUrl: "https://maps.google.com/?q=Muscle+Empire+Gym+Bhatwadi+Barve+Nagar+Ghatkopar+West+Mumbai",
     equipment: [
@@ -114,7 +114,7 @@ const branchesData: BranchInfo[] = [
       "Sunday: Closed"
     ],
     peakHours: "7:30 AM – 10:30 AM & 5:30 PM – 8:30 PM",
-    size: "4,000+ Sq. Ft. Private Floor Space",
+    size: "1,000+ Sq. Ft. Private Floor Space",
     mapEmbedUrl: "https://maps.google.com/maps?q=Ranveer%20Apartment%20Sanjay%20Kokate%20Lane%20Bhatwadi%20Ghatkopar%20West%20Mumbai&t=&z=16&ie=UTF8&iwloc=&output=embed",
     mapDirectUrl: "https://maps.google.com/?q=Ranveer+Apartment+Sanjay+Kokate+Lane+Bhatwadi+Ghatkopar+West+Mumbai",
     equipment: [
@@ -125,9 +125,8 @@ const branchesData: BranchInfo[] = [
     ],
     amenities: [
       "100% Expert Coaches & Support Staff",
-      "Private Powder Rooms & Vanity Mirrors",
       "Changing Rooms",
-      "Female Specific Nutrition Consultations"
+      "Expert Nutrition Consultations"
     ],
     programs: [
       "Zumba & Cardio Dance Workouts",
@@ -249,7 +248,7 @@ export default function Branches() {
           >
             {[
               { label: "Active Centers", value: "2 Centers", sub: "Ghatkopar West", icon: Building2 },
-              { label: "Certified Trainers", value: "8+ Coaches", sub: "Male & Female Staff", icon: Award },
+              { label: "Expert Trainers", value: "8+ Coaches", sub: "Male & Female Staff", icon: Award },
               { label: "Happy Athletes", value: "5,000+ Members", sub: "Strong Community", icon: Users },
             ].map((stat, i) => (
               <div key={i} className="flex flex-col p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04]">

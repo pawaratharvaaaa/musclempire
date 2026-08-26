@@ -1091,13 +1091,16 @@ export default function NutritionAssessment() {
                     <p className="text-[1.6rem] font-black text-white leading-none">₹{Math.round(800 * (1 - dietNutrCouponDiscount / 100))}</p>
                   </>
                 ) : (
-                  <p className="text-[1.8rem] font-black text-white leading-none">₹800</p>
+                  <>
+                    <p className="text-[0.85rem] text-white/30 line-through">₹1,200</p>
+                    <p className="text-[1.6rem] font-black text-white leading-none">₹800</p>
+                  </>
                 )}
                 <p className="text-[11px] text-white/35 mt-0.5">one-time</p>
               </div>
             </div>
             <ul className="space-y-1.5 mb-4">
-              {["Custom meal & nutrition plan by certified dietitian", "Tailored to your health goals & food preference", "WhatsApp follow-up support"].map(f => (
+              {["Custom meal & nutrition plan by expert dietitian", "Tailored to your health goals & food preference", "WhatsApp follow-up support"].map(f => (
                 <li key={f} className="flex items-center gap-2 text-[12px] text-white/60">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   {f}

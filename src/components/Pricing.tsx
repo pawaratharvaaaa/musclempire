@@ -476,19 +476,15 @@ export default function Pricing() {
 
               {/* description */}
               <p className="text-[0.825rem] leading-relaxed text-white/45 mb-4 flex-1 z-10">
-                A customised meal and nutrition plan designed by a certified dietitian, tailored to your health goals and dietary preferences.
+                A customised meal and nutrition plan designed by an expert dietitian, tailored to your health goals and dietary preferences.
               </p>
 
               <div className="mt-auto z-10">
                 {/* price pill */}
                 <div className="mb-2 px-4 py-2.5 rounded-xl border text-white font-black text-[0.95rem] z-10 transition-all duration-300 bg-green-500/[0.04] border-green-500/15 group-hover:bg-green-500/[0.08] group-hover:border-green-500/30 flex items-center justify-between">
-                  <span>
-                    {dietDiscount > 0 ? (
-                      <>
-                        <span className="line-through text-white/30 text-[0.8rem] mr-2">₹800</span>
-                        ₹{discountedPrice(800, dietDiscount)}
-                      </>
-                    ) : "₹800"}
+                  <span className="flex items-center gap-2">
+                    <span className="line-through text-white/30 text-[0.8rem]">₹1,200</span>
+                    <span>{dietDiscount > 0 ? `₹${discountedPrice(800, dietDiscount)}` : "₹800"}</span>
                   </span>
                   <span className="text-[0.75rem] font-medium text-white/45">/ session</span>
                 </div>
