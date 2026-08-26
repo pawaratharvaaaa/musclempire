@@ -76,16 +76,17 @@ const branchesData: BranchInfo[] = [
       "Olympic Power Racks",
       "Dumbbells Racks from 2.5kg to 60kg",
       "Cable Crossover Machines",
-      "Spin Bikes & Cardio Zone"
+      "Spin Bikes & Cardio Zone",
+      "Weight Lifting Zone",
+      "CrossFit Zone",
+      "Multiple Benches"
     ],
     amenities: [
-      "Cardio & Functional Zone",
       "Heavy Duty Power Racks",
       "Secure Lockers",
       "Changing Rooms",
       "Fully Air Conditioned Gym Area",
-      "1-on-1 Certified Personal Training",
-      "High-Speed Wi-Fi & Music Setup"
+      "1-on-1 Expert Personal Training"
     ],
     programs: [
       "Hypertrophy & Bodybuilding",
@@ -117,18 +118,15 @@ const branchesData: BranchInfo[] = [
     mapEmbedUrl: "https://maps.google.com/maps?q=Ranveer%20Apartment%20Sanjay%20Kokate%20Lane%20Bhatwadi%20Ghatkopar%20West%20Mumbai&t=&z=16&ie=UTF8&iwloc=&output=embed",
     mapDirectUrl: "https://maps.google.com/?q=Ranveer+Apartment+Sanjay+Kokate+Lane+Bhatwadi+Ghatkopar+West+Mumbai",
     equipment: [
-      "Bio-Mechanically Engineered Women's Toning Equipment",
-      "Dedicated Aerobic Step & Dance Floor",
-      "Glute-Isolation & Hip Thrust Machines",
-      "Pilates Balls, Resistance Bands & Light Dumbbells",
-      "Cardio Steppers & Incline Treadmills"
+      "Women-only environment",
+      "Personal coaching",
+      "Weight management",
+      "Strength training"
     ],
     amenities: [
-      "100% Certified Female Coaches & Support Staff",
+      "100% Expert Coaches & Support Staff",
       "Private Powder Rooms & Vanity Mirrors",
-      "Zumba & Group HIIT Studio",
-      "Postural Alignment & Core Strengthening Zone",
-      "Keycard Access Controlled Privacy",
+      "Changing Rooms",
       "Female Specific Nutrition Consultations"
     ],
     programs: [
@@ -461,8 +459,8 @@ export default function Branches() {
                   </tr>
                   <tr>
                     <td className="p-5 font-semibold text-white">Trainer Gender Staff</td>
-                    <td className="p-5">Male & Female Certified Coaches</td>
-                    <td className="p-5">100% Female Certified Coaches</td>
+                    <td className="p-5">Male & Female Expert Coaches</td>
+                    <td className="p-5">100% Female Expert Coaches</td>
                   </tr>
                   <tr>
                     <td className="p-5 font-semibold text-white">Operating Hours</td>
