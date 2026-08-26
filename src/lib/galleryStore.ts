@@ -54,6 +54,7 @@ async function fetchImagesFromSheets(): Promise<GalleryImage[] | null> {
 }
 
 function saveImagesToSheets(images: GalleryImage[]): void {
+  if (images.length === 0) return; // never wipe Sheets with empty array
   const data = encodeURIComponent(JSON.stringify(images));
   fetch(`${APPS_SCRIPT_URL}?action=saveImages&token=${T}&data=${data}`, {
     method: "GET", mode: "no-cors",
@@ -71,6 +72,7 @@ async function fetchVideosFromSheets(): Promise<GalleryVideo[] | null> {
 }
 
 function saveVideosToSheets(videos: GalleryVideo[]): void {
+  if (videos.length === 0) return; // never wipe Sheets with empty array
   const data = encodeURIComponent(JSON.stringify(videos));
   fetch(`${APPS_SCRIPT_URL}?action=saveVideos&token=${T}&data=${data}`, {
     method: "GET", mode: "no-cors",

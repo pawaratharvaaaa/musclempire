@@ -50,6 +50,8 @@ export async function pullOffersFromSheets(): Promise<void> {
 }
 
 function pushToSheets(offers: Offer[]): void {
+  // Never push empty array — prevents accidental wipe of Sheets data
+  if (offers.length === 0) return;
   const stripped = offers.map(o => ({
     ...o,
     image: o.image?.startsWith("data:") ? "" : (o.image || ""),

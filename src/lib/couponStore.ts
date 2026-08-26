@@ -51,10 +51,11 @@ export async function pullFromSheets(): Promise<void> {
 }
 
 function pushToSheets(coupons: Coupon[]): void {
+  // Never push empty array — prevents accidental wipe of Sheets data
+  if (coupons.length === 0) return;
   const data = encodeURIComponent(JSON.stringify(coupons));
   fetch(`${APPS_SCRIPT_URL}?action=saveCoupons&token=${T}&data=${data}`, {
-    method: "GET",
-    mode: "no-cors",
+    method: "GET", mode: "no-cors",
   }).catch(() => {});
 }
 

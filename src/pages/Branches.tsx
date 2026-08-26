@@ -435,52 +435,6 @@ export default function Branches() {
           </div>
 
           {/* Interactive Branch Comparison Matrix */}
-          <div className="mb-20">
-            <div className="text-center max-w-2xl mx-auto mb-10">
-              <span className="text-[#E8A820] text-xs font-black uppercase tracking-widest block mb-2">Compare Centers</span>
-              <h2 className="text-3xl font-black uppercase text-white tracking-tight">Which Branch Fits You Best?</h2>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[650px] bg-[#1C1C1E] rounded-3xl border border-white/[0.08] overflow-hidden">
-                <thead>
-                  <tr className="bg-white/[0.03] border-b border-white/[0.08] text-xs font-black uppercase tracking-wider text-neutral-400">
-                    <th className="p-5">Features & Facilities</th>
-                    <th className="p-5 text-[#E8A820]">Unisex Gym Branch</th>
-                    <th className="p-5 text-pink-400">Female Exclusive Wing</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/[0.06] text-xs sm:text-sm text-neutral-300">
-                  <tr>
-                    <td className="p-5 font-semibold text-white">Target Audience</td>
-                    <td className="p-5">Men & Women</td>
-                    <td className="p-5">Women Only</td>
-                  </tr>
-                  <tr>
-                    <td className="p-5 font-semibold text-white">Trainer Gender Staff</td>
-                    <td className="p-5">Male & Female Expert Coaches</td>
-                    <td className="p-5">100% Female Expert Coaches</td>
-                  </tr>
-                  <tr>
-                    <td className="p-5 font-semibold text-white">Operating Hours</td>
-                    <td className="p-5">6 AM – 11 PM</td>
-                    <td className="p-5">6–12 PM & 4–10 PM</td>
-                  </tr>
-                  <tr>
-                    <td className="p-5 font-semibold text-white">Specialized Classes</td>
-                    <td className="p-5">Hypertrophy, Powerlifting, Cardio</td>
-                    <td className="p-5">Weight Management, Body Toning</td>
-                  </tr>
-                  <tr>
-                    <td className="p-5 font-semibold text-white">Recovery Facilities</td>
-                    <td className="p-5">Secure Lockers & Changing Rooms</td>
-                    <td className="p-5">Changing Rooms</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
           {/* Quick Branch Visit Booking Form */}
           <div className="max-w-3xl mx-auto rounded-[32px] bg-[#1C1C1E] border border-white/[0.08] p-8 sm:p-12 shadow-2xl relative overflow-hidden">
             <div className="text-center mb-8">
