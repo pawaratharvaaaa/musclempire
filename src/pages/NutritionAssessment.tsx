@@ -1,6 +1,12 @@
 import { useState, useLayoutEffect, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+type Shift = {
+  name: string;
+  from: string;
+  to: string;
+};
+
 type Meal = {
   name: string;
   time: string;
@@ -215,6 +221,7 @@ export default function NutritionAssessment() {
   const [dietNutrCouponDiscount, setDietNutrCouponDiscount] = useState(0);
   const [showDietNutrCoupon, setShowDietNutrCoupon] = useState(false);
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([{ name: "Shift 1", from: "", to: "" }]);
 
   useEffect(() => {
     if (meals.length > 0) {
@@ -376,7 +383,10 @@ export default function NutritionAssessment() {
       bmi: bmiVal ? bmiVal.toFixed(1) : "", bmiCategory: bmiCat?.label || "",
       wakeTime: formatTime12h(form.wakeTime), bedTime: formatTime12h(form.bedTime), sleepDuration: form.sleepDuration,
       workoutTime: form.doesWorkout === "Yes" ? `${form.workoutType} (${formatTime12h(form.workoutTimeFrom)} - ${formatTime12h(form.workoutTimeTo)})` : "No",
-      duty: form.duty, restTime: formatTime12h(form.restTime), targetWeight: "",
+      duty: form.duty === "Shifted"
+        ? `Shifted: ${shifts.filter(s => s.from && s.to).map(s => `${s.name} (${formatTime12h(s.from)}-${formatTime12h(s.to)})`).join(", ") || "Shifted"}`
+        : form.duty,
+      restTime: formatTime12h(form.restTime), targetWeight: "",
       weightChange: "", foodPref: form.foodPref,
       collegeTime: formatTime12h(form.collegeTime), workTime: formatTime12h(form.workTime),
       medicalConditions: form.medicalConditions, allergies: form.allergies,
@@ -672,6 +682,56 @@ export default function NutritionAssessment() {
                   <PillOption key={d} label={d} active={form.duty===d} onClick={()=>set("duty",d)} />
                 ))}
               </div>
+
+              {/* Shift entries — shown when Shifted is selected */}
+              {form.duty === "Shifted" && (
+                <div className="mt-4 space-y-3">
+                  {shifts.map((shift, idx) => (
+                    <div key={idx} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <input
+                          value={shift.name}
+                          onChange={e => {
+                            const updated = [...shifts];
+                            updated[idx] = { ...updated[idx], name: e.target.value };
+                            setShifts(updated);
+                          }}
+                          placeholder={`Shift ${idx + 1}`}
+                          className="bg-transparent text-[#F2EFE9] font-bold text-sm outline-none flex-1"
+                        />
+                        {shifts.length > 1 && (
+                          <button type="button" onClick={() => setShifts(shifts.filter((_, i) => i !== idx))}
+                            className="text-red-400/60 hover:text-red-400 transition-colors ml-2 text-xs uppercase tracking-wider font-bold cursor-pointer">
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                          <input type="time" value={shift.from}
+                            onChange={e => { const u = [...shifts]; u[idx] = { ...u[idx], from: e.target.value }; setShifts(u); }}
+                            className={inp()} />
+                          {shift.from && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">⏰ {formatTime12h(shift.from)}</span>}
+                        </div>
+                        <span className="text-[#F2EFE9]/40 text-xs font-bold uppercase tracking-wider shrink-0 mt-3">to</span>
+                        <div className="flex-1">
+                          <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                          <input type="time" value={shift.to}
+                            onChange={e => { const u = [...shifts]; u[idx] = { ...u[idx], to: e.target.value }; setShifts(u); }}
+                            className={inp()} />
+                          {shift.to && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">⏰ {formatTime12h(shift.to)}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button"
+                    onClick={() => setShifts([...shifts, { name: `Shift ${shifts.length + 1}`, from: "", to: "" }])}
+                    className="w-full py-3 rounded-2xl border-2 border-dashed border-white/[0.12] hover:border-[#E8A820]/50 text-[#F2EFE9]/40 hover:text-[#E8A820] text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2">
+                    + Add Shift
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -983,7 +1043,9 @@ export default function NutritionAssessment() {
           ...(form.wakeTime ? [["Wake-up", formatTime12h(form.wakeTime)] as [string,string]] : []),
           ...(form.bedTime ? [["Bed time", formatTime12h(form.bedTime)] as [string,string]] : []),
           ...(form.sleepDuration ? [["Sleep", `${form.sleepDuration} hrs`] as [string,string]] : []),
-          ...(form.duty ? [["Duty type", form.duty] as [string,string]] : []),
+          ...(form.duty ? [["Duty type", form.duty === "Shifted"
+            ? `Shifted: ${shifts.filter(s => s.from && s.to).map(s => `${s.name} (${formatTime12h(s.from)}-${formatTime12h(s.to)})`).join(", ") || "Shifted"}`
+            : form.duty] as [string,string]] : []),
           ...(form.restTime ? [["Rest time", formatTime12h(form.restTime)] as [string,string]] : []),
           ...(form.doesWorkout ? [["Workout", form.doesWorkout === "Yes" ? `${form.workoutType || "Yes"} (${formatTime12h(form.workoutTime)})` : "No"] as [string,string]] : []),
           ["Food preference", form.foodPref],
