@@ -31,7 +31,7 @@ function isCacheStale(): boolean {
 
 // ── Sheets (background sync only) ───────────────────────────────────────────
 
-export async function pullFromSheets(): Promise<void> {
+export async function pullFromSheets(): Promise<Coupon[]> {
   // Always reset timestamp so next getCoupons also re-fetches if needed
   localStorage.removeItem(CACHE_TS_KEY);
   try {
@@ -44,10 +44,12 @@ export async function pullFromSheets(): Promise<void> {
     if (Array.isArray(json?.coupons)) {
       writeCache(json.coupons as Coupon[]);
       window.dispatchEvent(new CustomEvent("couponsUpdated"));
+      return json.coupons as Coupon[];
     }
   } catch (e) {
     console.warn("[couponStore] pullFromSheets failed:", e);
   }
+  return readCache();
 }
 
 function pushToSheets(coupons: Coupon[]): void {
@@ -113,15 +115,6 @@ export function validateCoupon(code: string, planName: string): { discount: numb
 
 // Legacy async compat shims (pricing-table uses async validateCoupon)
 export async function syncCouponsFromSheets(): Promise<void> { await pullFromSheets(); }
-
-// Auto-pull from Sheets if cache is stale (used by public pages)
-export function getCouponsAndSync(): Coupon[] {
-  const cached = readCache();
-  if (isCacheStale()) {
-    pullFromSheets(); // background refresh
-  }
-  return cached;
-}
 
 
 
