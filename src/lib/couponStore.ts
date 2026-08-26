@@ -2,7 +2,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzt16aWEy6Wq9Un
 const T = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 const CACHE_KEY = "me_coupons_v2";
 const CACHE_TS_KEY = "me_coupons_ts";
-const CACHE_TTL = 30_000; // 30 seconds
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export interface Coupon {
   id: string;
@@ -32,6 +32,8 @@ function isCacheStale(): boolean {
 // ── Sheets (background sync only) ───────────────────────────────────────────
 
 export async function pullFromSheets(): Promise<void> {
+  // Always reset timestamp so next getCoupons also re-fetches if needed
+  localStorage.removeItem(CACHE_TS_KEY);
   try {
     const res = await fetch(`${APPS_SCRIPT_URL}?action=getCoupons&token=${T}&_t=${Date.now()}`, {
       redirect: "follow",

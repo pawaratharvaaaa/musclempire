@@ -157,7 +157,7 @@ export default function Offers() {
   useEffect(() => {
     const fetchOffers = () => {
       const all = getOffers();
-      setOngoingOffers(all.filter(o => o.status !== "expired").map(o => ({
+      setOngoingOffers(all.filter(o => o.status === "active").map(o => ({
         title: o.title, description: o.description, discount: o.discount,
         validTill: o.validTill, cta: o.ctaText, whatsappMessage: o.whatsappMessage,
         image: o.image, couponCode: o.couponCode,

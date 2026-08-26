@@ -36,7 +36,7 @@ export default function OfferPopup() {
 
   useEffect(() => {
     const loadPopupOffers = () => {
-      const active = getOffers().filter(o => o.status !== "expired" && o.showInPopup !== false);
+      const active = getOffers().filter(o => o.status === "active" && o.showInPopup !== false);
       setOffers(active);
     };
     loadPopupOffers();

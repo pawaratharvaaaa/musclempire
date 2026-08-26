@@ -469,12 +469,12 @@ export default function Branches() {
                   <tr>
                     <td className="p-5 font-semibold text-white">Specialized Classes</td>
                     <td className="p-5">Hypertrophy, Powerlifting, Cardio</td>
-                    <td className="p-5">Zumba, Aerobics, Post-Natal</td>
+                    <td className="p-5">Weight Management, Body Toning</td>
                   </tr>
                   <tr>
                     <td className="p-5 font-semibold text-white">Recovery Facilities</td>
-                    <td className="p-5">Steam Room & Hot Showers</td>
-                    <td className="p-5">Private Changing & Powder Room</td>
+                    <td className="p-5">Secure Lockers & Changing Rooms</td>
+                    <td className="p-5">Changing Rooms</td>
                   </tr>
                 </tbody>
               </table>

@@ -27,17 +27,17 @@ const AdminOffers = lazy(() => import("@/pages/AdminOffers"));
 
 const queryClient = new QueryClient();
 
-// Clear ALL old localStorage cache keys on every load — fresh start always
+// Clear old localStorage cache keys on every load — but NOT coupons/offers data
 if (typeof localStorage !== "undefined") {
   const keysToRemove = [
     "me_offers_v2", "me_offers_ts",
-    "me_offers_v3", // in case new key also got stale
+    "me_offers_v3",
     "me_gallery_images", "me_gallery_images_ts",
     "me_gallery_images_v2", "me_gallery_images_ts",
     "me_gallery_videos", "me_gallery_videos_ts",
     "me_gallery_videos_v2", "me_gallery_videos_ts",
-    "me_coupons_v2", "me_coupons_ts",
-    "me_assessments_ts", // force fresh assessment fetch
+    "me_assessments_ts",
+    // DO NOT clear me_coupons_v2 or me_coupons_ts — this would delete all coupons
   ];
   keysToRemove.forEach(k => localStorage.removeItem(k));
 }
