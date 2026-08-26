@@ -27,11 +27,11 @@ import { APPS_SCRIPT_URL } from "@/lib/sheets";
 
 const OWNER_PHONE = "919773053632";
 
-type BranchType = "all" | "unisex" | "female" | "vip";
+type BranchType = "all" | "unisex" | "female";
 
 interface BranchInfo {
   id: string;
-  type: "unisex" | "female" | "vip";
+  type: "unisex" | "female";
   badge: string;
   badgeBg: string;
   badgeTextColor: string;
@@ -73,18 +73,17 @@ const branchesData: BranchInfo[] = [
     mapEmbedUrl: "https://maps.google.com/maps?q=Muscle%20Empire%20Gym%20Bhatwadi%20Barve%20Nagar%20Ghatkopar%20West%20Mumbai&t=&z=16&ie=UTF8&iwloc=&output=embed",
     mapDirectUrl: "https://maps.google.com/?q=Muscle+Empire+Gym+Bhatwadi+Barve+Nagar+Ghatkopar+West+Mumbai",
     equipment: [
-      "Olympic Power Racks & Deadlift Platforms",
+      "Olympic Power Racks",
       "Dumbbells Racks from 2.5kg to 60kg",
-      "Plate-Loaded Hammer Strength ISO Machines",
-      "Commercial Treadmills, Cross-Trainers & Spin Bikes",
-      "Cable Crossover Machines & Multi-Gym Stations"
+      "Cable Crossover Machines",
+      "Spin Bikes & Cardio Zone"
     ],
     amenities: [
       "Cardio & Functional Zone",
       "Heavy Duty Power Racks",
-      "Steam & Hot Shower Rooms",
-      "Secure Digital Lockers",
-      "Juice & Protein Supplement Bar",
+      "Secure Lockers",
+      "Changing Rooms",
+      "Fully Air Conditioned Gym Area",
       "1-on-1 Certified Personal Training",
       "High-Speed Wi-Fi & Music Setup"
     ],
@@ -140,49 +139,6 @@ const branchesData: BranchInfo[] = [
     ],
     whatsappMessage: "Hi Muscle Empire! I want to book a Free Trial at your Female Exclusive Gym Branch in Bhatwadi.",
     imageOverlayGrad: "from-pink-500/20 via-[#1C1C1E] to-[#1C1C1E]"
-  },
-  {
-    id: "vip-hub",
-    type: "vip",
-    badge: "Opening Late 2026",
-    badgeBg: "bg-purple-500/15 border-purple-500/40",
-    badgeTextColor: "text-purple-400",
-    title: "Muscle Empire – VIP Executive Hub",
-    tagline: "Next-Gen 24/7 Ultra-Luxury Performance Lounge & Athletic Recovery Suite",
-    city: "Ghatkopar East / Powai",
-    address: "Upcoming Flagship Destination – Announcement Coming Soon",
-    phone: "+91 97730 53632",
-    hours: [
-      "24/7 Biometric Smart Keycard Access",
-      "Concierge Service: 7:00 AM – 10:00 PM"
-    ],
-    peakHours: "Round-the-clock Access Control",
-    size: "8,000+ Sq. Ft. VIP Facility",
-    mapEmbedUrl: "https://maps.google.com/maps?q=Ghatkopar%20East%20Mumbai&t=&z=14&ie=UTF8&iwloc=&output=embed",
-    mapDirectUrl: "https://maps.google.com/?q=Ghatkopar+East+Mumbai",
-    equipment: [
-      "Eleiko Competition Powerlifting Gear",
-      "Keiser Pneumatic Resistance Machines",
-      "Valkyrie Custom Biomechanical Rig",
-      "Cold Plunge Ice Baths & Infrared Saunas",
-      "Body Composition & InBody Scanners"
-    ],
-    amenities: [
-      "Biometric 24/7 Unlocked Entry",
-      "Infrared Sauna & Ice Bath Recovery",
-      "In-House Sports Physiotherapist",
-      "Executive Co-Working & Refreshment Lounge",
-      "Personal Valet Parking",
-      "Private VIP Locker Suites"
-    ],
-    programs: [
-      "Elite Sports Performance Training",
-      "Cryotherapy & Hyperbaric Recovery",
-      "Custom Macro Prep Delivery Integration",
-      "VIP Master Coach Mentorship"
-    ],
-    whatsappMessage: "Hi Muscle Empire! I would like to pre-register for Early Bird VIP Membership at your upcoming Executive Hub.",
-    imageOverlayGrad: "from-purple-500/20 via-[#1C1C1E] to-[#1C1C1E]"
   }
 ];
 
@@ -282,7 +238,7 @@ export default function Branches() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-neutral-400 text-base sm:text-lg leading-relaxed"
             >
-              Whether you are looking for heavy powerlifting gear, private women-only fitness suites, or VIP executive coaching, find your nearest Muscle Empire branch.
+              Whether you are looking for heavy powerlifting gear or a private women-only fitness suite, find your nearest Muscle Empire branch.
             </motion.p>
           </div>
 
@@ -296,7 +252,7 @@ export default function Branches() {
             {[
               { label: "Active Centers", value: "2 Centers", sub: "Ghatkopar West", icon: Building2 },
               { label: "Certified Trainers", value: "8+ Coaches", sub: "Male & Female Staff", icon: Award },
-              { label: "Happy Athletes", value: "2,500+ Members", sub: "Strong Community", icon: Users },
+              { label: "Happy Athletes", value: "5,000+ Members", sub: "Strong Community", icon: Users },
             ].map((stat, i) => (
               <div key={i} className="flex flex-col p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
                 <div className="flex items-center justify-between mb-2">
@@ -316,7 +272,6 @@ export default function Branches() {
                 { id: "all", label: "All Centers" },
                 { id: "unisex", label: "Unisex Gym" },
                 { id: "female", label: "Female Exclusive" },
-                { id: "vip", label: "VIP Executive Hub" },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -496,7 +451,6 @@ export default function Branches() {
                     <th className="p-5">Features & Facilities</th>
                     <th className="p-5 text-[#E8A820]">Unisex Gym Branch</th>
                     <th className="p-5 text-pink-400">Female Exclusive Wing</th>
-                    <th className="p-5 text-purple-400">VIP Hub (Upcoming)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.06] text-xs sm:text-sm text-neutral-300">
@@ -504,31 +458,26 @@ export default function Branches() {
                     <td className="p-5 font-semibold text-white">Target Audience</td>
                     <td className="p-5">Men & Women</td>
                     <td className="p-5">Women Only</td>
-                    <td className="p-5">VIP Executive Members</td>
                   </tr>
                   <tr>
                     <td className="p-5 font-semibold text-white">Trainer Gender Staff</td>
                     <td className="p-5">Male & Female Certified Coaches</td>
                     <td className="p-5">100% Female Certified Coaches</td>
-                    <td className="p-5">Master VIP Trainers</td>
                   </tr>
                   <tr>
                     <td className="p-5 font-semibold text-white">Operating Hours</td>
                     <td className="p-5">6 AM – 11 PM</td>
                     <td className="p-5">6–12 PM & 4–10 PM</td>
-                    <td className="p-5">24/7 Smart Key Access</td>
                   </tr>
                   <tr>
                     <td className="p-5 font-semibold text-white">Specialized Classes</td>
                     <td className="p-5">Hypertrophy, Powerlifting, Cardio</td>
                     <td className="p-5">Zumba, Aerobics, Post-Natal</td>
-                    <td className="p-5">Athletic Bio-Hacking, Cryo</td>
                   </tr>
                   <tr>
                     <td className="p-5 font-semibold text-white">Recovery Facilities</td>
                     <td className="p-5">Steam Room & Hot Showers</td>
                     <td className="p-5">Private Changing & Powder Room</td>
-                    <td className="p-5">Infrared Sauna & Ice Baths</td>
                   </tr>
                 </tbody>
               </table>
@@ -599,7 +548,6 @@ export default function Branches() {
                     >
                       <option value="Unisex Gym Branch (Bhatwadi)">Unisex Gym Branch – Bhatwadi, Ghatkopar W</option>
                       <option value="Female Exclusive Branch (Ranveer Apt)">Female Gym Branch – Ranveer Apt, Ghatkopar W</option>
-                      <option value="VIP Hub (Upcoming)">VIP Executive Hub – Powai / Ghatkopar E</option>
                     </select>
                   </div>
 
