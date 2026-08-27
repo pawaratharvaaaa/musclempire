@@ -26,6 +26,21 @@ const AdminOffers = lazy(() => import("@/pages/AdminOffers"));
 
 const queryClient = new QueryClient();
 
+// Clear old localStorage cache keys on every load — but NOT coupons/offers data
+if (typeof localStorage !== "undefined") {
+  const keysToRemove = [
+    "me_offers_v2", "me_offers_ts",
+    "me_offers_v3",
+    "me_gallery_images", "me_gallery_images_ts",
+    "me_gallery_images_v2", "me_gallery_images_ts",
+    "me_gallery_videos", "me_gallery_videos_ts",
+    "me_gallery_videos_v2", "me_gallery_videos_ts",
+    "me_assessments_ts",
+    // DO NOT clear me_coupons_v2 or me_coupons_ts — this would delete all coupons
+  ];
+  keysToRemove.forEach(k => localStorage.removeItem(k));
+}
+
 // Ctrl+Shift+S+K opens admin login (SAGAR KHARAT)
 function AdminShortcut() {
   useEffect(() => {
@@ -64,6 +79,25 @@ function AdminShortcut() {
       window.removeEventListener("blur", handleBlur);
     };
   }, []);
+  return null;
+}
+
+// Save scroll position per route and restore on back navigation
+function ScrollRestoration() {
+  const [location] = useLocation();
+  useEffect(() => {
+    const saved = sessionStorage.getItem(`scroll_${location}`);
+    if (saved) {
+      window.scrollTo(0, parseInt(saved, 10));
+    } else {
+      window.scrollTo(0, 0);
+    }
+    const saveScroll = () => {
+      sessionStorage.setItem(`scroll_${location}`, String(window.scrollY));
+    };
+    window.addEventListener("scroll", saveScroll, { passive: true });
+    return () => window.removeEventListener("scroll", saveScroll);
+  }, [location]);
   return null;
 }
 
@@ -111,6 +145,7 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <AdminShortcut />
+          <ScrollRestoration />
           <Router />
           <PublicWidgets />
         </WouterRouter>
