@@ -50,3 +50,4 @@ export async function changePassword(currentPass: string, newPass: string): Prom
 export function logout(): void { localStorage.removeItem(SESSION_KEY); }
 export function isLoggedIn(): boolean { return localStorage.getItem(SESSION_KEY) === "true"; }
 
+

@@ -1,4 +1,4 @@
-export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzt16aWEy6Wq9Unm8mgCL-0V9dp3CEBcB3kNAqWtaFu9Q9_-tAlWyTjGSiRbtMSkGo60Q/exec";
+export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJqmbK8TXYAv5wJpTLnklsiX1MJll_4kUZYaZ0nbGLnBkobv2ItznhQVPsx4WjXGyKXw/exec";
 const T = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 
 export type AssessmentData = {
@@ -123,6 +123,7 @@ export async function deleteRecord(rowIndex: number): Promise<void> {
   // Delete from Google Sheets â€” rowIndex is the 0-based data row index
   scriptGet({ action: "deleteRow", rowIndex: String(rowIndex) });
 }
+
 
 
 
