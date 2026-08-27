@@ -53,9 +53,11 @@ export async function pullFromSheets(): Promise<Coupon[]> {
 }
 
 function pushToSheets(coupons: Coupon[]): void {
-  const data = encodeURIComponent(JSON.stringify(coupons));
-  fetch(`${APPS_SCRIPT_URL}?action=saveCoupons&token=${T}&data=${data}`, {
-    method: "GET", mode: "no-cors",
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action: "saveCoupons", token: T, data: JSON.stringify(coupons) }),
   }).catch(() => {});
 }
 

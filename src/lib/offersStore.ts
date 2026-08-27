@@ -49,16 +49,15 @@ export async function pullOffersFromSheets(): Promise<void> {
 }
 
 function pushToSheets(offers: Offer[]): void {
-  // Never push empty array — prevents accidental wipe of Sheets data
-  if (offers.length === 0) return;
   const stripped = offers.map(o => ({
     ...o,
     image: o.image?.startsWith("data:") ? "" : (o.image || ""),
   }));
-  const data = encodeURIComponent(JSON.stringify(stripped));
-  fetch(`${APPS_SCRIPT_URL}?action=saveOffers&token=${T}&data=${data}`, {
-    method: "GET",
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
     mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action: "saveOffers", token: T, data: JSON.stringify(stripped) }),
   }).catch(() => {});
 }
 
