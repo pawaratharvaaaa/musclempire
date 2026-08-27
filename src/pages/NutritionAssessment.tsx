@@ -1,6 +1,12 @@
 import { useState, useLayoutEffect, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+type Shift = {
+  name: string;
+  from: string;
+  to: string;
+};
+
 type Meal = {
   name: string;
   time: string;
@@ -14,6 +20,8 @@ import PlanNavbar from "@/components/PlanNavbar";
 import Footer from "@/components/Footer";
 import { submitAssessment } from "@/lib/sheets";
 import type { AssessmentData } from "@/lib/sheets";
+import { RAZORPAY_KEY } from "@/lib/razorpay";
+import { validateCoupon } from "@/lib/couponStore";
 
 const WA_NUMBER = "919773053632";
 
@@ -207,7 +215,13 @@ export default function NutritionAssessment() {
   const [step, setStep]     = useState(0);
   const [dir, setDir]       = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  // Dietitian plan coupon on nutrition form
+  const [dietNutrCoupon, setDietNutrCoupon] = useState("");
+  const [dietNutrCouponMsg, setDietNutrCouponMsg] = useState<{text: string; valid: boolean} | null>(null);
+  const [dietNutrCouponDiscount, setDietNutrCouponDiscount] = useState(0);
+  const [showDietNutrCoupon, setShowDietNutrCoupon] = useState(false);
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([{ name: "Shift 1", from: "", to: "" }]);
 
   useEffect(() => {
     if (meals.length > 0) {
@@ -358,6 +372,8 @@ export default function NutritionAssessment() {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
+
+    // Build payload
     const foodHistoryStr = meals.map((m, idx) => `Meal #${idx + 1}: ${m.name || "N/A"} (${formatTime12h(m.time)}) - ${m.food || "N/A"}`).join("\n");
     const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
     const goalsList = [...form.goals, form.otherGoal ? `Other: ${form.otherGoal}` : ""].filter(Boolean).join(", ");
@@ -367,18 +383,81 @@ export default function NutritionAssessment() {
       bmi: bmiVal ? bmiVal.toFixed(1) : "", bmiCategory: bmiCat?.label || "",
       wakeTime: formatTime12h(form.wakeTime), bedTime: formatTime12h(form.bedTime), sleepDuration: form.sleepDuration,
       workoutTime: form.doesWorkout === "Yes" ? `${form.workoutType} (${formatTime12h(form.workoutTimeFrom)} - ${formatTime12h(form.workoutTimeTo)})` : "No",
-      duty: form.duty, restTime: formatTime12h(form.restTime), targetWeight: "",
+      duty: form.duty === "Shifted"
+        ? `Shifted: ${shifts.filter(s => s.from && s.to).map(s => `${s.name} (${formatTime12h(s.from)}-${formatTime12h(s.to)})`).join(", ") || "Shifted"}`
+        : form.duty,
+      restTime: formatTime12h(form.restTime), targetWeight: "",
       weightChange: "", foodPref: form.foodPref,
       collegeTime: formatTime12h(form.collegeTime), workTime: formatTime12h(form.workTime),
       medicalConditions: form.medicalConditions, allergies: form.allergies,
       supplements: form.supplements, goals: goalsList, remarks: form.remarks,
-      foodHistory: foodHistoryStr, status: "New",
-      notes: "",
+      foodHistory: foodHistoryStr, status: "New", notes: "",
     };
-    await submitAssessment(payload);
-    setSubmitted(true);
-    window.scrollTo(0, 0);
+
+    // Load Razorpay script
+    const loadScript = () => new Promise<boolean>(resolve => {
+      if ((window as any).Razorpay) { resolve(true); return; }
+      const s = document.createElement("script");
+      s.src = "https://checkout.razorpay.com/v1/checkout.js";
+      s.onload = () => resolve(true);
+      s.onerror = () => resolve(false);
+      document.body.appendChild(s);
+    });
+
+    const loaded = await loadScript();
+    if (!loaded) { alert("Could not load payment gateway. Check your connection."); return; }
+
+    // Calculate discounted amount
+    const baseAmount = 800;
+    const finalAmount = dietNutrCouponDiscount > 0
+      ? Math.round(baseAmount * (1 - dietNutrCouponDiscount / 100))
+      : baseAmount;
+
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: finalAmount * 100,
+      currency: "INR",
+      name: "Muscle Empire Gymnasium",
+      description: "Personalised Dietitian Plan",
+      image: "/favicon.png",
+      prefill: { name: form.name, contact: form.phone, email: form.email },
+      theme: { color: "#E8A820" },
+      handler: async (response: { razorpay_payment_id: string }) => {
+        // Payment successful — now submit the form
+        await submitAssessment({ ...payload, notes: `Payment ID: ${response.razorpay_payment_id}` });
+        setSubmitted(true);
+        window.scrollTo(0, 0);
+        // Show success popup
+        showPaymentPopup(true, response.razorpay_payment_id);
+      },
+      modal: { ondismiss: () => {} },
+    };
+
+    const rzp = new (window as any).Razorpay(options);
+    rzp.on("payment.failed", (r: any) => {
+      showPaymentPopup(false, undefined, r?.error?.description || "Payment was declined.");
+    });
+    rzp.open();
   };
+
+  function showPaymentPopup(success: boolean, paymentId?: string, errorMsg?: string) {
+    const existing = document.getElementById("rzp-nutr-popup");
+    if (existing) existing.remove();
+    const overlay = document.createElement("div");
+    overlay.id = "rzp-nutr-popup";
+    overlay.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);font-family:-apple-system,sans-serif;";
+    const box = document.createElement("div");
+    box.style.cssText = "background:#111;border-radius:24px;padding:40px 36px;max-width:380px;width:90%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.1);";
+    if (success) {
+      box.innerHTML = `<div style="width:72px;height:72px;background:rgba(34,197,94,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 8px;">Payment Successful!</h2><p style="color:#aaa;font-size:0.9rem;margin:0 0 6px;">Welcome to Muscle Empire! 💪</p><p style="color:#666;font-size:0.75rem;margin:0 0 20px;">Payment ID: <strong style="color:#aaa;">${paymentId}</strong></p><p style="color:#aaa;font-size:0.85rem;margin:0 0 28px;background:rgba(34,197,94,0.1);border-radius:12px;padding:12px;">Your assessment has been submitted. Our dietician will contact you shortly.</p><button id="rzp-nutr-close" style="background:#22c55e;color:#000;border:none;border-radius:12px;padding:14px 32px;font-size:0.9rem;font-weight:800;cursor:pointer;width:100%;">Done</button>`;
+    } else {
+      box.innerHTML = `<div style="width:72px;height:72px;background:rgba(239,68,68,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><h2 style="font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 8px;">Payment Failed</h2><p style="color:#aaa;font-size:0.9rem;margin:0 0 6px;">Something went wrong.</p><p style="color:#666;font-size:0.8rem;margin:0 0 28px;">${errorMsg || "Please try again."}</p><button id="rzp-nutr-close" style="background:#ef4444;color:#fff;border:none;border-radius:12px;padding:14px 32px;font-size:0.9rem;font-weight:800;cursor:pointer;width:100%;">Try Again</button>`;
+    }
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    document.getElementById("rzp-nutr-close")!.onclick = () => overlay.remove();
+    overlay.onclick = (ev) => { if (ev.target === overlay) overlay.remove(); };
+  }
 
   /* ── Success screen ─────────────────────────────────────────── */
   if (submitted) {
@@ -603,33 +682,87 @@ export default function NutritionAssessment() {
                   <PillOption key={d} label={d} active={form.duty===d} onClick={()=>set("duty",d)} />
                 ))}
               </div>
+
+              {/* Shift entries — shown when Shifted is selected */}
+              {form.duty === "Shifted" && (
+                <div className="mt-4 space-y-3">
+                  {shifts.map((shift, idx) => (
+                    <div key={idx} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <input
+                          value={shift.name}
+                          onChange={e => {
+                            const updated = [...shifts];
+                            updated[idx] = { ...updated[idx], name: e.target.value };
+                            setShifts(updated);
+                          }}
+                          placeholder={`Shift ${idx + 1}`}
+                          className="bg-transparent text-[#F2EFE9] font-bold text-sm outline-none flex-1"
+                        />
+                        {shifts.length > 1 && (
+                          <button type="button" onClick={() => setShifts(shifts.filter((_, i) => i !== idx))}
+                            className="text-red-400/60 hover:text-red-400 transition-colors ml-2 text-xs uppercase tracking-wider font-bold cursor-pointer">
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                          <input type="time" value={shift.from}
+                            onChange={e => { const u = [...shifts]; u[idx] = { ...u[idx], from: e.target.value }; setShifts(u); }}
+                            className={inp()} />
+                          {shift.from && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">⏰ {formatTime12h(shift.from)}</span>}
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                          <input type="time" value={shift.to}
+                            onChange={e => { const u = [...shifts]; u[idx] = { ...u[idx], to: e.target.value }; setShifts(u); }}
+                            className={inp()} />
+                          {shift.to && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">⏰ {formatTime12h(shift.to)}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button"
+                    onClick={() => setShifts([...shifts, { name: `Shift ${shifts.length + 1}`, from: "", to: "" }])}
+                    className="w-full py-3 rounded-2xl border-2 border-dashed border-white/[0.12] hover:border-[#E8A820]/50 text-[#F2EFE9]/40 hover:text-[#E8A820] text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2">
+                    + Add Shift
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           <div>
             <Label>Rest time <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
-            <div className="flex items-center gap-3">
-              <input
-                type="time"
-                value={form.restTimeFrom}
-                onChange={e => {
-                  set("restTimeFrom", e.target.value);
-                  const to = form.restTimeTo;
-                  set("restTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
-                }}
-                className={inp()}
-              />
-              <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
-              <input
-                type="time"
-                value={form.restTimeTo}
-                onChange={e => {
-                  set("restTimeTo", e.target.value);
-                  const from = form.restTimeFrom;
-                  set("restTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
-                }}
-                className={inp()}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                <input
+                  type="time"
+                  value={form.restTimeFrom}
+                  onChange={e => {
+                    set("restTimeFrom", e.target.value);
+                    const to = form.restTimeTo;
+                    set("restTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                  }}
+                  className={inp()}
+                />
+              </div>
+              <div>
+                <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                <input
+                  type="time"
+                  value={form.restTimeTo}
+                  onChange={e => {
+                    set("restTimeTo", e.target.value);
+                    const from = form.restTimeFrom;
+                    set("restTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                  }}
+                  className={inp()}
+                />
+              </div>
             </div>
             {form.restTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.restTime)}</span>}
           </div>
@@ -637,55 +770,65 @@ export default function NutritionAssessment() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>College timing <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="time"
-                  value={form.collegeTimeFrom}
-                  onChange={e => {
-                    set("collegeTimeFrom", e.target.value);
-                    const to = form.collegeTimeTo;
-                    set("collegeTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
-                  }}
-                  className={inp()}
-                />
-                <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
-                <input
-                  type="time"
-                  value={form.collegeTimeTo}
-                  onChange={e => {
-                    set("collegeTimeTo", e.target.value);
-                    const from = form.collegeTimeFrom;
-                    set("collegeTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
-                  }}
-                  className={inp()}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                  <input
+                    type="time"
+                    value={form.collegeTimeFrom}
+                    onChange={e => {
+                      set("collegeTimeFrom", e.target.value);
+                      const to = form.collegeTimeTo;
+                      set("collegeTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                    }}
+                    className={inp()}
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                  <input
+                    type="time"
+                    value={form.collegeTimeTo}
+                    onChange={e => {
+                      set("collegeTimeTo", e.target.value);
+                      const from = form.collegeTimeFrom;
+                      set("collegeTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                    }}
+                    className={inp()}
+                  />
+                </div>
               </div>
               {form.collegeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.collegeTime)}</span>}
             </div>
             <div>
               <Label>Work timing <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="time"
-                  value={form.workTimeFrom}
-                  onChange={e => {
-                    set("workTimeFrom", e.target.value);
-                    const to = form.workTimeTo;
-                    set("workTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
-                  }}
-                  className={inp()}
-                />
-                <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
-                <input
-                  type="time"
-                  value={form.workTimeTo}
-                  onChange={e => {
-                    set("workTimeTo", e.target.value);
-                    const from = form.workTimeFrom;
-                    set("workTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
-                  }}
-                  className={inp()}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                  <input
+                    type="time"
+                    value={form.workTimeFrom}
+                    onChange={e => {
+                      set("workTimeFrom", e.target.value);
+                      const to = form.workTimeTo;
+                      set("workTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                    }}
+                    className={inp()}
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                  <input
+                    type="time"
+                    value={form.workTimeTo}
+                    onChange={e => {
+                      set("workTimeTo", e.target.value);
+                      const from = form.workTimeFrom;
+                      set("workTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                    }}
+                    className={inp()}
+                  />
+                </div>
               </div>
               {form.workTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.workTime)}</span>}
             </div>
@@ -733,28 +876,33 @@ export default function NutritionAssessment() {
 
               <div>
                 <Label>Workout time <span className="text-red-400">*</span></Label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="time"
-                    value={form.workoutTimeFrom}
-                    onChange={e => {
-                      set("workoutTimeFrom", e.target.value);
-                      const to = form.workoutTimeTo;
-                      set("workoutTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
-                    }}
-                    className={inp(errors.workoutTime)}
-                  />
-                  <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
-                  <input
-                    type="time"
-                    value={form.workoutTimeTo}
-                    onChange={e => {
-                      set("workoutTimeTo", e.target.value);
-                      const from = form.workoutTimeFrom;
-                      set("workoutTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
-                    }}
-                    className={inp(errors.workoutTime)}
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                    <input
+                      type="time"
+                      value={form.workoutTimeFrom}
+                      onChange={e => {
+                        set("workoutTimeFrom", e.target.value);
+                        const to = form.workoutTimeTo;
+                        set("workoutTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                      }}
+                      className={inp(errors.workoutTime)}
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                    <input
+                      type="time"
+                      value={form.workoutTimeTo}
+                      onChange={e => {
+                        set("workoutTimeTo", e.target.value);
+                        const from = form.workoutTimeFrom;
+                        set("workoutTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                      }}
+                      className={inp(errors.workoutTime)}
+                    />
+                  </div>
                 </div>
                 {form.workoutTime && form.workoutTime !== "No workout" && (
                   <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.workoutTime)}</span>
@@ -914,7 +1062,9 @@ export default function NutritionAssessment() {
           ...(form.wakeTime ? [["Wake-up", formatTime12h(form.wakeTime)] as [string,string]] : []),
           ...(form.bedTime ? [["Bed time", formatTime12h(form.bedTime)] as [string,string]] : []),
           ...(form.sleepDuration ? [["Sleep", `${form.sleepDuration} hrs`] as [string,string]] : []),
-          ...(form.duty ? [["Duty type", form.duty] as [string,string]] : []),
+          ...(form.duty ? [["Duty type", form.duty === "Shifted"
+            ? `Shifted: ${shifts.filter(s => s.from && s.to).map(s => `${s.name} (${formatTime12h(s.from)}-${formatTime12h(s.to)})`).join(", ") || "Shifted"}`
+            : form.duty] as [string,string]] : []),
           ...(form.restTime ? [["Rest time", formatTime12h(form.restTime)] as [string,string]] : []),
           ...(form.doesWorkout ? [["Workout", form.doesWorkout === "Yes" ? `${form.workoutType || "Yes"} (${formatTime12h(form.workoutTime)})` : "No"] as [string,string]] : []),
           ["Food preference", form.foodPref],
@@ -945,6 +1095,56 @@ export default function NutritionAssessment() {
             </span>
           </label>
             <Err msg={errors.consent} />
+
+          {/* ── Dietitian Plan Payment Card ─────────────────── */}
+          <div className="rounded-2xl border border-green-500/30 bg-green-500/[0.06] p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="font-black text-white text-[1rem] mb-0.5">Personalised Dietitian Plan</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-green-400">Nutrition · Wellness</p>
+              </div>
+              <div className="text-right">
+                {dietNutrCouponDiscount > 0 ? (
+                  <>
+                    <p className="text-[0.85rem] text-white/30 line-through">₹800</p>
+                    <p className="text-[1.6rem] font-black text-white leading-none">₹{Math.round(800 * (1 - dietNutrCouponDiscount / 100))}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[0.85rem] text-white/30 line-through">₹1,200</p>
+                    <p className="text-[1.6rem] font-black text-white leading-none">₹800</p>
+                  </>
+                )}
+                <p className="text-[11px] text-white/35 mt-0.5">one-time</p>
+              </div>
+            </div>
+            <ul className="space-y-1.5 mb-4">
+              {["Custom meal & nutrition plan by expert dietitian", "Tailored to your health goals & food preference", "WhatsApp follow-up support"].map(f => (
+                <li key={f} className="flex items-center gap-2 text-[12px] text-white/60">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <button onClick={() => setShowDietNutrCoupon(v => !v)} className="text-[10px] text-green-400/70 hover:text-green-400 underline underline-offset-2 mb-2 cursor-pointer block transition-colors">
+              {showDietNutrCoupon ? "Hide coupon" : "Have a coupon code?"}
+            </button>
+            {showDietNutrCoupon && (
+              <div className="mb-2 flex gap-2">
+                <input value={dietNutrCoupon} onChange={e => { setDietNutrCoupon(e.target.value.toUpperCase()); setDietNutrCouponMsg(null); }}
+                  placeholder="Enter code"
+                  className="flex-1 h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white outline-none focus:border-green-400/50" />
+                <button onClick={() => {
+                  const result = validateCoupon(dietNutrCoupon, "Dietitian Plan");
+                  if (result) { setDietNutrCouponDiscount(result.discount); setDietNutrCouponMsg({ text: `${result.discount}% OFF applied!`, valid: true }); }
+                  else { setDietNutrCouponDiscount(0); setDietNutrCouponMsg({ text: "Invalid or expired coupon", valid: false }); }
+                }} className="h-9 px-4 bg-green-500 hover:bg-green-400 text-black text-xs font-black rounded-xl cursor-pointer transition-colors">Apply</button>
+              </div>
+            )}
+            {dietNutrCouponMsg && (
+              <p className={`text-[10px] font-bold ${dietNutrCouponMsg.valid ? "text-green-400" : "text-red-400"}`}>{dietNutrCouponMsg.text}</p>
+            )}
+          </div>
           </div>
         );
       }
@@ -1066,8 +1266,8 @@ export default function NutritionAssessment() {
                 </button>
               ) : (
                 <button type="button" onClick={handleSubmit}
-                  className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#25D366] hover:bg-[#1db954] text-white font-bold text-[0.9rem] transition-all hover:shadow-[0_4px_20px_rgba(37,211,102,0.40)] hover:-translate-y-0.5">
-                  <FaWhatsapp size={17} /> Submit &amp; send on WhatsApp
+                  className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-bold text-[0.9rem] transition-all hover:shadow-[0_4px_20px_rgba(34,197,94,0.40)] hover:-translate-y-0.5">
+                  Pay {dietNutrCouponDiscount > 0 ? `₹${Math.round(800 * (1 - dietNutrCouponDiscount / 100))}` : "₹800"} &amp; Submit
                 </button>
               )}
             </div>
