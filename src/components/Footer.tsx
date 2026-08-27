@@ -1,5 +1,5 @@
 import { FaInstagram, FaFacebookF } from "react-icons/fa";
-import logo from "@/assets/images/logo.jpeg";
+import logo from "@/assets/images/logo-footer.png";
 
 const quickLinks = [
   { href: "/branches", label: "Branches" },
@@ -25,14 +25,16 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="flex items-center mb-5 group cursor-pointer"
+              className="flex items-center gap-3 mb-5 group"
             >
               <img
                 src={logo}
-                alt="Muscle Empire Gymnasium"
-                className="h-24 w-auto object-contain group-hover:scale-105 transition-all duration-300"
-                style={{ imageRendering: "-webkit-optimize-contrast" }}
+                alt="Muscle Empire"
+                className="h-20 w-20 object-contain"
               />
+              <span className="font-display font-black text-[1.05rem] text-[#C8900A] tracking-tight">
+                Muscle Empire®
+              </span>
             </button>
             <p className="text-black text-[0.85rem] leading-relaxed mb-6">
               Ghatkopar's premier hardcore training facility. We provide the iron, you provide the dedication.
