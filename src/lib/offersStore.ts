@@ -1,7 +1,7 @@
 import type { Offer } from "@/data/offers";
 import { activeOffers } from "@/data/offers";
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJqmbK8TXYAv5wJpTLnklsiX1MJll_4kUZYaZ0nbGLnBkobv2ItznhQVPsx4WjXGyKXw/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzburNkT_FbOji-5r1bnQywG9TQakAwdOSRgtQZVRQNXFQ_hpjDzQqDQfOvTA9wqW7xpQ/exec";
 const T = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 const CACHE_KEY = "me_offers_v2";
 const CACHE_TS_KEY = "me_offers_ts";
@@ -97,6 +97,7 @@ export function removeOffer(id: string): void {
 export function updateOffer(id: string, updated: Partial<Offer>): void {
   _save(readCache().map(o => o.id === id ? { ...o, ...updated } : o));
 }
+
 
 
 
