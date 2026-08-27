@@ -1,5 +1,4 @@
 import type { Offer } from "@/data/offers";
-import type { Offer } from "@/data/offers";
 import { activeOffers } from "@/data/offers";
 
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzt16aWEy6Wq9Unm8mgCL-0V9dp3CEBcB3kNAqWtaFu9Q9_-tAlWyTjGSiRbtMSkGo60Q/exec";
