@@ -31,16 +31,16 @@ export default function Navbar() {
       <a
         href="/"
         onClick={e => { e.preventDefault(); navigate("/"); }}
-        className="flex items-center group select-none"
+        className="flex items-center gap-3 group select-none"
       >
-        <div className="relative shrink-0 flex items-center">
+        <div className="relative shrink-0">
           <img
             src={logo}
-            alt="Muscle Empire Gymnasium"
-            className="h-16 md:h-20 w-auto object-contain drop-shadow-[0_4px_16px_rgba(232,168,32,0.4)] group-hover:scale-105 transition-all duration-300"
-            style={{ imageRendering: "-webkit-optimize-contrast" }}
+            alt="Muscle Empire"
+            className="relative h-24 w-24 object-contain"
           />
         </div>
+
       </a>
     </motion.div>
   );
