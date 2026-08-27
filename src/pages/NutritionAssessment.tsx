@@ -706,16 +706,15 @@ export default function NutritionAssessment() {
                           </button>
                         )}
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
                           <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
                           <input type="time" value={shift.from}
                             onChange={e => { const u = [...shifts]; u[idx] = { ...u[idx], from: e.target.value }; setShifts(u); }}
                             className={inp()} />
                           {shift.from && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">⏰ {formatTime12h(shift.from)}</span>}
                         </div>
-                        <span className="text-[#F2EFE9]/40 text-xs font-bold uppercase tracking-wider shrink-0 mt-3">to</span>
-                        <div className="flex-1">
+                        <div>
                           <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
                           <input type="time" value={shift.to}
                             onChange={e => { const u = [...shifts]; u[idx] = { ...u[idx], to: e.target.value }; setShifts(u); }}
@@ -737,28 +736,33 @@ export default function NutritionAssessment() {
 
           <div>
             <Label>Rest time <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
-            <div className="flex items-center gap-3">
-              <input
-                type="time"
-                value={form.restTimeFrom}
-                onChange={e => {
-                  set("restTimeFrom", e.target.value);
-                  const to = form.restTimeTo;
-                  set("restTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
-                }}
-                className={inp()}
-              />
-              <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
-              <input
-                type="time"
-                value={form.restTimeTo}
-                onChange={e => {
-                  set("restTimeTo", e.target.value);
-                  const from = form.restTimeFrom;
-                  set("restTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
-                }}
-                className={inp()}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                <input
+                  type="time"
+                  value={form.restTimeFrom}
+                  onChange={e => {
+                    set("restTimeFrom", e.target.value);
+                    const to = form.restTimeTo;
+                    set("restTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                  }}
+                  className={inp()}
+                />
+              </div>
+              <div>
+                <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                <input
+                  type="time"
+                  value={form.restTimeTo}
+                  onChange={e => {
+                    set("restTimeTo", e.target.value);
+                    const from = form.restTimeFrom;
+                    set("restTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                  }}
+                  className={inp()}
+                />
+              </div>
             </div>
             {form.restTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.restTime)}</span>}
           </div>
@@ -766,55 +770,65 @@ export default function NutritionAssessment() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>College timing <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="time"
-                  value={form.collegeTimeFrom}
-                  onChange={e => {
-                    set("collegeTimeFrom", e.target.value);
-                    const to = form.collegeTimeTo;
-                    set("collegeTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
-                  }}
-                  className={inp()}
-                />
-                <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
-                <input
-                  type="time"
-                  value={form.collegeTimeTo}
-                  onChange={e => {
-                    set("collegeTimeTo", e.target.value);
-                    const from = form.collegeTimeFrom;
-                    set("collegeTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
-                  }}
-                  className={inp()}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                  <input
+                    type="time"
+                    value={form.collegeTimeFrom}
+                    onChange={e => {
+                      set("collegeTimeFrom", e.target.value);
+                      const to = form.collegeTimeTo;
+                      set("collegeTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                    }}
+                    className={inp()}
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                  <input
+                    type="time"
+                    value={form.collegeTimeTo}
+                    onChange={e => {
+                      set("collegeTimeTo", e.target.value);
+                      const from = form.collegeTimeFrom;
+                      set("collegeTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                    }}
+                    className={inp()}
+                  />
+                </div>
               </div>
               {form.collegeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.collegeTime)}</span>}
             </div>
             <div>
               <Label>Work timing <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="time"
-                  value={form.workTimeFrom}
-                  onChange={e => {
-                    set("workTimeFrom", e.target.value);
-                    const to = form.workTimeTo;
-                    set("workTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
-                  }}
-                  className={inp()}
-                />
-                <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
-                <input
-                  type="time"
-                  value={form.workTimeTo}
-                  onChange={e => {
-                    set("workTimeTo", e.target.value);
-                    const from = form.workTimeFrom;
-                    set("workTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
-                  }}
-                  className={inp()}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                  <input
+                    type="time"
+                    value={form.workTimeFrom}
+                    onChange={e => {
+                      set("workTimeFrom", e.target.value);
+                      const to = form.workTimeTo;
+                      set("workTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                    }}
+                    className={inp()}
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                  <input
+                    type="time"
+                    value={form.workTimeTo}
+                    onChange={e => {
+                      set("workTimeTo", e.target.value);
+                      const from = form.workTimeFrom;
+                      set("workTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                    }}
+                    className={inp()}
+                  />
+                </div>
               </div>
               {form.workTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.workTime)}</span>}
             </div>
@@ -862,28 +876,33 @@ export default function NutritionAssessment() {
 
               <div>
                 <Label>Workout time <span className="text-red-400">*</span></Label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="time"
-                    value={form.workoutTimeFrom}
-                    onChange={e => {
-                      set("workoutTimeFrom", e.target.value);
-                      const to = form.workoutTimeTo;
-                      set("workoutTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
-                    }}
-                    className={inp(errors.workoutTime)}
-                  />
-                  <span className="text-[#F2EFE9]/50 text-xs font-bold uppercase tracking-wider shrink-0">to</span>
-                  <input
-                    type="time"
-                    value={form.workoutTimeTo}
-                    onChange={e => {
-                      set("workoutTimeTo", e.target.value);
-                      const from = form.workoutTimeFrom;
-                      set("workoutTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
-                    }}
-                    className={inp(errors.workoutTime)}
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
+                    <input
+                      type="time"
+                      value={form.workoutTimeFrom}
+                      onChange={e => {
+                        set("workoutTimeFrom", e.target.value);
+                        const to = form.workoutTimeTo;
+                        set("workoutTime", e.target.value && to ? `${e.target.value} to ${to}` : "");
+                      }}
+                      className={inp(errors.workoutTime)}
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
+                    <input
+                      type="time"
+                      value={form.workoutTimeTo}
+                      onChange={e => {
+                        set("workoutTimeTo", e.target.value);
+                        const from = form.workoutTimeFrom;
+                        set("workoutTime", from && e.target.value ? `${from} to ${e.target.value}` : "");
+                      }}
+                      className={inp(errors.workoutTime)}
+                    />
+                  </div>
                 </div>
                 {form.workoutTime && form.workoutTime !== "No workout" && (
                   <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.workoutTime)}</span>
