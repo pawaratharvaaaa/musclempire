@@ -205,7 +205,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       if (Array.isArray(attempt)) parsed = attempt;
     } catch { /* not JSON */ }
 
-    // Fallback: try breakfast field (in case data was saved to wrong column previously)
+    // Fallback: try breakfast field
     if (parsed.length === 0) {
       const bfRaw = (rec as Record<string, unknown>)["breakfast"] as string || "";
       try {
@@ -214,9 +214,24 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       } catch { /* not JSON */ }
     }
 
+    // Fallback: for old shifted rows, meal JSON ended up in the status field
+    if (parsed.length === 0) {
+      const statusRaw = String((rec as Record<string, unknown>)["status"] ?? "");
+      if (statusRaw.startsWith("[")) {
+        try {
+          const attempt = JSON.parse(statusRaw);
+          if (Array.isArray(attempt)) parsed = attempt;
+        } catch { /* not JSON */ }
+      }
+    }
+
     setMeals(parsed);
     const e: Record<string, string> = {};
-    EXTRA_FIELDS.forEach(f => { e[f.key] = (rec as Record<string, unknown>)[f.key] as string || ""; });
+    const isReal = (v: string) => !!v && !v.includes("GMT") && !v.includes("1899") && !v.startsWith("[") && !v.startsWith("{") && v !== "--" && v !== "0" && v !== "undefined" && v !== "null";
+    EXTRA_FIELDS.forEach(f => {
+      const val = String((rec as Record<string, unknown>)[f.key] ?? "").trim();
+      e[f.key] = isReal(val) ? val : "";
+    });
     setExtras(e);
     // Mark initial loading complete after setting initial state
     setTimeout(() => { isLoaded.current = true; }, 100);
