@@ -165,7 +165,6 @@ export default function Testimonials() {
             <Star key={i} size={20} className="fill-[#E8A820] text-[#E8A820]" />
           ))}
           <span className="ml-2 font-black text-[#1C1C1E] text-lg">5.0</span>
-          <span className="ml-1 text-[#888] text-sm">({reviews.length} reviews)</span>
         </div>
 
         <motion.a

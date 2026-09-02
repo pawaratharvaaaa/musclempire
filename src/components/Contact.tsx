@@ -144,6 +144,9 @@ export default function Contact() {
                   <a href="tel:+919773053632" className="text-white font-semibold text-sm hover:text-[#E8A820] transition-colors">
                     +91 97730 53632
                   </a>
+                  <a href="tel:+919702268603" className="text-white font-semibold text-sm hover:text-[#E8A820] transition-colors block mt-0.5">
+                    +91 97022 68603
+                  </a>
                 </div>
               </div>
 

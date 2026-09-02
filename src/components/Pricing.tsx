@@ -610,7 +610,7 @@ export default function Pricing() {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             />
             <motion.div
-              className="relative w-full sm:max-w-md rounded-[24px] z-10 overflow-hidden"
+              className="relative w-full sm:max-w-md rounded-[24px] z-10 overflow-y-auto max-h-[90vh]"
               style={{ background: "#18181a", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 40px 100px rgba(0,0,0,0.8)" }}
               initial={{ opacity: 0, scale: 0.95, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 16 }}
               transition={{ type: "spring", stiffness: 320, damping: 34 }}

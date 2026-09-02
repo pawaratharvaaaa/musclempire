@@ -347,8 +347,11 @@ export default function Branches() {
                           <Phone size={18} className="text-[#E8A820] shrink-0 mt-0.5" />
                           <div>
                             <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block mb-0.5">Direct Line</span>
-                            <a href={`tel:${branch.phone.replace(/\s/g, "")}`} className="text-white font-bold hover:text-[#E8A820] transition-colors">
+                            <a href={`tel:${branch.phone.replace(/\s/g, "")}`} className="text-white font-bold hover:text-[#E8A820] transition-colors block">
                               {branch.phone}
+                            </a>
+                            <a href="tel:+919702268603" className="text-white font-bold hover:text-[#E8A820] transition-colors block">
+                              +91 97022 68603
                             </a>
                           </div>
                         </div>
