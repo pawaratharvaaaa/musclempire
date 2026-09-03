@@ -328,20 +328,15 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
     doc.text("Office : - 9137870108  |  Sagar Kharat : -  9773053632  |  8779682084  |  9702268603", margin + 31, y + 22);
-    doc.setFontSize(7.5);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-    doc.text("youtube.com/channel/UC2TR2swESxsOrOYKHN146LQ", margin + 31, y + 28);
 
-    y += 36;
+    y += 30;
     doc.setLineWidth(0.6);
     doc.setDrawColor(0, 0, 0);
     doc.line(margin, y, W - margin, y);
     y += 5;
 
     // --- CONTINUOUS SIDE-BY-SIDE FIELD RENDERING (Fills Entire Page Width - Zero Blank Space) ---
-    doc.setFontSize(8.5);
-    const rowGap = 6.0;
+    doc.setFontSize(8);
     const bfStr = getBodyFatStr(customer.bmi, customer.age, customer.gender);
 
     const rawFields: Array<{ label: string; val: string }> = [
@@ -378,32 +373,45 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       return v && v !== "--" && v !== "0" && v !== "undefined" && v !== "null" && v !== "N/A";
     });
 
-    let cx = margin;
-    const minGap = 7; // Horizontal gap between fields on the same line
+    // --- 3-COLUMN DETAILS GRID ---
+    doc.setFontSize(8);
+    const col1X = margin;
+    const col2X = margin + (usableW / 3);
+    const col3X = margin + (usableW / 3) * 2;
+    const rowH = 6.5;
 
-    fieldsToDraw.forEach((item) => {
-      const valStr = String(item.val || "").trim() || "--";
-      doc.setFont("helvetica", "bold");
-      const labelW = doc.getTextWidth(item.label);
-      doc.setFont("helvetica", "normal");
-      const valW = doc.getTextWidth(valStr);
-      const itemW = labelW + valW;
+    // Group fields into rows of 3
+    for (let i = 0; i < fieldsToDraw.length; i += 3) {
+      const cells = [fieldsToDraw[i], fieldsToDraw[i + 1], fieldsToDraw[i + 2]];
+      const colXs = [col1X, col2X, col3X];
+      const colW = usableW / 3 - 2;
 
-      // Wrap line if field exceeds right margin
-      if (cx > margin && cx + itemW > W - margin) {
-        cx = margin;
-        y += rowGap;
+      cells.forEach((cell, ci) => {
+        if (!cell) return;
+        const x = colXs[ci];
+        const valStr = String(cell.val || "").trim() || "--";
+
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text(cell.label, x, y);
+
+        doc.setFont("helvetica", "normal");
+        // Truncate long values to fit column
+        let display = valStr;
+        while (doc.getTextWidth(display) > colW - doc.getTextWidth(cell.label) && display.length > 4) {
+          display = display.slice(0, -4) + "...";
+        }
+        doc.text(display, x + doc.getTextWidth(cell.label), y);
+      });
+
+      y += rowH;
+
+      // New page if needed
+      if (y > 270) {
+        doc.addPage();
+        y = 15;
       }
-
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(0, 0, 0);
-      doc.text(item.label, cx, y);
-
-      doc.setFont("helvetica", "normal");
-      doc.text(valStr, cx + labelW, y);
-
-      cx += itemW + minGap;
-    });
+    }
 
     y += 7;
     doc.setLineWidth(0.6);

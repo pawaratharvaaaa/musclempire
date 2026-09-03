@@ -444,7 +444,7 @@ export default function Pricing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "0px" }}
               transition={{ delay: 0, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              className="group relative flex flex-col rounded-[22px] p-6 border transition-all duration-300 overflow-hidden hover:-translate-y-1 bg-[#0a1a10]/90 border-green-500/20 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-green-500/40 hover:shadow-[0_20px_50px_rgba(34,197,94,0.15)] font-sans flex-1"
+              className="group relative flex flex-col rounded-[22px] p-6 border transition-all duration-300 hover:-translate-y-1 bg-[#0a1a10]/90 border-green-500/20 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-green-500/40 hover:shadow-[0_20px_50px_rgba(34,197,94,0.15)] font-sans flex-1"
             >
               {/* Tint Overlay for contrast */}
               <div className="absolute inset-0 -z-10 rounded-[22px] transition-opacity duration-300 pointer-events-none bg-gradient-to-b from-[#0a1a10]/85 via-[#0a1a10]/95 to-[#0a1a10]" />
@@ -525,7 +525,7 @@ export default function Pricing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "0px" }}
               transition={{ delay: 0, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              className="group relative flex flex-col rounded-[22px] p-6 border transition-all duration-300 overflow-hidden hover:-translate-y-1 bg-[#0a1424]/90 border-blue-500/20 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-blue-500/40 hover:shadow-[0_20px_50px_rgba(59,130,246,0.15)] font-sans flex-1"
+              className="group relative flex flex-col rounded-[22px] p-6 border transition-all duration-300 hover:-translate-y-1 bg-[#0a1424]/90 border-blue-500/20 shadow-[0_0_50px_rgba(0,0,0,0.3)] hover:border-blue-500/40 hover:shadow-[0_20px_50px_rgba(59,130,246,0.15)] font-sans flex-1"
             >
               {/* Tint Overlay for contrast */}
               <div className="absolute inset-0 -z-10 rounded-[22px] transition-opacity duration-300 pointer-events-none bg-gradient-to-b from-[#0a1424]/85 via-[#0a1424]/95 to-[#0a1424]" />
