@@ -24,9 +24,8 @@ export default function CouponClaimModal({ isOpen, onClose, offer }: CouponClaim
   const [, navigate] = useLocation();
 
   if (!isOpen || !offer) return null;
-  if (!offer.couponCode) return null; // Don't show modal if no coupon code
 
-  const couponCode = offer.couponCode.trim().toUpperCase();
+  const couponCode = offer.couponCode?.trim().toUpperCase() || "";
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(couponCode);
