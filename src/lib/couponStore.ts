@@ -63,8 +63,21 @@ function pushToSheets(coupons: Coupon[]): void {
 
 // ── Public API (all synchronous for instant UI) ──────────────────────────────
 
+const DEFAULT_COUPONS: Coupon[] = [
+  { id: "c_default_1", code: "MUSCLEMPIRE25", discount: 25, plans: [], enabled: true, description: "New Member Special 25% OFF" },
+  { id: "c_default_2", code: "CROSSFIT20", discount: 20, plans: [], enabled: true, description: "CrossFit Power Pass 20% OFF" },
+  { id: "c_default_3", code: "FEMALEFIT", discount: 20, plans: [], enabled: true, description: "Women's Transformation Deal 20% OFF" },
+  { id: "c_default_4", code: "WELCOME10", discount: 10, plans: [], enabled: true, description: "Welcome Discount 10% OFF" },
+];
+
 export function getCoupons(): Coupon[] {
-  return readCache();
+  const cached = readCache();
+  if (cached.length === 0) {
+    writeCache(DEFAULT_COUPONS);
+    pullFromSheets();
+    return DEFAULT_COUPONS;
+  }
+  return cached;
 }
 
 function _save(coupons: Coupon[]): void {
@@ -107,9 +120,28 @@ export function ensureCouponExists(code: string, discount = 25, description?: st
 }
 
 export function validateCoupon(code: string, planName: string): { discount: number; coupon: Coupon } | null {
-  const coupon = getCoupons().find(c => c.code === code.toUpperCase().trim() && c.enabled);
+  const cleanCode = code.toUpperCase().trim();
+  if (!cleanCode) return null;
+
+  let coupons = getCoupons();
+  let coupon = coupons.find(c => c.code === cleanCode && c.enabled);
+
+  // If not found in coupon store, check active offers in localStorage as fallback
+  if (!coupon) {
+    try {
+      const activeOffers = JSON.parse(localStorage.getItem("me_offers_v2") || "[]");
+      const matchedOffer = activeOffers.find((o: any) => o.couponCode && o.couponCode.toUpperCase().trim() === cleanCode && o.status !== "expired");
+      if (matchedOffer) {
+        const discNum = parseInt((matchedOffer.discount || "").replace(/\D/g, ""), 10) || 20;
+        ensureCouponExists(cleanCode, discNum, `${matchedOffer.title} Offer Coupon`);
+        coupons = getCoupons();
+        coupon = coupons.find(c => c.code === cleanCode && c.enabled);
+      }
+    } catch {}
+  }
+
   if (!coupon) return null;
-  if (coupon.plans.length > 0 && !coupon.plans.includes(planName)) return null;
+  if (coupon.plans && coupon.plans.length > 0 && !coupon.plans.includes(planName)) return null;
   return { discount: coupon.discount, coupon };
 }
 

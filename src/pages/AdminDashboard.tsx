@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { fetchSubmissions, deleteRecord, type AssessmentData } from "@/lib/sheets";
+import { fetchSubmissions, deleteRecord, normalizeAssessment, type AssessmentData } from "@/lib/sheets";
 import { Search, RefreshCw, Users, Clock, CheckCircle2, AlertCircle, LogOut, Trash2, Activity, Image as ImageIcon, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
@@ -63,36 +63,7 @@ export default function AdminDashboard() {
   const load = async (force = false) => {
     setLoading(true);
     const items = await fetchSubmissions(force);
-    const fixed = items.map(row => {
-      // Detect shifted row: foodPref contains a date string (cols shifted by 2 due to duty/restTime added later)
-      const foodPrefVal = String(row.foodPref || "");
-      const earlyMorningVal = String(row.earlyMorning || "");
-      // Skip shift fix if earlyMorning already has valid meal JSON
-      const earlyMorningHasMeals = earlyMorningVal.startsWith("[") && earlyMorningVal.includes("meal");
-      const isShifted = !earlyMorningHasMeals && (foodPrefVal.includes("GMT") || foodPrefVal.includes("1899") || foodPrefVal.match(/^\d{2}:\d{2}/) !== null);
-      if (isShifted) {
-        return {
-          ...row,
-          duty: "",
-          restTime: "",
-          targetWeight: String(row.targetWeight || ""),
-          weightChange: String(row.weightChange || ""),
-          foodPref: String(row.targetWeight || ""),
-          collegeTime: String(row.weightChange || ""),
-          workTime: "",
-          medicalConditions: String(row.collegeTime || ""),
-          allergies: String(row.workTime || ""),
-          supplements: String(row.medicalConditions || ""),
-          goals: String(row.allergies || ""),
-          remarks: String(row.supplements || ""),
-          status: String(row.goals || "New"),
-          foodHistory: String(row.remarks || ""),
-          // Preserve earlyMorning if it has meal JSON, otherwise take from status
-          earlyMorning: earlyMorningHasMeals ? row.earlyMorning : String(row.status || ""),
-        };
-      }
-      return row;
-    });
+    const fixed = items.map(normalizeAssessment);
     setData(fixed);
     setLoading(false);
   };
@@ -241,12 +212,15 @@ export default function AdminDashboard() {
                   </thead>
                   <tbody>
                     {filtered.map((row, idx) => (
-                      <tr key={`${row._arrayIndex}-${idx}`}
+                      <tr
+                        key={`${row._arrayIndex}-${idx}`}
                         className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
                         onClick={() => {
                           setSelectedAssessment(row);
                           navigate(`/sagarkharat/customer/${row._rowIndex ?? row._arrayIndex}`);
-                        }}>                        <td className="px-4 py-3 font-bold text-white">{row.name}</td>
+                        }}
+                      >
+                        <td className="px-4 py-3 font-bold text-white">{row.name}</td>
                         <td className="px-4 py-3 text-white/60">{row.phone}</td>
                         <td className="px-4 py-3 text-white/60">{formatDate(row.date)}</td>
                         <td className="px-4 py-3 text-white/60">{row.bmi}</td>

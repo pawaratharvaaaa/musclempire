@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import NumberFlow from "@number-flow/react";
 import { Dumbbell, Users, ArrowRight, Check, Award, X } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import unisexBg from "@/assets/images/unisex-bg.png";
 import femaleBg from "@/assets/images/female-bg.png";
 import { PricingModal } from "@/components/ui/pricing-table";
@@ -336,6 +336,20 @@ export default function Pricing() {
   const [, navigate] = useLocation();
   const [modalGym, setModalGym] = useState<{gym: typeof gyms[0], planType: PlanType} | null>(null);
   const [ptModalOpen, setPtModalOpen] = useState(false);
+
+  // Auto-open pricing modal if user claimed a coupon offer
+  useEffect(() => {
+    const handleAutoClaim = () => {
+      const code = sessionStorage.getItem("auto_apply_coupon");
+      if (code) {
+        setModalGym({ gym: gyms[0], planType: "gym" });
+      }
+    };
+
+    handleAutoClaim();
+    window.addEventListener("autoClaimOffer", handleAutoClaim);
+    return () => window.removeEventListener("autoClaimOffer", handleAutoClaim);
+  }, []);
 
   // Coupon states for Dietitian and PT cards
   const [dietCoupon, setDietCoupon] = useState("");

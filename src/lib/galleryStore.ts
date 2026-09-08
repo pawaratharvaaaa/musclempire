@@ -12,15 +12,39 @@ const CACHE_TTL = 60 * 1000; // 1 min
 export interface GalleryImage { id: string; src: string; alt: string; }
 export interface GalleryVideo { id: string; src: string; alt: string; thumbnail?: string; }
 
+export function dedupeImages(images: GalleryImage[]): GalleryImage[] {
+  const seenIds = new Set<string>();
+  const seenSrcs = new Set<string>();
+  return images.filter(img => {
+    const normSrc = (img.src || "").trim().toLowerCase();
+    if (!normSrc) return false;
+    if (seenIds.has(img.id) || seenSrcs.has(normSrc)) return false;
+    seenIds.add(img.id);
+    seenSrcs.add(normSrc);
+    return true;
+  });
+}
+
+export function dedupeVideos(videos: GalleryVideo[]): GalleryVideo[] {
+  const seenIds = new Set<string>();
+  const seenSrcs = new Set<string>();
+  return videos.filter(vid => {
+    const normSrc = (vid.src || "").trim().toLowerCase();
+    if (!normSrc) return false;
+    if (seenIds.has(vid.id) || seenSrcs.has(normSrc)) return false;
+    seenIds.add(vid.id);
+    seenSrcs.add(normSrc);
+    return true;
+  });
+}
+
 // ── localStorage helpers ─────────────────────────────────────────────────────
 
 function getLocalImages(): GalleryImage[] {
-  try { return JSON.parse(localStorage.getItem(IMAGES_KEY) || "[]"); } catch { return []; }
+  try { return dedupeImages(JSON.parse(localStorage.getItem(IMAGES_KEY) || "[]")); } catch { return []; }
 }
 function saveLocalImages(images: GalleryImage[]): void {
-  // Deduplicate by id before saving
-  const seen = new Set<string>();
-  const deduped = images.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; });
+  const deduped = dedupeImages(images);
   localStorage.setItem(IMAGES_KEY, JSON.stringify(deduped));
   localStorage.setItem(IMAGES_TS_KEY, String(Date.now()));
 }
@@ -29,11 +53,10 @@ function isImagesCacheStale(): boolean {
 }
 
 function getLocalVideos(): GalleryVideo[] {
-  try { return JSON.parse(localStorage.getItem(VIDEOS_KEY) || "[]"); } catch { return []; }
+  try { return dedupeVideos(JSON.parse(localStorage.getItem(VIDEOS_KEY) || "[]")); } catch { return []; }
 }
 function saveLocalVideos(videos: GalleryVideo[]): void {
-  const seen = new Set<string>();
-  const deduped = videos.filter(v => { if (seen.has(v.id)) return false; seen.add(v.id); return true; });
+  const deduped = dedupeVideos(videos);
   localStorage.setItem(VIDEOS_KEY, JSON.stringify(deduped));
   localStorage.setItem(VIDEOS_TS_KEY, String(Date.now()));
 }
@@ -58,7 +81,7 @@ function saveImagesToSheets(images: GalleryImage[]): void {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action: "saveImages", token: T, data: JSON.stringify(images) }),
+    body: JSON.stringify({ action: "saveImages", token: T, data: JSON.stringify(dedupeImages(images)) }),
   }).catch(() => {});
 }
 
@@ -77,7 +100,7 @@ function saveVideosToSheets(videos: GalleryVideo[]): void {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action: "saveVideos", token: T, data: JSON.stringify(videos) }),
+    body: JSON.stringify({ action: "saveVideos", token: T, data: JSON.stringify(dedupeVideos(videos)) }),
   }).catch(() => {});
 }
 
@@ -88,9 +111,13 @@ export async function getGalleryImages(): Promise<GalleryImage[]> {
   if (isImagesCacheStale()) {
     const remote = await fetchImagesFromSheets();
     if (remote !== null) {
-      saveLocalImages(remote);
+      const deduped = dedupeImages(remote);
+      saveLocalImages(deduped);
+      if (deduped.length < remote.length) {
+        saveImagesToSheets(deduped); // Clean duplicates from Sheets
+      }
       window.dispatchEvent(new CustomEvent("galleryUpdated"));
-      return remote;
+      return deduped;
     }
   }
   return getLocalImages();
@@ -99,7 +126,11 @@ export async function getGalleryImages(): Promise<GalleryImage[]> {
 export async function syncImagesFromSheets(): Promise<void> {
   const remote = await fetchImagesFromSheets();
   if (remote !== null) {
-    saveLocalImages(remote);
+    const deduped = dedupeImages(remote);
+    saveLocalImages(deduped);
+    if (deduped.length < remote.length) {
+      saveImagesToSheets(deduped);
+    }
     window.dispatchEvent(new CustomEvent("galleryUpdated"));
   }
 }
@@ -108,12 +139,14 @@ export async function addGalleryImage(src: string, alt: string): Promise<void> {
   if (src.startsWith("data:")) throw new Error("Use a URL (imgbb.com) instead of uploading a file.");
   // Pull fresh first to avoid duplicates
   const remote = await fetchImagesFromSheets();
-  const current = remote ?? getLocalImages();
+  const current = dedupeImages(remote ?? getLocalImages());
+  const normSrc = src.trim().toLowerCase();
   // Check for duplicate src
-  if (current.find(i => i.src === src)) return;
-  current.push({ id: Date.now().toString(), src, alt });
-  saveLocalImages(current);
-  saveImagesToSheets(current);
+  if (current.find(i => i.src.trim().toLowerCase() === normSrc)) return;
+  current.push({ id: Date.now().toString(), src: src.trim(), alt: alt.trim() });
+  const deduped = dedupeImages(current);
+  saveLocalImages(deduped);
+  saveImagesToSheets(deduped);
   window.dispatchEvent(new CustomEvent("galleryUpdated"));
 }
 
@@ -121,8 +154,9 @@ export async function removeGalleryImage(id: string): Promise<void> {
   // Pull fresh from Sheets first, then remove
   const remote = await fetchImagesFromSheets();
   const current = (remote ?? getLocalImages()).filter(i => i.id !== id);
-  saveLocalImages(current);
-  saveImagesToSheets(current);
+  const deduped = dedupeImages(current);
+  saveLocalImages(deduped);
+  saveImagesToSheets(deduped);
   window.dispatchEvent(new CustomEvent("galleryUpdated"));
 }
 
@@ -132,9 +166,13 @@ export async function getGalleryVideos(): Promise<GalleryVideo[]> {
   if (isVideosCacheStale()) {
     const remote = await fetchVideosFromSheets();
     if (remote !== null) {
-      saveLocalVideos(remote);
+      const deduped = dedupeVideos(remote);
+      saveLocalVideos(deduped);
+      if (deduped.length < remote.length) {
+        saveVideosToSheets(deduped);
+      }
       window.dispatchEvent(new CustomEvent("galleryUpdated"));
-      return remote;
+      return deduped;
     }
   }
   return getLocalVideos();
@@ -143,7 +181,11 @@ export async function getGalleryVideos(): Promise<GalleryVideo[]> {
 export async function syncVideosFromSheets(): Promise<void> {
   const remote = await fetchVideosFromSheets();
   if (remote !== null) {
-    saveLocalVideos(remote);
+    const deduped = dedupeVideos(remote);
+    saveLocalVideos(deduped);
+    if (deduped.length < remote.length) {
+      saveVideosToSheets(deduped);
+    }
     window.dispatchEvent(new CustomEvent("galleryUpdated"));
   }
 }
@@ -151,19 +193,22 @@ export async function syncVideosFromSheets(): Promise<void> {
 export async function addGalleryVideo(src: string, alt: string, thumbnail?: string): Promise<void> {
   if (src.startsWith("data:")) throw new Error("Use a URL instead of uploading a file.");
   const remote = await fetchVideosFromSheets();
-  const current = remote ?? getLocalVideos();
-  if (current.find(v => v.src === src)) return;
-  current.push({ id: Date.now().toString(), src, alt, thumbnail });
-  saveLocalVideos(current);
-  saveVideosToSheets(current);
+  const current = dedupeVideos(remote ?? getLocalVideos());
+  const normSrc = src.trim().toLowerCase();
+  if (current.find(v => v.src.trim().toLowerCase() === normSrc)) return;
+  current.push({ id: Date.now().toString(), src: src.trim(), alt: alt.trim(), thumbnail });
+  const deduped = dedupeVideos(current);
+  saveLocalVideos(deduped);
+  saveVideosToSheets(deduped);
   window.dispatchEvent(new CustomEvent("galleryUpdated"));
 }
 
 export async function removeGalleryVideo(id: string): Promise<void> {
   const remote = await fetchVideosFromSheets();
   const current = (remote ?? getLocalVideos()).filter(v => v.id !== id);
-  saveLocalVideos(current);
-  saveVideosToSheets(current);
+  const deduped = dedupeVideos(current);
+  saveLocalVideos(deduped);
+  saveVideosToSheets(deduped);
   window.dispatchEvent(new CustomEvent("galleryUpdated"));
 }
 

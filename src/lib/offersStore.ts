@@ -66,7 +66,11 @@ function pushToSheets(offers: Offer[]): void {
 export function getOffers(): Offer[] {
   const cached = readCache();
   // Seed defaults if cache empty (before Sheets sync completes)
-  if (cached.length === 0) { pullOffersFromSheets(); return []; }
+  if (cached.length === 0) {
+    writeCache(activeOffers);
+    pullOffersFromSheets();
+    return activeOffers;
+  }
   return cached;
 }
 

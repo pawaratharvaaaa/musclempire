@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { fetchFresh, updateRecord, type AssessmentData } from "@/lib/sheets";
+import { fetchFresh, updateRecord, normalizeAssessment, type AssessmentData } from "@/lib/sheets";
 import { ArrowLeft, Download, MessageCircle, CheckCircle2, Save, LogOut, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
@@ -101,48 +101,7 @@ function getBodyFatStr(bmiStr: string | undefined, ageStr: string | undefined, g
 }
 
 function getNormalizedCustomer(c: AssessmentData): AssessmentData {
-  const norm = { ...c };
-
-  const isFoodPref = (val: string) => /^(vegetarian|non-vegetarian|eggetarian)$/i.test(String(val || "").trim());
-  const isTimeVal = (val: string) => /1899|GMT|:\d{2}|AM|PM/i.test(String(val || "").trim());
-
-  // Fix shifted foodPref into workTime
-  if (isFoodPref(norm.workTime) && (!norm.foodPref || norm.foodPref === "--")) {
-    norm.foodPref = norm.workTime;
-    norm.workTime = "--";
-  }
-
-  // Fix shifted workTime into medicalConditions / allergies
-  if (isTimeVal(norm.medicalConditions) && (!norm.workTime || norm.workTime === "--")) {
-    norm.workTime = norm.medicalConditions;
-    norm.medicalConditions = "--";
-  }
-
-  if (isTimeVal(norm.allergies) && (!norm.workTime || norm.workTime === "--")) {
-    norm.workTime = norm.allergies;
-    norm.allergies = "--";
-  }
-
-  // Fix shifted supplements into remarks
-  if (norm.remarks && (!norm.supplements || norm.supplements === "--")) {
-    if (norm.remarks.toLowerCase().includes("protein") || norm.remarks.toLowerCase().includes("creatine") || norm.remarks.toLowerCase().includes("vitamin")) {
-      norm.supplements = norm.remarks;
-      norm.remarks = "--";
-    }
-  }
-
-  // Fix status showing JSON meal plan data (shifted column)
-  if (norm.status && (norm.status.startsWith("[") || norm.status.startsWith("{"))) {
-    norm.status = norm.goals && !norm.goals.startsWith("[") ? norm.goals : "New";
-  }
-
-  // Fix goals showing "Completed"/"New"/"In Progress" when it should be the actual goal text
-  if (["completed","new","in progress"].includes(String(norm.goals || "").toLowerCase().trim())) {
-    norm.status = norm.goals;
-    norm.goals = norm.allergies || "--";
-  }
-
-  return norm;
+  return normalizeAssessment(c);
 }
 
 export default function AdminCustomer({ params }: { params: { id: string } }) {
@@ -196,40 +155,21 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
   }, [params.id]);
 
   function loadPlanFromRecord(rec: AssessmentData) {
-    // Meals are stored as JSON in earlyMorning field
-    const raw = (rec as Record<string, unknown>)["earlyMorning"] as string || "";
+    const r = rec as Record<string, unknown>;
+    const raw = (r["earlyMorning"] || r["Early Morning"] || r["breakfast"] || r["Breakfast"] || r["remarks"] || r["status"] || "") as string;
     let parsed: MealEntry[] = [];
-    // Try JSON parse first (new format)
-    try {
-      const attempt = JSON.parse(raw);
-      if (Array.isArray(attempt)) parsed = attempt;
-    } catch { /* not JSON */ }
-
-    // Fallback: try breakfast field
-    if (parsed.length === 0) {
-      const bfRaw = (rec as Record<string, unknown>)["breakfast"] as string || "";
+    if (typeof raw === "string" && (raw.startsWith("[") || raw.startsWith("{"))) {
       try {
-        const attempt = JSON.parse(bfRaw);
+        const attempt = JSON.parse(raw);
         if (Array.isArray(attempt)) parsed = attempt;
       } catch { /* not JSON */ }
     }
 
-    // Fallback: for old shifted rows, meal JSON ended up in the status field
-    if (parsed.length === 0) {
-      const statusRaw = String((rec as Record<string, unknown>)["status"] ?? "");
-      if (statusRaw.startsWith("[")) {
-        try {
-          const attempt = JSON.parse(statusRaw);
-          if (Array.isArray(attempt)) parsed = attempt;
-        } catch { /* not JSON */ }
-      }
-    }
-
     setMeals(parsed);
     const e: Record<string, string> = {};
-    const isReal = (v: string) => !!v && !v.includes("GMT") && !v.includes("1899") && !v.startsWith("[") && !v.startsWith("{") && v !== "--" && v !== "0" && v !== "undefined" && v !== "null";
+    const isReal = (v: string) => !!v && !v.includes("GMT") && !v.includes("1899") && !v.startsWith("[") && !v.startsWith("{") && !v.toLowerCase().includes("payment id") && v !== "--" && v !== "0" && v !== "undefined" && v !== "null";
     EXTRA_FIELDS.forEach(f => {
-      const val = String((rec as Record<string, unknown>)[f.key] ?? "").trim();
+      const val = String(r[f.key] ?? r[f.label] ?? "").trim();
       e[f.key] = isReal(val) ? val : "";
     });
     setExtras(e);
@@ -281,7 +221,6 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     const usableW = W - margin * 2;
     let y = 10;
 
-    // Helper to format long date strings (e.g. "Tue Aug 11 2026 00:00:00 GMT+...") cleanly as "DD/MM/YYYY"
     const formatPdfDate = (raw: string | undefined): string => {
       if (!raw) return new Date().toLocaleDateString("en-IN");
       const s = String(raw).trim();
@@ -299,7 +238,6 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       return s.split("T")[0] || s;
     };
 
-    // Load logo from static import (always available)
     let logoDataUrl = "";
     try {
       const response = await fetch(logoPng);
@@ -312,18 +250,15 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       });
     } catch { logoDataUrl = ""; }
 
-    // --- TOP HEADER (Logo + Title + Contacts) ---
     if (logoDataUrl) {
       doc.addImage(logoDataUrl, "PNG", margin, y, 28, 28);
     }
 
-    // Huge bold condensed uppercase title "MUSCLE EMPIRE NUTRITION" (Black & White Theme)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(21);
     doc.setTextColor(0, 0, 0);
     doc.text("MUSCLE EMPIRE NUTRITION", margin + 31, y + 12);
 
-    // Contact Numbers line
     doc.setFontSize(9.5);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
@@ -335,93 +270,116 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     doc.line(margin, y, W - margin, y);
     y += 5;
 
-    // --- CONTINUOUS SIDE-BY-SIDE FIELD RENDERING (Fills Entire Page Width - Zero Blank Space) ---
-    doc.setFontSize(8);
-    const bfStr = getBodyFatStr(customer.bmi, customer.age, customer.gender);
+    const drawSectionHeader = (title: string) => {
+      if (y > 270) { doc.addPage(); y = 12; }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(0, 0, 0);
+      doc.text(title.toUpperCase(), margin, y);
+      y += 2;
+      doc.setLineWidth(0.3);
+      doc.setDrawColor(180, 180, 180);
+      doc.line(margin, y, W - margin, y);
+      y += 4.5;
+    };
 
-    const rawFields: Array<{ label: string; val: string }> = [
-      { label: "Name : ", val: cleanText(customer.name) },
-      { label: "MF No. : ", val: String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0") },
-      { label: "Date : ", val: formatPdfDate(customer.date) },
-      { label: "Contacts No. : ", val: cleanText(customer.phone) },
-      { label: "Email : ", val: cleanText(customer.email) },
-      { label: "Age : ", val: cleanText(customer.age) },
-      { label: "Gender : ", val: cleanText(customer.gender) },
-      { label: "Weight (Kg) : ", val: customer.weight ? `${cleanText(customer.weight)} kg` : "--" },
-      { label: "Height (cms) : ", val: customer.height ? `${cleanText(customer.height)} cm` : "--" },
-      { label: "BMI : ", val: customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--" },
-      { label: "Body Fat (Est.) : ", val: bfStr },
-      { label: "Food Pref : ", val: cleanText(customer.foodPref).toUpperCase() },
-      { label: "Wake-up Time : ", val: clean(customer.wakeTime) },
-      { label: "Bed Time : ", val: clean(customer.bedTime) },
-      { label: "Sleep Duration : ", val: customer.sleepDuration ? `${cleanText(customer.sleepDuration)} hrs` : "--" },
-      { label: "Duty : ", val: cleanText(customer.duty) },
-      { label: "College Timing : ", val: clean(customer.collegeTime) },
-      { label: "Working Time : ", val: clean(customer.workTime) },
-      { label: "Rest Time : ", val: clean(customer.restTime) },
-      { label: "Workout Time : ", val: clean(customer.workoutTime) },
-      { label: "Goals : ", val: cleanText(customer.goals) },
-      { label: "Medical Conditions : ", val: cleanText(customer.medicalConditions) },
-      { label: "Allergies : ", val: cleanText(customer.allergies) },
-      { label: "Supplements : ", val: cleanText(customer.supplements) },
-      { label: "Remark : ", val: cleanText(customer.remarks) },
-    ];
+    const col1LabelX = margin;
+    const col1ValX = margin + 35;
+    const col1MaxW = 52;
 
-    // Filter out all empty / unfilled fields ("--", "", "0", "undefined", "null", "N/A")
-    const fieldsToDraw = rawFields.filter(item => {
-      const v = String(item.val || "").trim();
-      return v && v !== "--" && v !== "0" && v !== "undefined" && v !== "null" && v !== "N/A";
-    });
+    const col2LabelX = margin + 100;
+    const col2ValX = margin + 132;
+    const col2MaxW = 52;
 
-    // --- 2-COLUMN DETAILS GRID (prevents overlap) ---
-    doc.setFontSize(8);
-    const col1X = margin;
-    const col2X = margin + (usableW / 2);
-    const rowH = 6.5;
-    const colW = usableW / 2 - 4;
+    const drawRow2Col = (l1: string, v1: string, l2?: string, v2?: string) => {
+      const val1Str = String(v1 || "--").trim() || "--";
+      const val2Str = l2 ? (String(v2 || "--").trim() || "--") : "";
 
-    for (let i = 0; i < fieldsToDraw.length; i += 2) {
-      const cells = [fieldsToDraw[i], fieldsToDraw[i + 1]];
-      const colXs = [col1X, col2X];
+      doc.setFontSize(8.5);
 
-      cells.forEach((cell, ci) => {
-        if (!cell) return;
-        const x = colXs[ci];
-        const valStr = String(cell.val || "").trim() || "--";
+      const lines1 = doc.splitTextToSize(val1Str, col1MaxW) as string[];
+      const lines2 = l2 ? (doc.splitTextToSize(val2Str, col2MaxW) as string[]) : [];
 
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(0, 0, 0);
-        doc.text(cell.label, x, y);
+      const maxLines = Math.max(lines1.length, lines2.length, 1);
+      const rowHeight = maxLines * 4.5 + 1.5;
 
-        doc.setFont("helvetica", "normal");
-        // Truncate long values to fit column
-        let display = valStr;
-        const maxValW = colW - doc.getTextWidth(cell.label);
-        while (doc.getTextWidth(display) > maxValW && display.length > 4) {
-          display = display.slice(0, -4) + "...";
-        }
-        doc.text(display, x + doc.getTextWidth(cell.label), y);
+      if (y + rowHeight > 275) {
+        doc.addPage();
+        y = 12;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text(l1, col1LabelX, y);
+      doc.text(":", col1ValX - 3, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(40, 40, 40);
+      lines1.forEach((line, i) => {
+        doc.text(line, col1ValX, y + i * 4.2);
       });
 
-      y += rowH;
-
-      if (y > 270) {
-        doc.addPage();
-        y = 15;
+      if (l2) {
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text(l2, col2LabelX, y);
+        doc.text(":", col2ValX - 3, y);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(40, 40, 40);
+        lines2.forEach((line, i) => {
+          doc.text(line, col2ValX, y + i * 4.2);
+        });
       }
-    }
 
-    y += 7;
+      y += rowHeight;
+    };
+
+    const mfNoStr = String((customer._rowIndex !== undefined ? customer._rowIndex + 1 : customer.id) || "00001").padStart(5, "0");
+    const bfStr = getBodyFatStr(customer.bmi, customer.age, customer.gender);
+
+    const sanitizeRemarks = (raw: string | undefined): string => {
+      if (!raw) return "--";
+      const s = raw.trim();
+      if (s.startsWith("[") || s.startsWith("{") || /meal\s*#|breakfast|lunch|dinner|early morning|before bed|\d{1,2}\s*(am|pm)/i.test(s)) {
+        return "--";
+      }
+      return cleanText(s);
+    };
+
+    drawSectionHeader("PERSONAL DETAILS");
+    drawRow2Col("Name", cleanText(customer.name), "MF No.", mfNoStr);
+    drawRow2Col("Date", formatPdfDate(customer.date), "Contact", cleanText(customer.phone));
+    drawRow2Col("Email", cleanText(customer.email), "Age", cleanText(customer.age));
+    drawRow2Col("Gender", cleanText(customer.gender));
+    y += 2;
+
+    drawSectionHeader("BODY & FITNESS");
+    drawRow2Col("Height", customer.height ? `${cleanText(customer.height)} cm` : "--", "Weight", customer.weight ? `${cleanText(customer.weight)} kg` : "--");
+    drawRow2Col("BMI", customer.bmi ? `${cleanText(customer.bmi)} (${cleanText(customer.bmiCategory)})` : "--", "Body Fat", bfStr);
+    drawRow2Col("Goals", cleanText(customer.goals), "Workout", cleanText(customer.workoutTime));
+    y += 2;
+
+    drawSectionHeader("LIFESTYLE");
+    drawRow2Col("Wake-up Time", clean(customer.wakeTime), "Bedtime", clean(customer.bedTime));
+    drawRow2Col("Sleep Duration", customer.sleepDuration ? `${cleanText(customer.sleepDuration)} hrs` : "--", "College", clean(customer.collegeTime));
+    drawRow2Col("Working Time", clean(customer.workTime));
+    y += 2;
+
+    drawSectionHeader("HEALTH & NUTRITION");
+    drawRow2Col("Medical Conditions", cleanText(customer.medicalConditions), "Allergies", cleanText(customer.allergies));
+    drawRow2Col("Supplements", cleanText(customer.supplements), "Remark", sanitizeRemarks(customer.remarks));
+    y += 4;
+
     doc.setLineWidth(0.6);
     doc.setDrawColor(0, 0, 0);
     doc.line(margin, y, W - margin, y);
     y += 5;
 
-    // 4-column Diet table: Time(history) | Foods Items/History | Time(diet) | Suggestion (Black & White Theme)
     const histTimeW = 18;
     const histFoodW = 52;
     const dietTimeW = 22;
     const suggColW = usableW - histTimeW - histFoodW - dietTimeW;
+
+    if (y + 15 > 275) { doc.addPage(); y = 12; }
 
     doc.setFillColor(0, 0, 0);
     doc.rect(margin, y, usableW, 7, "F");
@@ -434,21 +392,29 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
 
     doc.setTextColor(0, 0, 0); doc.setFontSize(7.5); doc.setDrawColor(0, 0, 0);
 
-    const historyLines = (customer.foodHistory || "").split("\n").filter(l => l.trim());
+    let historyLines = (customer.foodHistory || "").split("\n").filter(l => l.trim() && !l.startsWith("[") && !l.startsWith("{"));
+    if (historyLines.length === 0 && meals.length > 0) {
+      historyLines = meals.map((m, idx) => `Meal #${idx + 1}: ${m.meal || "Meal"} (${m.time || ""}) - ${m.suggestion || ""}`);
+    }
+
     const dietRows = meals.filter(m => m.meal || m.suggestion);
     const maxRows = Math.max(historyLines.length, dietRows.length, 1);
 
-    // Parse food history line in format: "Meal #1: Breakfast (7:00 AM) - Oats with milk"
     const parseHistoryLine = (line: string): { time: string; food: string } => {
-      // Format: "Meal #N: MealName (TIME) - FoodDescription"
-      const mealFmt = line.match(/^Meal\s*#\d+:\s*([^(]+)\s*\(([^)]+)\)\s*-\s*(.*)/i);
+      // Format 1: "Meal #1: Early Morning (7:00 AM) - warm water"
+      const mealFmt = line.match(/^Meal\s*#\d+:\s*([^(]+)\s*\(([^)]+)\)\s*[-:]\s*(.*)/i);
       if (mealFmt) {
         return { time: mealFmt[2].trim(), food: `${mealFmt[1].trim()}: ${mealFmt[3].trim()}` };
       }
-      // Format: "7am: food" or "7:00am - food"
-      const timeFmt = line.match(/^(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*[:\-]?\s*(.*)/i);
+      // Format 2: "7am - Early Morning: warm water" or "7:30am: warm water"
+      const timeFmt = line.match(/^\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)|\d{1,2}:\d{2})\s*[-:]\s*(.*)/i);
       if (timeFmt) {
         return { time: timeFmt[1].trim(), food: timeFmt[2].trim() };
+      }
+      // Format 3: "Early Morning (7:00 AM) - warm water"
+      const labelTimeFmt = line.match(/^\s*([^(]+)\s*\(([^)]+)\)\s*[-:]\s*(.*)/i);
+      if (labelTimeFmt) {
+        return { time: labelTimeFmt[2].trim(), food: `${labelTimeFmt[1].trim()}: ${labelTimeFmt[3].trim()}` };
       }
       return { time: "", food: line.trim() };
     };
@@ -470,7 +436,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       const suggLines = doc.splitTextToSize(dietSuggSafe, suggColW - 3) as string[];
       const rowH = Math.max(7, Math.max(histFoodLines.length, dietMealLines.length, suggLines.length) * 5 + 2);
 
-      if (y + rowH > 278) { doc.addPage(); y = 15; }
+      if (y + rowH > 278) { doc.addPage(); y = 12; }
 
       if (altRow) { doc.setFillColor(245, 245, 245); doc.rect(margin, y, usableW, rowH, "F"); }
       altRow = !altRow;
@@ -491,7 +457,6 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       y += rowH;
     }
 
-    // Additional section (Black & White Theme)
     const hasExtra = EXTRA_FIELDS.some(f => extras[f.key]);
     if (hasExtra) {
       const extraColW = 45;

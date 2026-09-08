@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, Copy, Check, ArrowRight, MessageSquare, Tag, CheckCircle2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { ensureCouponExists } from "@/lib/couponStore";
 
 export interface OfferClaimData {
   title: string;
@@ -23,12 +24,22 @@ export default function CouponClaimModal({ isOpen, onClose, offer }: CouponClaim
   const [copied, setCopied] = useState(false);
   const [, navigate] = useLocation();
 
-  if (!isOpen || !offer) return null;
+  const couponCode = offer?.couponCode?.trim().toUpperCase() || "MUSCLEMPIRE25";
 
-  const couponCode = offer.couponCode?.trim().toUpperCase() || "";
+  useEffect(() => {
+    if (isOpen && offer && couponCode) {
+      const discNum = parseInt((offer.discount || "").replace(/\D/g, ""), 10) || 25;
+      ensureCouponExists(couponCode, discNum, `${offer.title} Coupon`);
+    }
+  }, [isOpen, offer, couponCode]);
+
+  if (!isOpen || !offer) return null;
 
   const handleCopyCode = () => {
     if (!couponCode) return;
+    const discNum = parseInt((offer.discount || "").replace(/\D/g, ""), 10) || 25;
+    ensureCouponExists(couponCode, discNum, `${offer.title} Coupon`);
+
     // Most reliable cross-browser copy
     const el = document.createElement("textarea");
     el.value = couponCode;
@@ -51,8 +62,16 @@ export default function CouponClaimModal({ isOpen, onClose, offer }: CouponClaim
   };
 
   const handleGoToPricing = () => {
+    const discNum = parseInt((offer.discount || "").replace(/\D/g, ""), 10) || 25;
+    ensureCouponExists(couponCode, discNum, `${offer.title} Coupon`);
     sessionStorage.setItem("auto_apply_coupon", couponCode);
     onClose();
+
+    // Notify Pricing component to automatically open Pricing Modal with coupon
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("autoClaimOffer", { detail: { couponCode } }));
+    }, 100);
+
     if (window.location.pathname === "/") {
       const el = document.querySelector("#pricing");
       if (el) {

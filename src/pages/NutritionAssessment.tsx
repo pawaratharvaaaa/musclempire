@@ -181,13 +181,28 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
       <select value={isSet ? String(min).padStart(2,"00") : "00"} onChange={e => emit(h||1, parseInt(e.target.value), period)} className={`${sel} w-16`}>
         {["00","05","10","15","20","25","30","35","40","45","50","55"].map(v=><option key={v} value={v}>{v}</option>)}
       </select>
-      <div className="flex rounded-2xl overflow-hidden border border-white/[0.10] cursor-pointer select-none" onWheel={e => { e.preventDefault(); emit(h||1, min, period === "AM" ? "PM" : "AM"); }}>
-        {(["AM","PM"] as const).map(p=>(
-          <button key={p} type="button" onClick={() => emit(h||1, min, p)}
-            className={`px-4 h-12 text-[0.85rem] font-black transition-all cursor-pointer ${period===p&&isSet ? "bg-[#E8A820] text-black" : "bg-white/[0.04] text-[#F2EFE9]/40 hover:text-[#F2EFE9]/70"}`}>
-            {p}
-          </button>
-        ))}
+      <div
+        className="flex flex-col h-12 w-16 rounded-2xl overflow-hidden border border-white/[0.10] bg-[#18181a] cursor-pointer select-none p-0.5 justify-between"
+        onWheel={e => { e.preventDefault(); emit(h||1, min, period === "AM" ? "PM" : "AM"); }}
+        title="Click or scroll mouse wheel to change AM / PM"
+      >
+        {(["AM", "PM"] as const).map(p => {
+          const active = period === p && isSet;
+          return (
+            <button
+              key={p}
+              type="button"
+              onClick={() => emit(h || 1, min, p)}
+              className={`w-full h-[21px] rounded-xl text-[10px] font-black tracking-wider transition-all duration-200 flex items-center justify-center cursor-pointer ${
+                active
+                  ? "bg-[#E8A820] text-black shadow-md scale-[1.02]"
+                  : "bg-transparent text-[#F2EFE9]/40 hover:text-[#F2EFE9]/80"
+              }`}
+            >
+              {p}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -461,7 +476,7 @@ export default function NutritionAssessment() {
       theme: { color: "#E8A820" },
       handler: async (response: { razorpay_payment_id: string }) => {
         // Payment successful — now submit the form
-        await submitAssessment({ ...payload, notes: `Payment ID: ${response.razorpay_payment_id}` });
+        await submitAssessment({ ...payload, notes: "" });
         setSubmitted(true);
         window.scrollTo(0, 0);
         // Show success popup

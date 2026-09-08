@@ -114,7 +114,6 @@ export function PricingTable({
       const cleanCode = code.trim().toUpperCase()
       setShowCoupon(true)
       setCouponInput(cleanCode)
-      validateCoupon(cleanCode, selectedPlan)
       const result = validateCoupon(cleanCode, selectedPlan)
       if (result) {
         setDiscount(result.discount)
@@ -124,7 +123,7 @@ export function PricingTable({
         setCouponStatus("invalid")
       }
     }
-  }, [selectedPlan])
+  }, [])
 
   function removeCoupon() {
     setCouponInput("")
