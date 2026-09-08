@@ -66,7 +66,10 @@ export default function AdminDashboard() {
     const fixed = items.map(row => {
       // Detect shifted row: foodPref contains a date string (cols shifted by 2 due to duty/restTime added later)
       const foodPrefVal = String(row.foodPref || "");
-      const isShifted = foodPrefVal.includes("GMT") || foodPrefVal.includes("1899") || foodPrefVal.match(/^\d{2}:\d{2}/) !== null;
+      const earlyMorningVal = String(row.earlyMorning || "");
+      // Skip shift fix if earlyMorning already has valid meal JSON
+      const earlyMorningHasMeals = earlyMorningVal.startsWith("[") && earlyMorningVal.includes("meal");
+      const isShifted = !earlyMorningHasMeals && (foodPrefVal.includes("GMT") || foodPrefVal.includes("1899") || foodPrefVal.match(/^\d{2}:\d{2}/) !== null);
       if (isShifted) {
         // Remap: cols 15-16 (duty/restTime) were inserted, shifting everything after
         return {
