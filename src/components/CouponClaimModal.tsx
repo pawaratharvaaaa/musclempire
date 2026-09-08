@@ -29,28 +29,25 @@ export default function CouponClaimModal({ isOpen, onClose, offer }: CouponClaim
 
   const handleCopyCode = () => {
     if (!couponCode) return;
+    // Most reliable cross-browser copy
+    const el = document.createElement("textarea");
+    el.value = couponCode;
+    el.setAttribute("readonly", "");
+    el.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none;";
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    el.setSelectionRange(0, 99999);
     try {
-      navigator.clipboard.writeText(couponCode).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2200);
-      }).catch(() => {
-        // Fallback for HTTP or restricted contexts
-        const el = document.createElement("textarea");
-        el.value = couponCode;
-        el.style.position = "fixed";
-        el.style.opacity = "0";
-        document.body.appendChild(el);
-        el.focus();
-        el.select();
-        document.execCommand("copy");
-        document.body.removeChild(el);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2200);
-      });
-    } catch {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
+      document.execCommand("copy");
+    } catch {}
+    document.body.removeChild(el);
+    // Also try modern API in parallel
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(couponCode).catch(() => {});
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2200);
   };
 
   const handleGoToPricing = () => {
