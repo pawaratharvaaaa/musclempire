@@ -373,18 +373,16 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
       return v && v !== "--" && v !== "0" && v !== "undefined" && v !== "null" && v !== "N/A";
     });
 
-    // --- 3-COLUMN DETAILS GRID ---
+    // --- 2-COLUMN DETAILS GRID (prevents overlap) ---
     doc.setFontSize(8);
     const col1X = margin;
-    const col2X = margin + (usableW / 3);
-    const col3X = margin + (usableW / 3) * 2;
+    const col2X = margin + (usableW / 2);
     const rowH = 6.5;
+    const colW = usableW / 2 - 4;
 
-    // Group fields into rows of 3
-    for (let i = 0; i < fieldsToDraw.length; i += 3) {
-      const cells = [fieldsToDraw[i], fieldsToDraw[i + 1], fieldsToDraw[i + 2]];
-      const colXs = [col1X, col2X, col3X];
-      const colW = usableW / 3 - 2;
+    for (let i = 0; i < fieldsToDraw.length; i += 2) {
+      const cells = [fieldsToDraw[i], fieldsToDraw[i + 1]];
+      const colXs = [col1X, col2X];
 
       cells.forEach((cell, ci) => {
         if (!cell) return;
@@ -398,7 +396,8 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
         doc.setFont("helvetica", "normal");
         // Truncate long values to fit column
         let display = valStr;
-        while (doc.getTextWidth(display) > colW - doc.getTextWidth(cell.label) && display.length > 4) {
+        const maxValW = colW - doc.getTextWidth(cell.label);
+        while (doc.getTextWidth(display) > maxValW && display.length > 4) {
           display = display.slice(0, -4) + "...";
         }
         doc.text(display, x + doc.getTextWidth(cell.label), y);
@@ -406,7 +405,6 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
 
       y += rowH;
 
-      // New page if needed
       if (y > 270) {
         doc.addPage();
         y = 15;

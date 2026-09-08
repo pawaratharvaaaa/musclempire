@@ -194,11 +194,11 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 const getTimeIcon = (timeStr: string): string => {
-  if (!timeStr) return "ΓÅ░";
+  if (!timeStr) return "⏰";
   const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return "ΓÅ░";
+  if (!match) return "⏰";
   const hours = parseInt(match[1], 10);
-  if (isNaN(hours)) return "ΓÅ░";
+  if (isNaN(hours)) return "⏰";
   return (hours >= 6 && hours < 18) ? "ΓÿÇ∩╕Å" : "≡ƒîÖ";
 };
 
@@ -460,7 +460,7 @@ export default function NutritionAssessment() {
       prefill: { name: form.name, contact: form.phone, email: form.email },
       theme: { color: "#E8A820" },
       handler: async (response: { razorpay_payment_id: string }) => {
-        // Payment successful ΓÇö now submit the form
+        // Payment successful — now submit the form
         await submitAssessment({ ...payload, notes: `Payment ID: ${response.razorpay_payment_id}` });
         setSubmitted(true);
         window.scrollTo(0, 0);
@@ -547,7 +547,7 @@ export default function NutritionAssessment() {
 
   const stepContent = () => {
     switch (step) {
-      /* Step 0 ΓÇö Personal */
+      /* Step 0 — Personal */
       case 0: return (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -646,7 +646,7 @@ export default function NutritionAssessment() {
           </div>
         </div>
       );
-      /* Step 1 ΓÇö Body */
+      /* Step 1 — Body */
       case 1: return (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -691,20 +691,20 @@ export default function NutritionAssessment() {
           )}
         </div>
       );
-      /* Step 2 ΓÇö Lifestyle */
+      /* Step 2 — Lifestyle */
       case 2: return (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Wake-up time <span className="text-red-400">*</span></Label>
               <TimeInput value={form.wakeTime} onChange={v=>set("wakeTime",v)} />
-              {form.wakeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.wakeTime)}</span>}
+              {form.wakeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.wakeTime)}</span>}
               <Err msg={errors.wakeTime} />
             </div>
             <div>
               <Label>Bed time <span className="text-red-400">*</span></Label>
               <TimeInput value={form.bedTime} onChange={v=>set("bedTime",v)} />
-              {form.bedTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.bedTime)}</span>}
+              {form.bedTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.bedTime)}</span>}
               <Err msg={errors.bedTime} />
             </div>
             <div>
@@ -749,12 +749,12 @@ export default function NutritionAssessment() {
                         <div>
                           <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
                           <TimeInput value={shift.from} onChange={v => { const u = [...shifts]; u[idx] = { ...u[idx], from: v }; setShifts(u); }} />
-                          {shift.from && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">ΓÅ░ {formatTime12h(shift.from)}</span>}
+                          {shift.from && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">⏰ {formatTime12h(shift.from)}</span>}
                         </div>
                         <div>
                           <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
                           <TimeInput value={shift.to} onChange={v => { const u = [...shifts]; u[idx] = { ...u[idx], to: v }; setShifts(u); }} />
-                          {shift.to && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">ΓÅ░ {formatTime12h(shift.to)}</span>}
+                          {shift.to && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">⏰ {formatTime12h(shift.to)}</span>}
                         </div>
                       </div>
                     </div>
@@ -780,13 +780,13 @@ export default function NutritionAssessment() {
                 <TimeInput value={form.restTimeTo} onChange={v => { set("restTimeTo", v); const from = form.restTimeFrom; set("restTime", from && v ? `${from} to ${v}` : ""); }} />
               </div>
             </div>
-            {form.restTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.restTime)}</span>}
+            {form.restTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.restTime)}</span>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>College timing <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-3">
                 <div>
                   <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
                   <TimeInput value={form.collegeTimeFrom} onChange={v => { set("collegeTimeFrom", v); const to = form.collegeTimeTo; set("collegeTime", v && to ? `${v} to ${to}` : ""); }} />
@@ -796,11 +796,11 @@ export default function NutritionAssessment() {
                   <TimeInput value={form.collegeTimeTo} onChange={v => { set("collegeTimeTo", v); const from = form.collegeTimeFrom; set("collegeTime", from && v ? `${from} to ${v}` : ""); }} />
                 </div>
               </div>
-              {form.collegeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.collegeTime)}</span>}
+              {form.collegeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.collegeTime)}</span>}
             </div>
             <div>
               <Label>Work timing <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-3">
                 <div>
                   <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
                   <TimeInput value={form.workTimeFrom} onChange={v => { set("workTimeFrom", v); const to = form.workTimeTo; set("workTime", v && to ? `${v} to ${to}` : ""); }} />
@@ -810,7 +810,7 @@ export default function NutritionAssessment() {
                   <TimeInput value={form.workTimeTo} onChange={v => { set("workTimeTo", v); const from = form.workTimeFrom; set("workTime", from && v ? `${from} to ${v}` : ""); }} />
                 </div>
               </div>
-              {form.workTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.workTime)}</span>}
+              {form.workTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.workTime)}</span>}
             </div>
           </div>
 
@@ -867,7 +867,7 @@ export default function NutritionAssessment() {
                   </div>
                 </div>
                 {form.workoutTime && form.workoutTime !== "No workout" && (
-                  <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.workoutTime)}</span>
+                  <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(form.workoutTime)}</span>
                 )}
                 <Err msg={errors.workoutTime} />
               </div>
@@ -876,7 +876,7 @@ export default function NutritionAssessment() {
         </div>
       );
 
-      /* Step 3 ΓÇö Diet & schedule */
+      /* Step 3 — Diet & schedule */
       case 3: return (
         <div className="space-y-5">
           <div>
@@ -891,7 +891,7 @@ export default function NutritionAssessment() {
         </div>
       );
 
-      /* Step 4 ΓÇö Health */
+      /* Step 4 — Health */
       case 4: return (
         <div className="space-y-5">
           {(["medicalConditions","allergies","supplements"] as const).map((key,i)=>(
@@ -907,7 +907,7 @@ export default function NutritionAssessment() {
           ))}
         </div>
       );
-      /* Step 5 ΓÇö Goals */
+      /* Step 5 — Goals */
       case 5: return (
         <div className="space-y-5">
           <div>
@@ -942,7 +942,7 @@ export default function NutritionAssessment() {
         </div>
       );
 
-      /* Step 6 ΓÇö Food history */
+      /* Step 6 — Food history */
       case 6: return (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
@@ -989,7 +989,7 @@ export default function NutritionAssessment() {
                     <div>
                       <Label>Meal Time <span className="text-red-400">*</span></Label>
                       <TimeInput value={m.time} onChange={v => updateMeal(idx, "time", v)} />
-                      {m.time && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(m.time)}</span>}
+                      {m.time && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">⏰ {formatTime12h(m.time)}</span>}
                     </div>
                   </div>
                   <div>
@@ -1008,14 +1008,14 @@ export default function NutritionAssessment() {
           <Err msg={errors.foodHistory} />
         </div>
       );
-      /* Step 7 ΓÇö Review & submit */
+      /* Step 7 — Review & submit */
       case 7: {
         const rows: [string, string][] = [
           ["Name", form.name], ["Phone", `+91 ${form.phone}`], ["Email", form.email],
           ["Age", form.age], ...(form.gender ? [["Gender", form.gender] as [string,string]] : []),
           ["Weight", `${form.weight} kg`], ["Height", `${form.height} cm`],
-          ...(bmiVal ? [["BMI", `${bmiVal.toFixed(1)} ΓÇö ${bmiCat?.label}`] as [string,string]] : []),
-          ...(bfVal ? [["Body Fat (Est.)", `${bfVal.toFixed(1)}% ΓÇö ${bfCat?.label}`] as [string,string]] : []),
+          ...(bmiVal ? [["BMI", `${bmiVal.toFixed(1)} — ${bmiCat?.label}`] as [string,string]] : []),
+          ...(bfVal ? [["Body Fat (Est.)", `${bfVal.toFixed(1)}% — ${bfCat?.label}`] as [string,string]] : []),
           ...(form.wakeTime ? [["Wake-up", formatTime12h(form.wakeTime)] as [string,string]] : []),
           ...(form.bedTime ? [["Bed time", formatTime12h(form.bedTime)] as [string,string]] : []),
           ...(form.sleepDuration ? [["Sleep", `${form.sleepDuration} hrs`] as [string,string]] : []),
@@ -1032,7 +1032,7 @@ export default function NutritionAssessment() {
           ...(form.supplements ? [["Supplements", form.supplements] as [string,string]] : []),
           ["Goals", [...form.goals, form.otherGoal ? `Other: ${form.otherGoal}` : ""].filter(Boolean).join(", ")],
           ...(form.remarks ? [["Remarks", form.remarks] as [string,string]] : []),
-          ["Food history", form.foodHistory.substring(0,120) + (form.foodHistory.length > 120 ? "ΓÇª" : "")],
+          ["Food history", form.foodHistory.substring(0,120) + (form.foodHistory.length > 120 ? "…" : "")],
         ];
         return (
           <div className="space-y-5">
@@ -1063,13 +1063,13 @@ export default function NutritionAssessment() {
               <div className="text-right">
                 {dietNutrCouponDiscount > 0 ? (
                   <>
-                    <p className="text-[0.85rem] text-white/30 line-through">Γé╣800</p>
-                    <p className="text-[1.6rem] font-black text-white leading-none">Γé╣{Math.round(800 * (1 - dietNutrCouponDiscount / 100))}</p>
+                    <p className="text-[0.85rem] text-white/30 line-through">₹800</p>
+                    <p className="text-[1.6rem] font-black text-white leading-none">₹{Math.round(800 * (1 - dietNutrCouponDiscount / 100))}</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-[0.85rem] text-white/30 line-through">Γé╣1,200</p>
-                    <p className="text-[1.6rem] font-black text-white leading-none">Γé╣800</p>
+                    <p className="text-[0.85rem] text-white/30 line-through">₹1,200</p>
+                    <p className="text-[1.6rem] font-black text-white leading-none">₹800</p>
                   </>
                 )}
                 <p className="text-[11px] text-white/35 mt-0.5">one-time</p>
@@ -1182,7 +1182,7 @@ export default function NutritionAssessment() {
               </div>
             </div>
 
-            {/* Card body ΓÇö animated */}
+            {/* Card body — animated */}
             <div className="px-7 py-7 overflow-hidden" onKeyDown={(e) => {
               if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
                 e.preventDefault();
@@ -1207,7 +1207,7 @@ export default function NutritionAssessment() {
               </AnimatePresence>
             </div>
 
-            {/* Card footer ΓÇö navigation */}
+            {/* Card footer — navigation */}
             <div className="px-7 py-5 border-t border-white/[0.06] flex items-center justify-between gap-4">
               {step > 0 ? (
                 <button type="button" onClick={goPrev}
@@ -1224,7 +1224,7 @@ export default function NutritionAssessment() {
               ) : (
                 <button type="button" onClick={handleSubmit}
                   className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-bold text-[0.9rem] transition-all hover:shadow-[0_4px_20px_rgba(34,197,94,0.40)] hover:-translate-y-0.5">
-                  Pay {dietNutrCouponDiscount > 0 ? `Γé╣${Math.round(800 * (1 - dietNutrCouponDiscount / 100))}` : "Γé╣800"} &amp; Submit
+                  Pay {dietNutrCouponDiscount > 0 ? `₹${Math.round(800 * (1 - dietNutrCouponDiscount / 100))}` : "₹800"} &amp; Submit
                 </button>
               )}
             </div>

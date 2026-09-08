@@ -71,24 +71,24 @@ export default function AdminDashboard() {
       const earlyMorningHasMeals = earlyMorningVal.startsWith("[") && earlyMorningVal.includes("meal");
       const isShifted = !earlyMorningHasMeals && (foodPrefVal.includes("GMT") || foodPrefVal.includes("1899") || foodPrefVal.match(/^\d{2}:\d{2}/) !== null);
       if (isShifted) {
-        // Remap: cols 15-16 (duty/restTime) were inserted, shifting everything after
         return {
           ...row,
           duty: "",
           restTime: "",
-          targetWeight: String(row.targetWeight || ""),   // was foodPref → now targetWeight (off by 2)
+          targetWeight: String(row.targetWeight || ""),
           weightChange: String(row.weightChange || ""),
-          foodPref: String(row.targetWeight || ""),       // foodPref is actually in targetWeight slot
+          foodPref: String(row.targetWeight || ""),
           collegeTime: String(row.weightChange || ""),
-          workTime: String(row.foodPref || ""),           // skip date value
+          workTime: "",
           medicalConditions: String(row.collegeTime || ""),
           allergies: String(row.workTime || ""),
           supplements: String(row.medicalConditions || ""),
           goals: String(row.allergies || ""),
           remarks: String(row.supplements || ""),
-          status: String(row.goals || "New"),             // actual status is in goals slot
-          foodHistory: String(row.remarks || ""),         // food history is in remarks slot
-          earlyMorning: String(row.status || ""),         // meal plan data shifted into status
+          status: String(row.goals || "New"),
+          foodHistory: String(row.remarks || ""),
+          // Preserve earlyMorning if it has meal JSON, otherwise take from status
+          earlyMorning: earlyMorningHasMeals ? row.earlyMorning : String(row.status || ""),
         };
       }
       return row;
