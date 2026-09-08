@@ -182,7 +182,10 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
       <select value={isSet ? String(min).padStart(2,"00") : "00"} onChange={e => emit(h||1, parseInt(e.target.value), period)} className={`${sel} w-16`}>
         {["00","05","10","15","20","25","30","35","40","45","50","55"].map(v=><option key={v} value={v}>{v}</option>)}
       </select>
-      <div className="flex rounded-2xl overflow-hidden border border-white/[0.10]">
+      <div
+        className="flex rounded-2xl overflow-hidden border border-white/[0.10] cursor-pointer select-none"
+        onWheel={e => { e.preventDefault(); emit(h||1, min, period === "AM" ? "PM" : "AM"); }}
+      >
         {(["AM","PM"] as const).map(p=>(
           <button key={p} type="button" onClick={() => emit(h||1, min, p)}
             className={`px-4 h-12 text-[0.85rem] font-black transition-all cursor-pointer ${period===p&&isSet ? "bg-[#E8A820] text-black" : "bg-white/[0.04] text-[#F2EFE9]/40 hover:text-[#F2EFE9]/70"}`}>
@@ -195,15 +198,15 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 const getTimeIcon = (timeStr: string): string => {
-  if (!timeStr) return "GÅ¦";
+  if (!timeStr) return "GÃ…Â¦";
   const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return "GÅ¦";
+  if (!match) return "GÃ…Â¦";
   const hours = parseInt(match[1], 10);
-  if (isNaN(hours)) return "GÅ¦";
-  return (hours >= 6 && hours < 18) ? "Gï¿½ï¿½n+ï¿½" : "=ï¿½ï¿½ï¿½";
+  if (isNaN(hours)) return "GÃ…Â¦";
+  return (hours >= 6 && hours < 18) ? "GÃ¯Â¿Â½Ã¯Â¿Â½n+Ã¯Â¿Â½" : "=Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½";
 };
 
-/* Gï¿½ï¿½Gï¿½ï¿½ Shared UI primitives Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½ */
+/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Shared UI primitives GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */
 const inp = (err?: string) =>
   `w-full bg-white/[0.05] border ${err ? "border-red-400/60" : "border-white/[0.12]"} focus:border-[#E8A820] focus:ring-1 focus:ring-[#E8A820]/20 outline-none rounded-2xl h-12 px-4 text-[#F2EFE9] placeholder:text-white/25 text-[0.9rem] transition-all duration-200`;
 
@@ -461,7 +464,7 @@ export default function NutritionAssessment() {
       prefill: { name: form.name, contact: form.phone, email: form.email },
       theme: { color: "#E8A820" },
       handler: async (response: { razorpay_payment_id: string }) => {
-        // Payment successful Gï¿½ï¿½ now submit the form
+        // Payment successful GÃ¯Â¿Â½Ã¯Â¿Â½ now submit the form
         await submitAssessment(payload);
         setSubmitted(true);
         window.scrollTo(0, 0);
@@ -487,7 +490,7 @@ export default function NutritionAssessment() {
     const box = document.createElement("div");
     box.style.cssText = "background:#111;border-radius:24px;padding:40px 36px;max-width:380px;width:90%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.1);";
     if (success) {
-      box.innerHTML = `<div style="width:72px;height:72px;background:rgba(34,197,94,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 8px;">Payment Successful!</h2><p style="color:#aaa;font-size:0.9rem;margin:0 0 6px;">Welcome to Muscle Empire! =ï¿½Æ¬</p><p style="color:#666;font-size:0.75rem;margin:0 0 20px;">Payment ID: <strong style="color:#aaa;">${paymentId}</strong></p><p style="color:#aaa;font-size:0.85rem;margin:0 0 28px;background:rgba(34,197,94,0.1);border-radius:12px;padding:12px;">Your assessment has been submitted. Our dietician will contact you shortly.</p><button id="rzp-nutr-close" style="background:#22c55e;color:#000;border:none;border-radius:12px;padding:14px 32px;font-size:0.9rem;font-weight:800;cursor:pointer;width:100%;">Done</button>`;
+      box.innerHTML = `<div style="width:72px;height:72px;background:rgba(34,197,94,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 8px;">Payment Successful!</h2><p style="color:#aaa;font-size:0.9rem;margin:0 0 6px;">Welcome to Muscle Empire! =Ã¯Â¿Â½Ã†Â¬</p><p style="color:#666;font-size:0.75rem;margin:0 0 20px;">Payment ID: <strong style="color:#aaa;">${paymentId}</strong></p><p style="color:#aaa;font-size:0.85rem;margin:0 0 28px;background:rgba(34,197,94,0.1);border-radius:12px;padding:12px;">Your assessment has been submitted. Our dietician will contact you shortly.</p><button id="rzp-nutr-close" style="background:#22c55e;color:#000;border:none;border-radius:12px;padding:14px 32px;font-size:0.9rem;font-weight:800;cursor:pointer;width:100%;">Done</button>`;
     } else {
       box.innerHTML = `<div style="width:72px;height:72px;background:rgba(239,68,68,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><h2 style="font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 8px;">Payment Failed</h2><p style="color:#aaa;font-size:0.9rem;margin:0 0 6px;">Something went wrong.</p><p style="color:#666;font-size:0.8rem;margin:0 0 28px;">${errorMsg || "Please try again."}</p><button id="rzp-nutr-close" style="background:#ef4444;color:#fff;border:none;border-radius:12px;padding:14px 32px;font-size:0.9rem;font-weight:800;cursor:pointer;width:100%;">Try Again</button>`;
     }
@@ -497,7 +500,7 @@ export default function NutritionAssessment() {
     overlay.onclick = (ev) => { if (ev.target === overlay) overlay.remove(); };
   }
 
-  /* Gï¿½ï¿½Gï¿½ï¿½ Success screen Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½ */
+  /* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Success screen GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */
   if (submitted) {
     return (
       <div className="min-h-screen bg-black text-[#F2EFE9] flex flex-col relative overflow-hidden">
@@ -543,12 +546,12 @@ export default function NutritionAssessment() {
     );
   }
 
-  /* Gï¿½ï¿½Gï¿½ï¿½ Step content renderer Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½ */
+  /* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Step content renderer GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */
   const pct = ((step) / (STEPS.length - 1)) * 100;
 
   const stepContent = () => {
     switch (step) {
-      /* Step 0 Gï¿½ï¿½ Personal */
+      /* Step 0 GÃ¯Â¿Â½Ã¯Â¿Â½ Personal */
       case 0: return (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -611,7 +614,7 @@ export default function NutritionAssessment() {
                     }}
                     className="px-1.5 py-0.5 hover:bg-white/20 active:bg-white/30 text-white/70 hover:text-white flex items-center justify-center transition-colors"
                   >
-                    <span className="text-[8px] leading-none">Gï¿½ï¿½</span>
+                    <span className="text-[8px] leading-none">GÃ¯Â¿Â½Ã¯Â¿Â½</span>
                   </button>
                   <div className="h-[1px] bg-white/10" />
                   <button
@@ -624,7 +627,7 @@ export default function NutritionAssessment() {
                     }}
                     className="px-1.5 py-0.5 hover:bg-white/20 active:bg-white/30 text-white/70 hover:text-white flex items-center justify-center transition-colors"
                   >
-                    <span className="text-[8px] leading-none">Gï¿½+</span>
+                    <span className="text-[8px] leading-none">GÃ¯Â¿Â½+</span>
                   </button>
                 </div>
               </div>
@@ -647,7 +650,7 @@ export default function NutritionAssessment() {
           </div>
         </div>
       );
-      /* Step 1 Gï¿½ï¿½ Body */
+      /* Step 1 GÃ¯Â¿Â½Ã¯Â¿Â½ Body */
       case 1: return (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -692,7 +695,7 @@ export default function NutritionAssessment() {
           )}
         </div>
       );
-      /* Step 2 Gï¿½ï¿½ Lifestyle */
+      /* Step 2 GÃ¯Â¿Â½Ã¯Â¿Â½ Lifestyle */
       case 2: return (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -721,7 +724,7 @@ export default function NutritionAssessment() {
                 ))}
               </div>
 
-              {/* Shift entries Gï¿½ï¿½ shown when Shifted is selected */}
+              {/* Shift entries GÃ¯Â¿Â½Ã¯Â¿Â½ shown when Shifted is selected */}
               {form.duty === "Shifted" && (
                 <div className="mt-4 space-y-3">
                   {shifts.map((shift, idx) => (
@@ -917,7 +920,7 @@ export default function NutritionAssessment() {
                   </div>
                 </div>
                 {form.workoutTime && form.workoutTime !== "No workout" && (
-                  <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">GÅ¦ {formatTime12h(form.workoutTime)}</span>
+                  <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">GÃ…Â¦ {formatTime12h(form.workoutTime)}</span>
                 )}
                 <Err msg={errors.workoutTime} />
               </div>
@@ -926,7 +929,7 @@ export default function NutritionAssessment() {
         </div>
       );
 
-      /* Step 3 Gï¿½ï¿½ Diet & schedule */
+      /* Step 3 GÃ¯Â¿Â½Ã¯Â¿Â½ Diet & schedule */
       case 3: return (
         <div className="space-y-5">
           <div>
@@ -941,7 +944,7 @@ export default function NutritionAssessment() {
         </div>
       );
 
-      /* Step 4 Gï¿½ï¿½ Health */
+      /* Step 4 GÃ¯Â¿Â½Ã¯Â¿Â½ Health */
       case 4: return (
         <div className="space-y-5">
           {(["medicalConditions","allergies","supplements"] as const).map((key,i)=>(
@@ -957,7 +960,7 @@ export default function NutritionAssessment() {
           ))}
         </div>
       );
-      /* Step 5 Gï¿½ï¿½ Goals */
+      /* Step 5 GÃ¯Â¿Â½Ã¯Â¿Â½ Goals */
       case 5: return (
         <div className="space-y-5">
           <div>
@@ -992,7 +995,7 @@ export default function NutritionAssessment() {
         </div>
       );
 
-      /* Step 6 Gï¿½ï¿½ Food history */
+      /* Step 6 GÃ¯Â¿Â½Ã¯Â¿Â½ Food history */
       case 6: return (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
@@ -1057,14 +1060,14 @@ export default function NutritionAssessment() {
           <Err msg={errors.foodHistory} />
         </div>
       );
-      /* Step 7 Gï¿½ï¿½ Review & submit */
+      /* Step 7 GÃ¯Â¿Â½Ã¯Â¿Â½ Review & submit */
       case 7: {
         const rows: [string, string][] = [
           ["Name", form.name], ["Phone", `+91 ${form.phone}`], ["Email", form.email],
           ["Age", form.age], ...(form.gender ? [["Gender", form.gender] as [string,string]] : []),
           ["Weight", `${form.weight} kg`], ["Height", `${form.height} cm`],
-          ...(bmiVal ? [["BMI", `${bmiVal.toFixed(1)} Gï¿½ï¿½ ${bmiCat?.label}`] as [string,string]] : []),
-          ...(bfVal ? [["Body Fat (Est.)", `${bfVal.toFixed(1)}% Gï¿½ï¿½ ${bfCat?.label}`] as [string,string]] : []),
+          ...(bmiVal ? [["BMI", `${bmiVal.toFixed(1)} GÃ¯Â¿Â½Ã¯Â¿Â½ ${bmiCat?.label}`] as [string,string]] : []),
+          ...(bfVal ? [["Body Fat (Est.)", `${bfVal.toFixed(1)}% GÃ¯Â¿Â½Ã¯Â¿Â½ ${bfCat?.label}`] as [string,string]] : []),
           ...(form.wakeTime ? [["Wake-up", formatTime12h(form.wakeTime)] as [string,string]] : []),
           ...(form.bedTime ? [["Bed time", formatTime12h(form.bedTime)] as [string,string]] : []),
           ...(form.sleepDuration ? [["Sleep", `${form.sleepDuration} hrs`] as [string,string]] : []),
@@ -1081,7 +1084,7 @@ export default function NutritionAssessment() {
           ...(form.supplements ? [["Supplements", form.supplements] as [string,string]] : []),
           ["Goals", [...form.goals, form.otherGoal ? `Other: ${form.otherGoal}` : ""].filter(Boolean).join(", ")],
           ...(form.remarks ? [["Remarks", form.remarks] as [string,string]] : []),
-          ["Food history", form.foodHistory.substring(0,120) + (form.foodHistory.length > 120 ? "GÇª" : "")],
+          ["Food history", form.foodHistory.substring(0,120) + (form.foodHistory.length > 120 ? "GÃ‡Âª" : "")],
         ];
         return (
           <div className="space-y-5">
@@ -1102,7 +1105,7 @@ export default function NutritionAssessment() {
           </label>
             <Err msg={errors.consent} />
 
-          {/* Gï¿½ï¿½Gï¿½ï¿½ Dietitian Plan Payment Card Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½ */}
+          {/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Dietitian Plan Payment Card GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */}
           <div className="rounded-2xl border border-green-500/30 bg-green-500/[0.06] p-5">
             <div className="flex items-start justify-between mb-3">
               <div>
@@ -1112,13 +1115,13 @@ export default function NutritionAssessment() {
               <div className="text-right">
                 {dietNutrCouponDiscount > 0 ? (
                   <>
-                    <p className="text-[0.85rem] text-white/30 line-through">Gï¿½800</p>
-                    <p className="text-[1.6rem] font-black text-white leading-none">Gï¿½{Math.round(800 * (1 - dietNutrCouponDiscount / 100))}</p>
+                    <p className="text-[0.85rem] text-white/30 line-through">GÃ¯Â¿Â½800</p>
+                    <p className="text-[1.6rem] font-black text-white leading-none">GÃ¯Â¿Â½{Math.round(800 * (1 - dietNutrCouponDiscount / 100))}</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-[0.85rem] text-white/30 line-through">Gï¿½1,200</p>
-                    <p className="text-[1.6rem] font-black text-white leading-none">Gï¿½800</p>
+                    <p className="text-[0.85rem] text-white/30 line-through">GÃ¯Â¿Â½1,200</p>
+                    <p className="text-[1.6rem] font-black text-white leading-none">GÃ¯Â¿Â½800</p>
                   </>
                 )}
                 <p className="text-[11px] text-white/35 mt-0.5">one-time</p>
@@ -1177,7 +1180,7 @@ export default function NutritionAssessment() {
       <main className="pt-24 pb-24 px-4 relative z-10">
         <div className="max-w-2xl mx-auto">
 
-          {/* Gï¿½ï¿½Gï¿½ï¿½ Header Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½ */}
+          {/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Header GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */}
           <div className="text-center mb-10">
             <div className="eyebrow justify-center mb-4">Personalised plan</div>
             <h1 className="font-display font-black text-[clamp(2rem,5vw,2.8rem)] leading-tight mb-3 text-white">
@@ -1188,7 +1191,7 @@ export default function NutritionAssessment() {
             </p>
           </div>
 
-          {/* Gï¿½ï¿½Gï¿½ï¿½ Step pills (scrollable on mobile) Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½ */}
+          {/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Step pills (scrollable on mobile) GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */}
           <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
             {STEPS.map((s,i)=>{
               const Icon = s.icon;
@@ -1218,7 +1221,7 @@ export default function NutritionAssessment() {
             })}
           </div>
 
-          {/* Gï¿½ï¿½Gï¿½ï¿½ Card Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½Gï¿½ï¿½ */}
+          {/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Card GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */}
           <div className="bg-[#18181a] border border-white/[0.08] rounded-[24px] overflow-hidden shadow-2xl shadow-black/80 relative z-10">
             {/* Card header */}
             <div className="flex items-center gap-3 px-7 py-5 border-b border-white/[0.06]">
@@ -1231,7 +1234,7 @@ export default function NutritionAssessment() {
               </div>
             </div>
 
-            {/* Card body Gï¿½ï¿½ animated */}
+            {/* Card body GÃ¯Â¿Â½Ã¯Â¿Â½ animated */}
             <div className="px-7 py-7 overflow-hidden" onKeyDown={(e) => {
               if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
                 e.preventDefault();
@@ -1256,7 +1259,7 @@ export default function NutritionAssessment() {
               </AnimatePresence>
             </div>
 
-            {/* Card footer Gï¿½ï¿½ navigation */}
+            {/* Card footer GÃ¯Â¿Â½Ã¯Â¿Â½ navigation */}
             <div className="px-7 py-5 border-t border-white/[0.06] flex items-center justify-between gap-4">
               {step > 0 ? (
                 <button type="button" onClick={goPrev}
@@ -1273,7 +1276,7 @@ export default function NutritionAssessment() {
               ) : (
                 <button type="button" onClick={handleSubmit}
                   className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-bold text-[0.9rem] transition-all hover:shadow-[0_4px_20px_rgba(34,197,94,0.40)] hover:-translate-y-0.5">
-                  Pay {dietNutrCouponDiscount > 0 ? `Gï¿½${Math.round(800 * (1 - dietNutrCouponDiscount / 100))}` : "Gï¿½800"} &amp; Submit
+                  Pay {dietNutrCouponDiscount > 0 ? `GÃ¯Â¿Â½${Math.round(800 * (1 - dietNutrCouponDiscount / 100))}` : "GÃ¯Â¿Â½800"} &amp; Submit
                 </button>
               )}
             </div>

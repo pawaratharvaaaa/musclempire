@@ -28,9 +28,29 @@ export default function CouponClaimModal({ isOpen, onClose, offer }: CouponClaim
   const couponCode = offer.couponCode?.trim().toUpperCase() || "";
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(couponCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2200);
+    if (!couponCode) return;
+    try {
+      navigator.clipboard.writeText(couponCode).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2200);
+      }).catch(() => {
+        // Fallback for HTTP or restricted contexts
+        const el = document.createElement("textarea");
+        el.value = couponCode;
+        el.style.position = "fixed";
+        el.style.opacity = "0";
+        document.body.appendChild(el);
+        el.focus();
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2200);
+      });
+    } catch {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    }
   };
 
   const handleGoToPricing = () => {
