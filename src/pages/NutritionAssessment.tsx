@@ -156,7 +156,6 @@ const formatTime12h = (timeStr: string): string => {
   return `${hours}:${minutes} ${period}`;
 };
 
-// Clean AM/PM time picker
 function TimeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const parse = (t: string) => {
     const m = t.match(/^(\d{1,2}):(\d{2})$/);
@@ -182,10 +181,7 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
       <select value={isSet ? String(min).padStart(2,"00") : "00"} onChange={e => emit(h||1, parseInt(e.target.value), period)} className={`${sel} w-16`}>
         {["00","05","10","15","20","25","30","35","40","45","50","55"].map(v=><option key={v} value={v}>{v}</option>)}
       </select>
-      <div
-        className="flex rounded-2xl overflow-hidden border border-white/[0.10] cursor-pointer select-none"
-        onWheel={e => { e.preventDefault(); emit(h||1, min, period === "AM" ? "PM" : "AM"); }}
-      >
+      <div className="flex rounded-2xl overflow-hidden border border-white/[0.10] cursor-pointer select-none" onWheel={e => { e.preventDefault(); emit(h||1, min, period === "AM" ? "PM" : "AM"); }}>
         {(["AM","PM"] as const).map(p=>(
           <button key={p} type="button" onClick={() => emit(h||1, min, p)}
             className={`px-4 h-12 text-[0.85rem] font-black transition-all cursor-pointer ${period===p&&isSet ? "bg-[#E8A820] text-black" : "bg-white/[0.04] text-[#F2EFE9]/40 hover:text-[#F2EFE9]/70"}`}>
@@ -198,15 +194,15 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 const getTimeIcon = (timeStr: string): string => {
-  if (!timeStr) return "GÃ…Â¦";
+  if (!timeStr) return "ΓÅ░";
   const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return "GÃ…Â¦";
+  if (!match) return "ΓÅ░";
   const hours = parseInt(match[1], 10);
-  if (isNaN(hours)) return "GÃ…Â¦";
-  return (hours >= 6 && hours < 18) ? "GÃ¯Â¿Â½Ã¯Â¿Â½n+Ã¯Â¿Â½" : "=Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½";
+  if (isNaN(hours)) return "ΓÅ░";
+  return (hours >= 6 && hours < 18) ? "ΓÿÇ∩╕Å" : "≡ƒîÖ";
 };
 
-/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Shared UI primitives GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */
+/* ΓöÇΓöÇ Shared UI primitives ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 const inp = (err?: string) =>
   `w-full bg-white/[0.05] border ${err ? "border-red-400/60" : "border-white/[0.12]"} focus:border-[#E8A820] focus:ring-1 focus:ring-[#E8A820]/20 outline-none rounded-2xl h-12 px-4 text-[#F2EFE9] placeholder:text-white/25 text-[0.9rem] transition-all duration-200`;
 
@@ -464,8 +460,8 @@ export default function NutritionAssessment() {
       prefill: { name: form.name, contact: form.phone, email: form.email },
       theme: { color: "#E8A820" },
       handler: async (response: { razorpay_payment_id: string }) => {
-        // Payment successful GÃ¯Â¿Â½Ã¯Â¿Â½ now submit the form
-        await submitAssessment(payload);
+        // Payment successful ΓÇö now submit the form
+        await submitAssessment({ ...payload, notes: `Payment ID: ${response.razorpay_payment_id}` });
         setSubmitted(true);
         window.scrollTo(0, 0);
         // Show success popup
@@ -490,7 +486,7 @@ export default function NutritionAssessment() {
     const box = document.createElement("div");
     box.style.cssText = "background:#111;border-radius:24px;padding:40px 36px;max-width:380px;width:90%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.1);";
     if (success) {
-      box.innerHTML = `<div style="width:72px;height:72px;background:rgba(34,197,94,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 8px;">Payment Successful!</h2><p style="color:#aaa;font-size:0.9rem;margin:0 0 6px;">Welcome to Muscle Empire! =Ã¯Â¿Â½Ã†Â¬</p><p style="color:#666;font-size:0.75rem;margin:0 0 20px;">Payment ID: <strong style="color:#aaa;">${paymentId}</strong></p><p style="color:#aaa;font-size:0.85rem;margin:0 0 28px;background:rgba(34,197,94,0.1);border-radius:12px;padding:12px;">Your assessment has been submitted. Our dietician will contact you shortly.</p><button id="rzp-nutr-close" style="background:#22c55e;color:#000;border:none;border-radius:12px;padding:14px 32px;font-size:0.9rem;font-weight:800;cursor:pointer;width:100%;">Done</button>`;
+      box.innerHTML = `<div style="width:72px;height:72px;background:rgba(34,197,94,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 8px;">Payment Successful!</h2><p style="color:#aaa;font-size:0.9rem;margin:0 0 6px;">Welcome to Muscle Empire! ≡ƒÆ¬</p><p style="color:#666;font-size:0.75rem;margin:0 0 20px;">Payment ID: <strong style="color:#aaa;">${paymentId}</strong></p><p style="color:#aaa;font-size:0.85rem;margin:0 0 28px;background:rgba(34,197,94,0.1);border-radius:12px;padding:12px;">Your assessment has been submitted. Our dietician will contact you shortly.</p><button id="rzp-nutr-close" style="background:#22c55e;color:#000;border:none;border-radius:12px;padding:14px 32px;font-size:0.9rem;font-weight:800;cursor:pointer;width:100%;">Done</button>`;
     } else {
       box.innerHTML = `<div style="width:72px;height:72px;background:rgba(239,68,68,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><h2 style="font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 8px;">Payment Failed</h2><p style="color:#aaa;font-size:0.9rem;margin:0 0 6px;">Something went wrong.</p><p style="color:#666;font-size:0.8rem;margin:0 0 28px;">${errorMsg || "Please try again."}</p><button id="rzp-nutr-close" style="background:#ef4444;color:#fff;border:none;border-radius:12px;padding:14px 32px;font-size:0.9rem;font-weight:800;cursor:pointer;width:100%;">Try Again</button>`;
     }
@@ -500,7 +496,7 @@ export default function NutritionAssessment() {
     overlay.onclick = (ev) => { if (ev.target === overlay) overlay.remove(); };
   }
 
-  /* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Success screen GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */
+  /* ΓöÇΓöÇ Success screen ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
   if (submitted) {
     return (
       <div className="min-h-screen bg-black text-[#F2EFE9] flex flex-col relative overflow-hidden">
@@ -546,12 +542,12 @@ export default function NutritionAssessment() {
     );
   }
 
-  /* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Step content renderer GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */
+  /* ΓöÇΓöÇ Step content renderer ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
   const pct = ((step) / (STEPS.length - 1)) * 100;
 
   const stepContent = () => {
     switch (step) {
-      /* Step 0 GÃ¯Â¿Â½Ã¯Â¿Â½ Personal */
+      /* Step 0 ΓÇö Personal */
       case 0: return (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -614,7 +610,7 @@ export default function NutritionAssessment() {
                     }}
                     className="px-1.5 py-0.5 hover:bg-white/20 active:bg-white/30 text-white/70 hover:text-white flex items-center justify-center transition-colors"
                   >
-                    <span className="text-[8px] leading-none">GÃ¯Â¿Â½Ã¯Â¿Â½</span>
+                    <span className="text-[8px] leading-none">▲</span>
                   </button>
                   <div className="h-[1px] bg-white/10" />
                   <button
@@ -627,7 +623,7 @@ export default function NutritionAssessment() {
                     }}
                     className="px-1.5 py-0.5 hover:bg-white/20 active:bg-white/30 text-white/70 hover:text-white flex items-center justify-center transition-colors"
                   >
-                    <span className="text-[8px] leading-none">GÃ¯Â¿Â½+</span>
+                    <span className="text-[8px] leading-none">▼</span>
                   </button>
                 </div>
               </div>
@@ -650,7 +646,7 @@ export default function NutritionAssessment() {
           </div>
         </div>
       );
-      /* Step 1 GÃ¯Â¿Â½Ã¯Â¿Â½ Body */
+      /* Step 1 ΓÇö Body */
       case 1: return (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -695,18 +691,20 @@ export default function NutritionAssessment() {
           )}
         </div>
       );
-      /* Step 2 GÃ¯Â¿Â½Ã¯Â¿Â½ Lifestyle */
+      /* Step 2 ΓÇö Lifestyle */
       case 2: return (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Wake-up time <span className="text-red-400">*</span></Label>
               <TimeInput value={form.wakeTime} onChange={v=>set("wakeTime",v)} />
+              {form.wakeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.wakeTime)}</span>}
               <Err msg={errors.wakeTime} />
             </div>
             <div>
               <Label>Bed time <span className="text-red-400">*</span></Label>
               <TimeInput value={form.bedTime} onChange={v=>set("bedTime",v)} />
+              {form.bedTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.bedTime)}</span>}
               <Err msg={errors.bedTime} />
             </div>
             <div>
@@ -724,7 +722,7 @@ export default function NutritionAssessment() {
                 ))}
               </div>
 
-              {/* Shift entries GÃ¯Â¿Â½Ã¯Â¿Â½ shown when Shifted is selected */}
+              {/* Shift entries — shown when Shifted is selected */}
               {form.duty === "Shifted" && (
                 <div className="mt-4 space-y-3">
                   {shifts.map((shift, idx) => (
@@ -751,10 +749,12 @@ export default function NutritionAssessment() {
                         <div>
                           <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
                           <TimeInput value={shift.from} onChange={v => { const u = [...shifts]; u[idx] = { ...u[idx], from: v }; setShifts(u); }} />
+                          {shift.from && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">ΓÅ░ {formatTime12h(shift.from)}</span>}
                         </div>
                         <div>
                           <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
                           <TimeInput value={shift.to} onChange={v => { const u = [...shifts]; u[idx] = { ...u[idx], to: v }; setShifts(u); }} />
+                          {shift.to && <span className="text-[11px] font-bold text-[#E8A820] mt-1 block">ΓÅ░ {formatTime12h(shift.to)}</span>}
                         </div>
                       </div>
                     </div>
@@ -766,34 +766,21 @@ export default function NutritionAssessment() {
                   </button>
                 </div>
               )}
-            </div>
+          </div>
 
           <div>
             <Label>Rest time <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
-                <TimeInput
-                  value={form.restTimeFrom}
-                  onChange={v => {
-                    set("restTimeFrom", v);
-                    const to = form.restTimeTo;
-                    set("restTime", v && to ? `${v} to ${to}` : "");
-                  }}
-                />
+                <TimeInput value={form.restTimeFrom} onChange={v => { set("restTimeFrom", v); const to = form.restTimeTo; set("restTime", v && to ? `${v} to ${to}` : ""); }} />
               </div>
               <div>
                 <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
-                <TimeInput
-                  value={form.restTimeTo}
-                  onChange={v => {
-                    set("restTimeTo", v);
-                    const from = form.restTimeFrom;
-                    set("restTime", from && v ? `${from} to ${v}` : "");
-                  }}
-                />
+                <TimeInput value={form.restTimeTo} onChange={v => { set("restTimeTo", v); const from = form.restTimeFrom; set("restTime", from && v ? `${from} to ${v}` : ""); }} />
               </div>
             </div>
+            {form.restTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.restTime)}</span>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -802,54 +789,28 @@ export default function NutritionAssessment() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
-                  <TimeInput
-                    value={form.collegeTimeFrom}
-                    onChange={v => {
-                      set("collegeTimeFrom", v);
-                      const to = form.collegeTimeTo;
-                      set("collegeTime", v && to ? `${v} to ${to}` : "");
-                    }}
-                  />
+                  <TimeInput value={form.collegeTimeFrom} onChange={v => { set("collegeTimeFrom", v); const to = form.collegeTimeTo; set("collegeTime", v && to ? `${v} to ${to}` : ""); }} />
                 </div>
                 <div>
                   <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
-                  <TimeInput
-                    value={form.collegeTimeTo}
-                    onChange={v => {
-                      set("collegeTimeTo", v);
-                      const from = form.collegeTimeFrom;
-                      set("collegeTime", from && v ? `${from} to ${v}` : "");
-                    }}
-                  />
+                  <TimeInput value={form.collegeTimeTo} onChange={v => { set("collegeTimeTo", v); const from = form.collegeTimeFrom; set("collegeTime", from && v ? `${from} to ${v}` : ""); }} />
                 </div>
               </div>
+              {form.collegeTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.collegeTime)}</span>}
             </div>
             <div>
               <Label>Work timing <span className="text-xs font-normal text-white/40">(Optional)</span></Label>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
-                  <TimeInput
-                    value={form.workTimeFrom}
-                    onChange={v => {
-                      set("workTimeFrom", v);
-                      const to = form.workTimeTo;
-                      set("workTime", v && to ? `${v} to ${to}` : "");
-                    }}
-                  />
+                  <TimeInput value={form.workTimeFrom} onChange={v => { set("workTimeFrom", v); const to = form.workTimeTo; set("workTime", v && to ? `${v} to ${to}` : ""); }} />
                 </div>
                 <div>
                   <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
-                  <TimeInput
-                    value={form.workTimeTo}
-                    onChange={v => {
-                      set("workTimeTo", v);
-                      const from = form.workTimeFrom;
-                      set("workTime", from && v ? `${from} to ${v}` : "");
-                    }}
-                  />
+                  <TimeInput value={form.workTimeTo} onChange={v => { set("workTimeTo", v); const from = form.workTimeFrom; set("workTime", from && v ? `${from} to ${v}` : ""); }} />
                 </div>
               </div>
+              {form.workTime && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.workTime)}</span>}
             </div>
           </div>
 
@@ -898,29 +859,15 @@ export default function NutritionAssessment() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">From</span>
-                    <TimeInput
-                      value={form.workoutTimeFrom}
-                      onChange={v => {
-                        set("workoutTimeFrom", v);
-                        const to = form.workoutTimeTo;
-                        set("workoutTime", v && to ? `${v} to ${to}` : "");
-                      }}
-                    />
+                    <TimeInput value={form.workoutTimeFrom} onChange={v => { set("workoutTimeFrom", v); const to = form.workoutTimeTo; set("workoutTime", v && to ? `${v} to ${to}` : ""); }} />
                   </div>
                   <div>
                     <span className="text-[10px] text-[#F2EFE9]/40 uppercase tracking-wider font-bold block mb-1">To</span>
-                    <TimeInput
-                      value={form.workoutTimeTo}
-                      onChange={v => {
-                        set("workoutTimeTo", v);
-                        const from = form.workoutTimeFrom;
-                        set("workoutTime", from && v ? `${from} to ${v}` : "");
-                      }}
-                    />
+                    <TimeInput value={form.workoutTimeTo} onChange={v => { set("workoutTimeTo", v); const from = form.workoutTimeFrom; set("workoutTime", from && v ? `${from} to ${v}` : ""); }} />
                   </div>
                 </div>
                 {form.workoutTime && form.workoutTime !== "No workout" && (
-                  <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">GÃ…Â¦ {formatTime12h(form.workoutTime)}</span>
+                  <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(form.workoutTime)}</span>
                 )}
                 <Err msg={errors.workoutTime} />
               </div>
@@ -929,7 +876,7 @@ export default function NutritionAssessment() {
         </div>
       );
 
-      /* Step 3 GÃ¯Â¿Â½Ã¯Â¿Â½ Diet & schedule */
+      /* Step 3 ΓÇö Diet & schedule */
       case 3: return (
         <div className="space-y-5">
           <div>
@@ -944,7 +891,7 @@ export default function NutritionAssessment() {
         </div>
       );
 
-      /* Step 4 GÃ¯Â¿Â½Ã¯Â¿Â½ Health */
+      /* Step 4 ΓÇö Health */
       case 4: return (
         <div className="space-y-5">
           {(["medicalConditions","allergies","supplements"] as const).map((key,i)=>(
@@ -960,7 +907,7 @@ export default function NutritionAssessment() {
           ))}
         </div>
       );
-      /* Step 5 GÃ¯Â¿Â½Ã¯Â¿Â½ Goals */
+      /* Step 5 ΓÇö Goals */
       case 5: return (
         <div className="space-y-5">
           <div>
@@ -995,7 +942,7 @@ export default function NutritionAssessment() {
         </div>
       );
 
-      /* Step 6 GÃ¯Â¿Â½Ã¯Â¿Â½ Food history */
+      /* Step 6 ΓÇö Food history */
       case 6: return (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
@@ -1042,6 +989,7 @@ export default function NutritionAssessment() {
                     <div>
                       <Label>Meal Time <span className="text-red-400">*</span></Label>
                       <TimeInput value={m.time} onChange={v => updateMeal(idx, "time", v)} />
+                      {m.time && <span className="text-[11px] font-bold text-[#E8A820] mt-1.5 block">ΓÅ░ {formatTime12h(m.time)}</span>}
                     </div>
                   </div>
                   <div>
@@ -1060,14 +1008,14 @@ export default function NutritionAssessment() {
           <Err msg={errors.foodHistory} />
         </div>
       );
-      /* Step 7 GÃ¯Â¿Â½Ã¯Â¿Â½ Review & submit */
+      /* Step 7 ΓÇö Review & submit */
       case 7: {
         const rows: [string, string][] = [
           ["Name", form.name], ["Phone", `+91 ${form.phone}`], ["Email", form.email],
           ["Age", form.age], ...(form.gender ? [["Gender", form.gender] as [string,string]] : []),
           ["Weight", `${form.weight} kg`], ["Height", `${form.height} cm`],
-          ...(bmiVal ? [["BMI", `${bmiVal.toFixed(1)} GÃ¯Â¿Â½Ã¯Â¿Â½ ${bmiCat?.label}`] as [string,string]] : []),
-          ...(bfVal ? [["Body Fat (Est.)", `${bfVal.toFixed(1)}% GÃ¯Â¿Â½Ã¯Â¿Â½ ${bfCat?.label}`] as [string,string]] : []),
+          ...(bmiVal ? [["BMI", `${bmiVal.toFixed(1)} ΓÇö ${bmiCat?.label}`] as [string,string]] : []),
+          ...(bfVal ? [["Body Fat (Est.)", `${bfVal.toFixed(1)}% ΓÇö ${bfCat?.label}`] as [string,string]] : []),
           ...(form.wakeTime ? [["Wake-up", formatTime12h(form.wakeTime)] as [string,string]] : []),
           ...(form.bedTime ? [["Bed time", formatTime12h(form.bedTime)] as [string,string]] : []),
           ...(form.sleepDuration ? [["Sleep", `${form.sleepDuration} hrs`] as [string,string]] : []),
@@ -1084,7 +1032,7 @@ export default function NutritionAssessment() {
           ...(form.supplements ? [["Supplements", form.supplements] as [string,string]] : []),
           ["Goals", [...form.goals, form.otherGoal ? `Other: ${form.otherGoal}` : ""].filter(Boolean).join(", ")],
           ...(form.remarks ? [["Remarks", form.remarks] as [string,string]] : []),
-          ["Food history", form.foodHistory.substring(0,120) + (form.foodHistory.length > 120 ? "GÃ‡Âª" : "")],
+          ["Food history", form.foodHistory.substring(0,120) + (form.foodHistory.length > 120 ? "ΓÇª" : "")],
         ];
         return (
           <div className="space-y-5">
@@ -1105,23 +1053,23 @@ export default function NutritionAssessment() {
           </label>
             <Err msg={errors.consent} />
 
-          {/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Dietitian Plan Payment Card GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */}
+          {/* ΓöÇΓöÇ Dietitian Plan Payment Card ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
           <div className="rounded-2xl border border-green-500/30 bg-green-500/[0.06] p-5">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="font-black text-white text-[1rem] mb-0.5">Personalised Dietitian Plan</p>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-green-400">Nutrition -+ Wellness</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-green-400">Nutrition ┬╖ Wellness</p>
               </div>
               <div className="text-right">
                 {dietNutrCouponDiscount > 0 ? (
                   <>
-                    <p className="text-[0.85rem] text-white/30 line-through">GÃ¯Â¿Â½800</p>
-                    <p className="text-[1.6rem] font-black text-white leading-none">GÃ¯Â¿Â½{Math.round(800 * (1 - dietNutrCouponDiscount / 100))}</p>
+                    <p className="text-[0.85rem] text-white/30 line-through">Γé╣800</p>
+                    <p className="text-[1.6rem] font-black text-white leading-none">Γé╣{Math.round(800 * (1 - dietNutrCouponDiscount / 100))}</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-[0.85rem] text-white/30 line-through">GÃ¯Â¿Â½1,200</p>
-                    <p className="text-[1.6rem] font-black text-white leading-none">GÃ¯Â¿Â½800</p>
+                    <p className="text-[0.85rem] text-white/30 line-through">Γé╣1,200</p>
+                    <p className="text-[1.6rem] font-black text-white leading-none">Γé╣800</p>
                   </>
                 )}
                 <p className="text-[11px] text-white/35 mt-0.5">one-time</p>
@@ -1180,7 +1128,7 @@ export default function NutritionAssessment() {
       <main className="pt-24 pb-24 px-4 relative z-10">
         <div className="max-w-2xl mx-auto">
 
-          {/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Header GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */}
+          {/* ΓöÇΓöÇ Header ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
           <div className="text-center mb-10">
             <div className="eyebrow justify-center mb-4">Personalised plan</div>
             <h1 className="font-display font-black text-[clamp(2rem,5vw,2.8rem)] leading-tight mb-3 text-white">
@@ -1191,7 +1139,7 @@ export default function NutritionAssessment() {
             </p>
           </div>
 
-          {/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Step pills (scrollable on mobile) GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */}
+          {/* ΓöÇΓöÇ Step pills (scrollable on mobile) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
           <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
             {STEPS.map((s,i)=>{
               const Icon = s.icon;
@@ -1221,7 +1169,7 @@ export default function NutritionAssessment() {
             })}
           </div>
 
-          {/* GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ Card GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½GÃ¯Â¿Â½Ã¯Â¿Â½ */}
+          {/* ΓöÇΓöÇ Card ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
           <div className="bg-[#18181a] border border-white/[0.08] rounded-[24px] overflow-hidden shadow-2xl shadow-black/80 relative z-10">
             {/* Card header */}
             <div className="flex items-center gap-3 px-7 py-5 border-b border-white/[0.06]">
@@ -1234,7 +1182,7 @@ export default function NutritionAssessment() {
               </div>
             </div>
 
-            {/* Card body GÃ¯Â¿Â½Ã¯Â¿Â½ animated */}
+            {/* Card body ΓÇö animated */}
             <div className="px-7 py-7 overflow-hidden" onKeyDown={(e) => {
               if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
                 e.preventDefault();
@@ -1259,7 +1207,7 @@ export default function NutritionAssessment() {
               </AnimatePresence>
             </div>
 
-            {/* Card footer GÃ¯Â¿Â½Ã¯Â¿Â½ navigation */}
+            {/* Card footer ΓÇö navigation */}
             <div className="px-7 py-5 border-t border-white/[0.06] flex items-center justify-between gap-4">
               {step > 0 ? (
                 <button type="button" onClick={goPrev}
@@ -1276,7 +1224,7 @@ export default function NutritionAssessment() {
               ) : (
                 <button type="button" onClick={handleSubmit}
                   className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-bold text-[0.9rem] transition-all hover:shadow-[0_4px_20px_rgba(34,197,94,0.40)] hover:-translate-y-0.5">
-                  Pay {dietNutrCouponDiscount > 0 ? `GÃ¯Â¿Â½${Math.round(800 * (1 - dietNutrCouponDiscount / 100))}` : "GÃ¯Â¿Â½800"} &amp; Submit
+                  Pay {dietNutrCouponDiscount > 0 ? `Γé╣${Math.round(800 * (1 - dietNutrCouponDiscount / 100))}` : "Γé╣800"} &amp; Submit
                 </button>
               )}
             </div>
@@ -1290,4 +1238,3 @@ export default function NutritionAssessment() {
     </div>
   );
 }
-
