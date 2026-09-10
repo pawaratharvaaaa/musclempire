@@ -1,4 +1,4 @@
-export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzburNkT_FbOji-5r1bnQywG9TQakAwdOSRgtQZVRQNXFQ_hpjDzQqDQfOvTA9wqW7xpQ/exec";
+export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz6JUextH9AcJSbHDEu4EoBEJTv84fDTkSn7hAMU73h_vdP44VeFpIyTkue7ph_OiFB0w/exec";
 const T = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 
 export type AssessmentData = {
