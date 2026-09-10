@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { GradientBackground } from "@/components/ui/desert-horizon";
 import CouponClaimModal from "@/components/CouponClaimModal";
 
-import { getOffers } from "@/lib/offersStore";
+import { getOffers, pullOffersFromSheets } from "@/lib/offersStore";
 import chalkboardBg from "@/assets/images/chalkboard-bg.png";
 
 const upcomingOffers: Offer[] = [];
@@ -176,6 +176,7 @@ export default function Offers() {
       })));
     };
     fetchOffers();
+    pullOffersFromSheets().then(fetchOffers);
     window.addEventListener("offersUpdated", fetchOffers);
     return () => window.removeEventListener("offersUpdated", fetchOffers);
   }, []);

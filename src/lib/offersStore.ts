@@ -21,31 +21,36 @@ function isCacheStale(): boolean {
   return Date.now() - ts > CACHE_TTL;
 }
 
-// â”€â”€ Sheets (background) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Sheets (background) ───────────────────────────────────────────────────────
 
-export async function pullOffersFromSheets(): Promise<void> {
-  try {
-    localStorage.removeItem("me_offers_ts");
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&token=${T}&_t=${Date.now()}`, {
-      redirect: "follow",
-      cache: "no-store",
-    });
-    const text = await res.text();
-    const json = JSON.parse(text);
-    if (Array.isArray(json?.offers)) {
-      // If Sheets returns empty, seed with default offers
-      const offers = json.offers.length > 0 ? json.offers : activeOffers;
-      writeCache(offers);
-      window.dispatchEvent(new CustomEvent("offersUpdated"));
-    }
-  } catch (e) {
-    console.warn("[offersStore] pullOffersFromSheets failed:", e);
-    // On network failure, seed defaults if cache is empty
-    if (readCache().length === 0) {
-      writeCache(activeOffers);
-      window.dispatchEvent(new CustomEvent("offersUpdated"));
+export async function pullOffersFromSheets(retry = 1): Promise<Offer[]> {
+  for (let attempt = 0; attempt <= retry; attempt++) {
+    try {
+      localStorage.removeItem("me_offers_ts");
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getOffers&token=${T}&_t=${Date.now()}`, {
+        redirect: "follow",
+        cache: "no-store",
+      });
+      const text = await res.text();
+      const json = JSON.parse(text);
+      if (Array.isArray(json?.offers)) {
+        const offers = json.offers;
+        writeCache(offers);
+        window.dispatchEvent(new CustomEvent("offersUpdated"));
+        return offers;
+      }
+    } catch (e) {
+      console.warn("[offersStore] pullOffersFromSheets failed attempt:", attempt, e);
+      if (attempt < retry) await new Promise(r => setTimeout(r, 800));
     }
   }
+  const current = readCache();
+  if (current.length === 0) {
+    writeCache(activeOffers);
+    window.dispatchEvent(new CustomEvent("offersUpdated"));
+    return activeOffers;
+  }
+  return current;
 }
 
 function pushToSheets(offers: Offer[]): void {
@@ -61,23 +66,20 @@ function pushToSheets(offers: Offer[]): void {
   }).catch(() => {});
 }
 
-// â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Public API ────────────────────────────────────────────────────────────────
 
 export function getOffers(): Offer[] {
   const cached = readCache();
-  // Seed defaults if cache empty (before Sheets sync completes)
-  if (cached.length === 0) {
-    writeCache(activeOffers);
+  if (cached.length === 0 || isCacheStale()) {
     pullOffersFromSheets();
-    return activeOffers;
   }
-  return cached;
+  return cached.length > 0 ? cached : activeOffers;
 }
 
 export function getOffersAndSync(): Offer[] {
   const cached = readCache();
-  if (isCacheStale()) pullOffersFromSheets();
-  return cached;
+  pullOffersFromSheets();
+  return cached.length > 0 ? cached : activeOffers;
 }
 
 function _save(offers: Offer[]): void {

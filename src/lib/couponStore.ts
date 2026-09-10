@@ -31,25 +31,33 @@ function isCacheStale(): boolean {
 
 // ── Sheets (background sync only) ───────────────────────────────────────────
 
-export async function pullFromSheets(): Promise<Coupon[]> {
-  // Always reset timestamp so next getCoupons also re-fetches if needed
-  localStorage.removeItem(CACHE_TS_KEY);
-  try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getCoupons&token=${T}&_t=${Date.now()}`, {
-      redirect: "follow",
-      cache: "no-store",
-    });
-    const text = await res.text();
-    const json = JSON.parse(text);
-    if (Array.isArray(json?.coupons)) {
-      writeCache(json.coupons as Coupon[]);
-      window.dispatchEvent(new CustomEvent("couponsUpdated"));
-      return json.coupons as Coupon[];
+export async function pullFromSheets(retry = 1): Promise<Coupon[]> {
+  for (let attempt = 0; attempt <= retry; attempt++) {
+    try {
+      localStorage.removeItem(CACHE_TS_KEY);
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getCoupons&token=${T}&_t=${Date.now()}`, {
+        redirect: "follow",
+        cache: "no-store",
+      });
+      const text = await res.text();
+      const json = JSON.parse(text);
+      if (Array.isArray(json?.coupons) && json.coupons.length > 0) {
+        writeCache(json.coupons as Coupon[]);
+        window.dispatchEvent(new CustomEvent("couponsUpdated"));
+        return json.coupons as Coupon[];
+      }
+    } catch (e) {
+      console.warn("[couponStore] pullFromSheets failed attempt:", attempt, e);
+      if (attempt < retry) await new Promise(r => setTimeout(r, 800));
     }
-  } catch (e) {
-    console.warn("[couponStore] pullFromSheets failed:", e);
   }
-  return readCache();
+  const current = readCache();
+  if (current.length === 0) {
+    writeCache(DEFAULT_COUPONS);
+    window.dispatchEvent(new CustomEvent("couponsUpdated"));
+    return DEFAULT_COUPONS;
+  }
+  return current;
 }
 
 function pushToSheets(coupons: Coupon[]): void {
@@ -61,7 +69,7 @@ function pushToSheets(coupons: Coupon[]): void {
   }).catch(() => {});
 }
 
-// ── Public API (all synchronous for instant UI) ──────────────────────────────
+// ── Public API ────────────────────────────────────────────────────────────────
 
 const DEFAULT_COUPONS: Coupon[] = [
   { id: "c_default_1", code: "MUSCLEMPIRE25", discount: 25, plans: [], enabled: true, description: "New Member Special 25% OFF" },
@@ -72,12 +80,10 @@ const DEFAULT_COUPONS: Coupon[] = [
 
 export function getCoupons(): Coupon[] {
   const cached = readCache();
-  if (cached.length === 0) {
-    writeCache(DEFAULT_COUPONS);
+  if (cached.length === 0 || isCacheStale()) {
     pullFromSheets();
-    return DEFAULT_COUPONS;
   }
-  return cached;
+  return cached.length > 0 ? cached : DEFAULT_COUPONS;
 }
 
 function _save(coupons: Coupon[]): void {

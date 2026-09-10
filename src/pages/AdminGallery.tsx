@@ -47,6 +47,8 @@ function getThumb(url: string): string | null {
   useEffect(() => {
     getGalleryImages().then(setImages);
     getGalleryVideos().then(setVideos);
+    syncImagesFromSheets().then(setImages);
+    syncVideosFromSheets().then(setVideos);
     const handler = () => {
       getGalleryImages().then(setImages);
       getGalleryVideos().then(setVideos);

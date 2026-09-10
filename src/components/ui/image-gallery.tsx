@@ -168,8 +168,10 @@ export function ImageGallery() {
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   useEffect(() => {
-    // Always pull fresh from Sheets on mount — no stale cache
-    syncImagesFromSheets().then(() => getGalleryImages().then(setStoreImages));
+    // Render local cache instantly
+    getGalleryImages().then(setStoreImages);
+    // Force sync fresh from Sheets
+    syncImagesFromSheets().then(setStoreImages);
     const handler = () => {
       getGalleryImages().then(setStoreImages);
     };

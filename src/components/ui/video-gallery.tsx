@@ -175,7 +175,8 @@ export function VideoGallery() {
   const [activeVideo, setActiveVideo] = useState<GalleryVideo | null>(null);
 
   useEffect(() => {
-    syncVideosFromSheets().then(() => getGalleryVideos().then(setStoreVideos));
+    getGalleryVideos().then(setStoreVideos);
+    syncVideosFromSheets().then(setStoreVideos);
     const handler = () => {
       getGalleryVideos().then(setStoreVideos);
     };

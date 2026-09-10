@@ -66,14 +66,20 @@ function isVideosCacheStale(): boolean {
 
 // ── Sheets ────────────────────────────────────────────────────────────────────
 
-async function fetchImagesFromSheets(): Promise<GalleryImage[] | null> {
-  try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getImages&token=${T}&_t=${Date.now()}`, {
-      redirect: "follow", cache: "no-store",
-    });
-    const json = await res.json();
-    return Array.isArray(json?.images) ? json.images : null;
-  } catch { return null; }
+async function fetchImagesFromSheets(retry = 1): Promise<GalleryImage[] | null> {
+  for (let attempt = 0; attempt <= retry; attempt++) {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getImages&token=${T}&_t=${Date.now()}`, {
+        redirect: "follow", cache: "no-store",
+      });
+      const text = await res.text();
+      const json = JSON.parse(text);
+      if (Array.isArray(json?.images)) return json.images;
+    } catch {
+      if (attempt < retry) await new Promise(r => setTimeout(r, 800));
+    }
+  }
+  return null;
 }
 
 function saveImagesToSheets(images: GalleryImage[]): void {
@@ -85,14 +91,20 @@ function saveImagesToSheets(images: GalleryImage[]): void {
   }).catch(() => {});
 }
 
-async function fetchVideosFromSheets(): Promise<GalleryVideo[] | null> {
-  try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getVideos&token=${T}&_t=${Date.now()}`, {
-      redirect: "follow", cache: "no-store",
-    });
-    const json = await res.json();
-    return Array.isArray(json?.videos) ? json.videos : null;
-  } catch { return null; }
+async function fetchVideosFromSheets(retry = 1): Promise<GalleryVideo[] | null> {
+  for (let attempt = 0; attempt <= retry; attempt++) {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getVideos&token=${T}&_t=${Date.now()}`, {
+        redirect: "follow", cache: "no-store",
+      });
+      const text = await res.text();
+      const json = JSON.parse(text);
+      if (Array.isArray(json?.videos)) return json.videos;
+    } catch {
+      if (attempt < retry) await new Promise(r => setTimeout(r, 800));
+    }
+  }
+  return null;
 }
 
 function saveVideosToSheets(videos: GalleryVideo[]): void {
@@ -107,23 +119,14 @@ function saveVideosToSheets(videos: GalleryVideo[]): void {
 // ── Public API — Images ──────────────────────────────────────────────────────
 
 export async function getGalleryImages(): Promise<GalleryImage[]> {
-  // Always pull from Sheets if cache is stale
-  if (isImagesCacheStale()) {
-    const remote = await fetchImagesFromSheets();
-    if (remote !== null) {
-      const deduped = dedupeImages(remote);
-      saveLocalImages(deduped);
-      if (deduped.length < remote.length) {
-        saveImagesToSheets(deduped); // Clean duplicates from Sheets
-      }
-      window.dispatchEvent(new CustomEvent("galleryUpdated"));
-      return deduped;
-    }
+  const local = getLocalImages();
+  if (local.length === 0 || isImagesCacheStale()) {
+    syncImagesFromSheets();
   }
-  return getLocalImages();
+  return local;
 }
 
-export async function syncImagesFromSheets(): Promise<void> {
+export async function syncImagesFromSheets(): Promise<GalleryImage[]> {
   const remote = await fetchImagesFromSheets();
   if (remote !== null) {
     const deduped = dedupeImages(remote);
@@ -132,7 +135,9 @@ export async function syncImagesFromSheets(): Promise<void> {
       saveImagesToSheets(deduped);
     }
     window.dispatchEvent(new CustomEvent("galleryUpdated"));
+    return deduped;
   }
+  return getLocalImages();
 }
 
 export async function addGalleryImage(src: string, alt: string): Promise<void> {
@@ -163,22 +168,14 @@ export async function removeGalleryImage(id: string): Promise<void> {
 // ── Public API — Videos ──────────────────────────────────────────────────────
 
 export async function getGalleryVideos(): Promise<GalleryVideo[]> {
-  if (isVideosCacheStale()) {
-    const remote = await fetchVideosFromSheets();
-    if (remote !== null) {
-      const deduped = dedupeVideos(remote);
-      saveLocalVideos(deduped);
-      if (deduped.length < remote.length) {
-        saveVideosToSheets(deduped);
-      }
-      window.dispatchEvent(new CustomEvent("galleryUpdated"));
-      return deduped;
-    }
+  const local = getLocalVideos();
+  if (local.length === 0 || isVideosCacheStale()) {
+    syncVideosFromSheets();
   }
-  return getLocalVideos();
+  return local;
 }
 
-export async function syncVideosFromSheets(): Promise<void> {
+export async function syncVideosFromSheets(): Promise<GalleryVideo[]> {
   const remote = await fetchVideosFromSheets();
   if (remote !== null) {
     const deduped = dedupeVideos(remote);
@@ -187,7 +184,9 @@ export async function syncVideosFromSheets(): Promise<void> {
       saveVideosToSheets(deduped);
     }
     window.dispatchEvent(new CustomEvent("galleryUpdated"));
+    return deduped;
   }
+  return getLocalVideos();
 }
 
 export async function addGalleryVideo(src: string, alt: string, thumbnail?: string): Promise<void> {
