@@ -155,6 +155,7 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
   }, [params.id]);
 
   function loadPlanFromRecord(rec: AssessmentData) {
+    isLoaded.current = false; // Pause auto-save while loading record
     const r = rec as Record<string, unknown>;
     const raw = (r["earlyMorning"] || r["Early Morning"] || r["breakfast"] || r["Breakfast"] || r["remarks"] || r["status"] || "") as string;
     let parsed: MealEntry[] = [];
@@ -168,18 +169,31 @@ export default function AdminCustomer({ params }: { params: { id: string } }) {
     setMeals(parsed);
     const e: Record<string, string> = {};
     const isReal = (v: string) => !!v && !v.includes("GMT") && !v.includes("1899") && !v.startsWith("[") && !v.startsWith("{") && !v.toLowerCase().includes("payment id") && v !== "--" && v !== "0" && v !== "undefined" && v !== "null";
+    
     EXTRA_FIELDS.forEach(f => {
-      const val = String(r[f.key] ?? r[f.label] ?? "").trim();
+      // Search all key variations returned by Google Sheets (preWorkout, Pre-Workout, pre_workout, etc.)
+      const val = String(
+        r[f.key] ??
+        r[f.label] ??
+        r[f.key.toLowerCase()] ??
+        r[f.label.toLowerCase()] ??
+        (f.key === "preWorkout" ? (r["dinner"] || r["Dinner"]) : "") ??
+        (f.key === "postWorkout" ? (r["beforeBed"] || r["Before Bed"]) : "") ??
+        ""
+      ).trim();
       e[f.key] = isReal(val) ? val : "";
     });
     setExtras(e);
-    // Mark initial loading complete after setting initial state
-    setTimeout(() => { isLoaded.current = true; }, 100);
+    // Enable auto-save ONLY after state has settled
+    setTimeout(() => { isLoaded.current = true; }, 400);
   }
 
   // Debounced auto-save effect: saves automatically to localStorage and Sheets whenever meals/extras change
   useEffect(() => {
     if (!customer || !isLoaded.current) return;
+    // Safety guard: do not auto-save if extras object is completely empty
+    if (Object.keys(extras).length === 0) return;
+
     const timer = setTimeout(() => {
       const sheetsIdx = customer._rowIndex ?? rowIdx;
       const updates: Partial<AssessmentData> = {
