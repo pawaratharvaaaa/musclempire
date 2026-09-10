@@ -7,31 +7,42 @@ import AdminGuard from "@/components/AdminGuard";
 import { logout } from "@/lib/adminAuth";
 import { setSelectedAssessment } from "@/lib/adminStore";
 
-function formatDate(raw: string | undefined): string {
-  if (!raw) return "--";
-  const s = String(raw).trim();
-  if (!s || s === "undefined") return "--";
-  // Handle Excel/Sheets serial date numbers
-  if (/^\d+(\.\d+)?$/.test(s)) {
-    const num = Number(s);
-    if (num <= 1) return "--"; // 0 or 1 = empty/epoch in Sheets
+function formatDate(raw: string | undefined, id?: string): string {
+  const parseStr = (s: string) => {
+    if (!s || s === "undefined") return "";
+    if (/^\d+(\.\d+)?$/.test(s)) {
+      const num = Number(s);
+      if (num > 1) {
+        try {
+          const d = new Date(Math.round((num - 25569) * 86400 * 1000));
+          if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
+            return d.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
+          }
+        } catch {}
+      }
+    }
+    if (s.includes("1899") || s.includes("1900")) return "";
+    if (!s.includes("GMT") && !s.includes("00:00:00") && s.length < 20) return s;
     try {
-      const d = new Date(Math.round((num - 25569) * 86400 * 1000));
+      const d = new Date(s);
+      if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
+        return d.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
+      }
+    } catch {}
+    return "";
+  };
+
+  const formatted = parseStr(String(raw || "").trim());
+  if (formatted) return formatted;
+
+  if (id && /^\d{12,14}$/.test(id)) {
+    try {
+      const d = new Date(Number(id));
       if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
         return d.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
       }
     } catch {}
   }
-  // Catch the 1899 date specifically
-  if (s.includes("1899") || s.includes("1900")) return "--";
-  // Already clean format like "25/6/2026" or "11 Aug 2026"
-  if (!s.includes("GMT") && !s.includes("00:00:00") && s.length < 20) return s;
-  try {
-    const d = new Date(s);
-    if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
-      return d.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
-    }
-  } catch {}
   return "--";
 }
 
@@ -231,7 +242,7 @@ export default function AdminDashboard() {
                       >
                         <td className="px-4 py-3 font-bold text-white">{row.name}</td>
                         <td className="px-4 py-3 text-white/60">{row.phone}</td>
-                        <td className="px-4 py-3 text-white/60">{formatDate(row.date)}</td>
+                        <td className="px-4 py-3 text-white/60">{formatDate(row.date, row.id)}</td>
                         <td className="px-4 py-3 text-white/60">{row.bmi}</td>
                         <td className="px-4 py-3 text-white/60 max-w-[150px] truncate">{row.goals}</td>
                         <td className="px-4 py-3 text-white/60">{row.foodPref}</td>
