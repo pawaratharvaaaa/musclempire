@@ -1,6 +1,5 @@
-// Gallery store — Sheets is source of truth. No defaults pushed to Sheets.
+import { APPS_SCRIPT_URL } from "@/lib/sheets";
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzburNkT_FbOji-5r1bnQywG9TQakAwdOSRgtQZVRQNXFQ_hpjDzQqDQfOvTA9wqW7xpQ/exec";
 const T = ["ZujXfS4o6t","pRWL2vQmAT","JbEFBaVKCs","1O7UGPqDyk"].join("");
 
 const IMAGES_KEY = "me_gallery_images_v2"; // v2 = no defaults, Sheets only
