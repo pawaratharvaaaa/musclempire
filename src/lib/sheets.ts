@@ -20,15 +20,20 @@ export type AssessmentData = {
 };
 
 export function normalizeAssessment(row: AssessmentData): AssessmentData {
+  if (!row || typeof row !== "object") return row;
   const norm = { ...row };
 
+  norm.name = String(norm.name || "").trim();
+  norm.phone = String(norm.phone || "").trim();
+  norm.email = String(norm.email || "").trim();
+  norm.date = String(norm.date || "").trim();
+
   const isStatus = (v: string) => /^(completed|in progress|new)$/i.test(String(v || "").trim());
-  const isFoodPref = (v: string) => /^(vegetarian|non-vegetarian|eggetarian)$/i.test(String(v || "").trim());
+  const isFoodPref = (v: string) => /^(vegetarian|non-vegetarian|eggetarian|egg|veg|non-veg)$/i.test(String(v || "").trim());
   const isTimeOrDate = (v: string) => /1899|GMT|:\d{2}|AM|PM/i.test(String(v || "").trim());
 
-  // Check if row is shifted by 2 columns (due to duty/restTime inserted into headers)
-  const isShifted = isStatus(norm.goals) || isTimeOrDate(norm.foodPref) ||
-    (norm.allergies && /loss|gain|fitness|muscle|weight/i.test(norm.allergies));
+  // Safe shifted check: ONLY shift if goals contains a status string or foodPref contains time/date without duty
+  const isShifted = !norm.duty && (isStatus(norm.goals) || (isTimeOrDate(norm.foodPref) && !isFoodPref(norm.targetWeight)));
 
   if (isShifted) {
     const realStatus = isStatus(norm.goals) ? norm.goals : (isStatus(norm.status) ? norm.status : "New");
@@ -80,6 +85,20 @@ export function normalizeAssessment(row: AssessmentData): AssessmentData {
     }
   }
 
+  // Canonicalize foodPref
+  let fp = String(norm.foodPref || "").trim();
+  if (/^veg(etarian)?$/i.test(fp)) fp = "Vegetarian";
+  else if (/^non-?veg(etarian)?$/i.test(fp)) fp = "Non-Vegetarian";
+  else if (/^egg(etarian)?$/i.test(fp)) fp = "Eggitarian";
+  norm.foodPref = fp || "Vegetarian";
+
+  // Canonicalize status
+  let st = String(norm.status || "").trim();
+  if (/^completed$/i.test(st)) st = "Completed";
+  else if (/^in\s*progress$/i.test(st)) st = "In Progress";
+  else if (!st || /^new$/i.test(st)) st = "New";
+  norm.status = st;
+
   return norm;
 }
 
@@ -88,8 +107,12 @@ const CACHE_TS_KEY = "me_assessments_ts";
 const CACHE_TTL = 60_000; // 60 seconds — only re-fetch from Sheets if older than this
 
 function getLocal(): AssessmentData[] {
-  try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); }
-  catch { return []; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]");
+    return Array.isArray(raw) ? raw.map(normalizeAssessment) : [];
+  } catch {
+    return [];
+  }
 }
 function saveLocal(data: AssessmentData[]) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(data));
@@ -118,7 +141,7 @@ export async function submitAssessment(data: AssessmentData): Promise<void> {
   };
 
   const existing = getLocal();
-  existing.unshift({ ...payload, _rowIndex: existing.length });
+  existing.unshift(normalizeAssessment({ ...payload, _rowIndex: existing.length }));
   saveLocal(existing);
 
   const params: Record<string, string> = {};
@@ -148,10 +171,12 @@ export async function fetchSubmissions(forceRefresh = false): Promise<Assessment
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     if (json?.data && Array.isArray(json.data)) {
-      const indexedData = json.data.map((item: AssessmentData, i: number) => ({
-        ...item,
-        _rowIndex: item._rowIndex ?? i
-      }));
+      const indexedData = json.data
+        .map((item: AssessmentData, i: number) => ({
+          ...item,
+          _rowIndex: item._rowIndex ?? i
+        }))
+        .map(normalizeAssessment);
       saveLocal(indexedData);
       return indexedData;
     }

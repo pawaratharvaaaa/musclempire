@@ -80,18 +80,27 @@ export default function AdminDashboard() {
     .filter((d) => {
       const s = search.toLowerCase().trim();
       const name = String(d.name || "").toLowerCase();
-      const phone = String(d.phone || "");
-      const matchSearch = !s || name.includes(s) || phone.includes(s);
-      const matchFood = !filterFood || d.foodPref === filterFood;
-      const matchStatus = !filterStatus || d.status === filterStatus;
+      const phoneRaw = String(d.phone || "");
+      const phoneDigits = phoneRaw.replace(/\D/g, "");
+      const searchDigits = s.replace(/\D/g, "");
+
+      const matchSearch = !s ||
+        name.includes(s) ||
+        phoneRaw.toLowerCase().includes(s) ||
+        (searchDigits.length > 0 && phoneDigits.includes(searchDigits)) ||
+        String(d.email || "").toLowerCase().includes(s) ||
+        String(d.goals || "").toLowerCase().includes(s);
+
+      const matchFood = !filterFood || String(d.foodPref || "").toLowerCase() === filterFood.toLowerCase();
+      const matchStatus = !filterStatus || String(d.status || "").toLowerCase() === filterStatus.toLowerCase();
       return matchSearch && matchFood && matchStatus;
     });
 
   const counts = {
     total: data.length,
-    new: data.filter((d) => d.status === "New").length,
-    inProgress: data.filter((d) => d.status === "In Progress").length,
-    completed: data.filter((d) => d.status === "Completed").length,
+    new: data.filter((d) => (d.status || "New").toLowerCase() === "new").length,
+    inProgress: data.filter((d) => d.status?.toLowerCase() === "in progress").length,
+    completed: data.filter((d) => d.status?.toLowerCase() === "completed").length,
   };
 
   const handleDelete = async (arrayIndex: number, rowIndex: number) => {
